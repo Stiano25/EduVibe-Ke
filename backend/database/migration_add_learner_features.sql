@@ -30,6 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_lesson_progress_completed ON lesson_progress(comp
 CREATE INDEX IF NOT EXISTS idx_lessons_substrand_order ON lessons(sub_strand_id, lesson_order);
 
 -- Add trigger for updated_at on lesson_progress
+DROP TRIGGER IF EXISTS update_lesson_progress_updated_at ON lesson_progress;
 CREATE TRIGGER update_lesson_progress_updated_at BEFORE UPDATE ON lesson_progress
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

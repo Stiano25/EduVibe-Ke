@@ -29,3 +29,6 @@ CREATE POLICY "Authenticated Delete"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'curriculum-designs');
 
+
+
+

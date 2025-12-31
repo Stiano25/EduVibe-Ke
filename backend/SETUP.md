@@ -77,3 +77,6 @@ Test the dashboard metrics:
 curl http://localhost:3000/api/admin/dashboard/metrics
 ```
 
+
+
+

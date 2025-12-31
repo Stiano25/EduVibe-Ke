@@ -51,3 +51,6 @@ Open your browser or use curl:
 - Make sure your Supabase project has Row Level Security (RLS) configured if needed
 - For production, update `NODE_ENV=production` and set proper CORS origins
 
+
+
+

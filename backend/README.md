@@ -156,3 +156,6 @@ The backend uses Google Gemini Flash 3 for:
 - The database tables need to be created in Supabase matching the model structures
 - File uploads (PDFs, images) would need additional setup with Supabase Storage
 
+
+
+

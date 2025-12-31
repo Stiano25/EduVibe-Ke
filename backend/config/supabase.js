@@ -26,3 +26,6 @@ export const supabaseAdmin = supabaseServiceRoleKey
 
 export default supabase;
 
+
+
+

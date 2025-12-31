@@ -36,3 +36,6 @@ CREATE INDEX IF NOT EXISTS idx_lessons_sub_strand ON lessons(sub_strand_id);
 ALTER TABLE lessons 
 ALTER COLUMN is_ai_generated SET DEFAULT true;
 
+
+
+

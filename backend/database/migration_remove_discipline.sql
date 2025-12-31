@@ -8,3 +8,6 @@ DROP COLUMN IF EXISTS discipline;
 -- Note: After this migration, subjects will no longer have a discipline field
 -- Each subject will have its own curriculum design automatically created
 
+
+
+

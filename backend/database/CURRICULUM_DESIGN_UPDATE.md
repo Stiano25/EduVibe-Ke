@@ -96,3 +96,6 @@ POST /api/admin/curriculum
 - ✅ Automatic creation: No need to manually create curriculum designs before subjects
 - ✅ Better organization: Each subject has its own curriculum document
 
+
+
+

@@ -173,3 +173,6 @@ async function createTablesProgrammatically() {
 // Run the migration
 createTablesProgrammatically();
 
+
+
+

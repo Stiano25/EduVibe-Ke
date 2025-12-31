@@ -221,7 +221,8 @@ export const getLearnerLessons = async (req, res) => {
       const isFirst = index === 0;
       const previousLesson = index > 0 ? approvedLessons[index - 1] : null;
       const previousProgress = previousLesson ? progressMap[previousLesson.id] : null;
-      const isUnlocked = isFirst || (previousProgress?.completed === true);
+      // Unlock if previous lesson is completed (100%) OR has progress >= 60% (passed threshold)
+      const isUnlocked = isFirst || (previousProgress?.completed === true) || (previousProgress?.progress >= 60);
 
       return {
         ...lesson,

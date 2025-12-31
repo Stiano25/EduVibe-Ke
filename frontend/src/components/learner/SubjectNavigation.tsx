@@ -1,8 +1,32 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { SubStrandCards } from './SubStrandCards'
 import type { Subject, Strand, SubStrand } from '@/types'
+// @ts-ignore - lottie-react types
+import Lottie from 'lottie-react'
+// @ts-ignore - JSON imports for animations
+import loadingAnimation from '@/animations/loading.json'
+import studentAnimation from '@/animations/STUDENT.json'
+import teacherAnimation from '@/animations/Teacher in Classroom.json'
+import wingedTeacherAnimation from '@/animations/Winged Teacher.json'
+import happyBoyAnimation from '@/animations/Happy boy.json'
+import yogaDogAnimation from '@/animations/Yoga Dog.json'
+import flirtingDogAnimation from '@/animations/Flirting Dog.json'
+import cuteTigerAnimation from '@/animations/Cute Tiger.json'
+import fireAnimation from '@/animations/Fire.json'
+
+// Available Lottie animations for subjects
+const subjectAnimations = [
+  studentAnimation,
+  teacherAnimation,
+  wingedTeacherAnimation,
+  happyBoyAnimation,
+  yogaDogAnimation,
+  flirtingDogAnimation,
+  cuteTigerAnimation,
+  fireAnimation,
+]
 
 type NavigationView = 'subjects' | 'strands' | 'substrands'
 
@@ -145,17 +169,24 @@ export const SubjectNavigation = () => {
 
       {loading && (
         <div className="text-center py-8">
-          <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
-            Loading...
-          </p>
+          <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto">
+            <Lottie 
+              animationData={loadingAnimation}
+              loop
+              autoplay
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
         </div>
       )}
 
       {!loading && navigationView === 'subjects' && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
           {subjects.map((subject) => {
-            // Use a simple icon placeholder - in production, you'd map icon names to actual icons
-            const iconColor = subject.color || 'from-indigo-500 to-purple-600'
+            // Get consistent Lottie animation per subject based on subject ID
+            const animationIndex = parseInt(subject.id.slice(-1) || '0', 16) % subjectAnimations.length
+            const subjectLottie = subjectAnimations[animationIndex]
+            
             return (
               <button
                 key={subject.id}
@@ -175,10 +206,13 @@ export const SubjectNavigation = () => {
                   e.currentTarget.style.transform = ''
                 }}
               >
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${iconColor} flex items-center justify-center shadow-lg`}>
-                  <span className="text-white text-xl sm:text-2xl font-bold">
-                    {subject.name.charAt(0).toUpperCase()}
-                  </span>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+                  <Lottie 
+                    animationData={subjectLottie}
+                    loop
+                    autoplay
+                    style={{ width: '100%', height: '100%' }}
+                  />
                 </div>
                 <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
                   {subject.name}

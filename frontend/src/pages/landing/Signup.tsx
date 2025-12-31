@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
@@ -42,7 +43,7 @@ export const Signup = () => {
     []
   )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -55,19 +56,33 @@ export const Signup = () => {
 
     setLoading(true)
 
-    const id =
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : String(Date.now())
+    try {
+      // Register user in the database
+      const response = await api.learner.register({
+        name: name.trim(),
+        email: email.trim(),
+        password: password, // In production, this should be hashed
+        grade: grade,
+      })
 
-    // Demo-only signup: we "create" a session user (no backend). Logout clears it.
-    setUser({
-      id,
-      name: name.trim(),
-      email: email.trim(),
-      role: 'learner',
-      grade: grade,
-    })
+      // Set user in auth store
+      setUser({
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        role: response.user.role,
+        grade: response.user.grade,
+      })
 
-    navigate('/learner')
+      navigate('/learner')
+    } catch (err: any) {
+      console.error('Registration error:', err)
+      // Show more detailed error message
+      const errorMessage = err.message || 'Failed to create account. Please try again.'
+      const errorDetails = err.details || err.hint || ''
+      setError(errorDetails ? `${errorMessage}: ${errorDetails}` : errorMessage)
+      setLoading(false)
+    }
   }
 
   return (

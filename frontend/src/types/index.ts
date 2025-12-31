@@ -147,6 +147,7 @@ export interface Lesson {
   examples?: string[]
   summary?: string
   quiz?: Quiz
+  theme?: string | null // Theme from strand (e.g., "Theme 1", "1")
   // Approval workflow
   isAIGenerated: boolean
   status: 'pending' | 'approved' | 'rejected' | 'draft'

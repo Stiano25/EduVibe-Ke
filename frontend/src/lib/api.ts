@@ -68,7 +68,12 @@ class ApiClient {
       
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(error.error || `HTTP error! status: ${response.status}`);
+        // Preserve error details from backend
+        const errorObj = new Error(error.error || `HTTP error! status: ${response.status}`);
+        if (error.details) errorObj.details = error.details;
+        if (error.hint) errorObj.hint = error.hint;
+        if (error.message) errorObj.message = error.message;
+        throw errorObj;
       }
 
       return await response.json();
@@ -223,6 +228,12 @@ class ApiClient {
 
   // Learner API methods
   learner = {
+    // Auth
+    register: (data: { name: string; email: string; password: string; grade: string }) =>
+      this.request('/learner/register', { method: 'POST', body: JSON.stringify(data) }),
+    login: (data: { email: string; password: string }) =>
+      this.request('/learner/login', { method: 'POST', body: JSON.stringify(data) }),
+    
     // Subjects - only for learner's grade, only those with strands
     getSubjects: () => this.request('/learner/subjects'),
     
@@ -247,6 +258,14 @@ class ApiClient {
         method: 'PATCH',
         body: JSON.stringify({ progress })
       }),
+    
+    // Get similar lessons from lower grades
+    getSimilarLessons: (lessonId: string) => 
+      this.request(`/learner/lessons/${lessonId}/similar`),
+    
+    // Get next lessons in same sub-strand
+    getNextLessons: (lessonId: string) => 
+      this.request(`/learner/lessons/${lessonId}/next`),
   };
 }
 

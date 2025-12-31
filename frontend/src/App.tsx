@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Shell } from '@/components/layout/Shell'
 import { Login } from '@/pages/landing/Login'
@@ -25,7 +26,30 @@ import { LessonView } from '@/pages/learner/LessonView'
 import { LearnerRecommendations } from '@/pages/learner/Recommendations'
 
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'admin' | 'learner' }) => {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated, user, initializeAuth } = useAuthStore()
+  const [isInitializing, setIsInitializing] = useState(true)
+
+  // Ensure auth is initialized before checking
+  useEffect(() => {
+    initializeAuth()
+    // Small delay to ensure sessionStorage is read
+    const timer = setTimeout(() => {
+      setIsInitializing(false)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [initializeAuth])
+
+  // Show loading state while initializing
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -39,6 +63,13 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
 }
 
 function App() {
+  const { initializeAuth } = useAuthStore()
+
+  // Initialize auth state from sessionStorage on app mount
+  useEffect(() => {
+    initializeAuth()
+  }, [initializeAuth])
+
   return (
     <BrowserRouter>
       <Routes>

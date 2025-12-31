@@ -1,32 +1,62 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { motion } from 'framer-motion'
-import { GraduationCap, ArrowLeft, Lightbulb } from 'lucide-react'
+import { GraduationCap, ArrowLeft } from 'lucide-react'
 
 export const Login = () => {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('password')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const login = useAuthStore((state) => state.login)
+  const { login, isAuthenticated, user, initializeAuth } = useAuthStore()
   const navigate = useNavigate()
+
+  // Initialize auth state on mount
+  useEffect(() => {
+    initializeAuth()
+  }, [initializeAuth])
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.role === 'admin' ? '/admin' : '/learner', { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
+
+  // Don't show login form if already authenticated
+  if (isAuthenticated && user) {
+    return null // Will redirect via useEffect
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const success = await login(email, password)
-    
-    if (success) {
-      const user = useAuthStore.getState().user
-      navigate(user?.role === 'admin' ? '/admin' : '/learner')
-    } else {
-      setError('Invalid email or password. Use any email from mockUsers with password "password"')
+    try {
+      const success = await login(email, password)
+      
+      if (success) {
+        // Get the user from store after login
+        const currentUser = useAuthStore.getState().user
+        if (currentUser) {
+          // Use replace to prevent back button issues
+          navigate(currentUser.role === 'admin' ? '/admin' : '/learner', { replace: true })
+        } else {
+          setError('Login successful but user data not found. Please try again.')
+          setLoading(false)
+        }
+      } else {
+        setError('Invalid email or password. Please check your credentials and try again.')
+        setLoading(false)
+      }
+    } catch (err: any) {
+      console.error('Login error:', err)
+      const errorMessage = err.message || err.error || 'Failed to login. Please check your credentials and try again.'
+      setError(errorMessage)
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   return (
@@ -85,7 +115,7 @@ export const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@eduvibe.com"
+                  placeholder="your@email.com"
                   className="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-colors text-base bg-white"
                   required
                 />
@@ -101,7 +131,7 @@ export const Login = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="password"
+                  placeholder="Enter your password"
                   className="w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-colors text-base bg-white"
                   required
                 />
@@ -126,35 +156,15 @@ export const Login = () => {
               </motion.button>
             </form>
 
-            {/* Demo Accounts Sticky Note */}
-            <motion.div
-              initial={{ rotate: -2 }}
-              whileHover={{ rotate: 0, scale: 1.05 }}
-              className="absolute -bottom-4 -right-4 bg-yellow-100 rounded-3xl border-2 border-yellow-300 p-4 shadow-lg max-w-[200px]"
-              style={{ transform: 'rotate(-2deg)' }}
-            >
-              <div className="flex items-start gap-2">
-                <Lightbulb className="w-5 h-5 text-yellow-700 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                <div>
-                  <p className="text-xs font-black text-yellow-900 mb-2">Demo Accounts</p>
-                  <button
-                    type="button"
-                    onClick={() => setEmail('admin@eduvibe.com')}
-                    className="text-left text-[10px] text-yellow-800 hover:text-yellow-900 font-semibold block mb-1"
-                  >
-                    Admin: admin@eduvibe.com
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEmail('john@eduvibe.com')}
-                    className="text-left text-[10px] text-yellow-800 hover:text-yellow-900 font-semibold block"
-                  >
-                    Learner: john@eduvibe.com
-                  </button>
-                  <p className="text-[9px] text-yellow-700 mt-2 italic">Password: password</p>
-                </div>
-              </div>
-            </motion.div>
+            {/* Sign up link */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-text-secondary">
+                Don't have an account?{' '}
+                <Link to="/signup" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+                  Sign up
+                </Link>
+              </p>
+            </div>
           </motion.div>
         </div>
       </main>

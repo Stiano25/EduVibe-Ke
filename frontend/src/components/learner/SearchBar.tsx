@@ -23,3 +23,6 @@ export const SearchBar = ({ value, onChange }: SearchBarProps) => {
   )
 }
 
+
+
+

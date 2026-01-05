@@ -15,6 +15,7 @@ import flirtingDogAnimation from '@/animations/Flirting Dog.json'
 export const LessonView = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,32 +36,45 @@ export const LessonView = () => {
   const [canProceedToNextSubstrand, setCanProceedToNextSubstrand] = useState(false)
   const [showUnansweredTooltip, setShowUnansweredTooltip] = useState(false)
 
+  // Helper function to get user-scoped localStorage keys
+  const getStorageKey = (key: string) => {
+    const userId = user?.id || 'anonymous'
+    return `${key}_${userId}_${id}`
+  }
+
+  // Helper function to get user-scoped failed lesson keys
+  const getFailedLessonKey = (key: string) => {
+    const userId = user?.id || 'anonymous'
+    return `${key}_${userId}`
+  }
+
   // Restore quiz state from localStorage on mount, clear when lesson changes
   useEffect(() => {
-    if (id) {
+    if (id && user?.id) {
       // Check if this is a retake of a failed lesson - if so, clear all saved state
-      const failedLessonId = localStorage.getItem('failed_lesson_id')
+      const failedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
       const isRetaking = failedLessonId === id
       
       if (isRetaking) {
         // Clear all saved quiz state for retake
-        localStorage.removeItem(`quiz_answers_${id}`)
-        localStorage.removeItem(`quiz_results_${id}`)
-        localStorage.removeItem(`quiz_show_results_${id}`)
+        localStorage.removeItem(getStorageKey('quiz_answers'))
+        localStorage.removeItem(getStorageKey('quiz_results'))
+        localStorage.removeItem(getStorageKey('quiz_show_results'))
         setSelectedAnswers({})
         setQuizResults({})
         setShowResults(false)
       } else {
-        // Normal restore - load saved state if available
-        const savedAnswers = localStorage.getItem(`quiz_answers_${id}`)
-        const savedResults = localStorage.getItem(`quiz_results_${id}`)
-        const savedShowResults = localStorage.getItem(`quiz_show_results_${id}`)
+        // Normal restore - load saved state if available (scoped to current user)
+        const savedAnswers = localStorage.getItem(getStorageKey('quiz_answers'))
+        const savedResults = localStorage.getItem(getStorageKey('quiz_results'))
+        const savedShowResults = localStorage.getItem(getStorageKey('quiz_show_results'))
         
         if (savedAnswers) {
           try {
             setSelectedAnswers(JSON.parse(savedAnswers))
           } catch (e) {
             console.error('Error restoring quiz answers:', e)
+            setSelectedAnswers({})
           }
         } else {
           setSelectedAnswers({})
@@ -71,6 +85,7 @@ export const LessonView = () => {
             setQuizResults(JSON.parse(savedResults))
           } catch (e) {
             console.error('Error restoring quiz results:', e)
+            setQuizResults({})
           }
         } else {
           setQuizResults({})
@@ -83,25 +98,25 @@ export const LessonView = () => {
         }
       }
     } else {
-      // Clear state if no lesson ID
+      // Clear state if no lesson ID or user
       setSelectedAnswers({})
       setQuizResults({})
       setShowResults(false)
     }
-  }, [id])
+  }, [id, user?.id])
 
-  // Save quiz state to localStorage whenever it changes
+  // Save quiz state to localStorage whenever it changes (scoped to current user)
   useEffect(() => {
-    if (id) {
+    if (id && user?.id) {
       if (Object.keys(selectedAnswers).length > 0) {
-        localStorage.setItem(`quiz_answers_${id}`, JSON.stringify(selectedAnswers))
+        localStorage.setItem(getStorageKey('quiz_answers'), JSON.stringify(selectedAnswers))
       }
       if (Object.keys(quizResults).length > 0) {
-        localStorage.setItem(`quiz_results_${id}`, JSON.stringify(quizResults))
+        localStorage.setItem(getStorageKey('quiz_results'), JSON.stringify(quizResults))
       }
-      localStorage.setItem(`quiz_show_results_${id}`, showResults.toString())
+      localStorage.setItem(getStorageKey('quiz_show_results'), showResults.toString())
     }
-  }, [selectedAnswers, quizResults, showResults, id])
+  }, [selectedAnswers, quizResults, showResults, id, user?.id])
 
   useEffect(() => {
     const fetchLesson = async () => {
@@ -129,14 +144,16 @@ export const LessonView = () => {
 
     fetchLesson()
     
-    // Check for failed lesson on mount
-    const storedFailedLessonId = localStorage.getItem('failed_lesson_id')
-    const storedFailedLessonTitle = localStorage.getItem('failed_lesson_title')
-    if (storedFailedLessonId && storedFailedLessonTitle) {
-      setFailedLessonId(storedFailedLessonId)
-      setFailedLessonTitle(storedFailedLessonTitle)
+    // Check for failed lesson on mount (user-scoped)
+    if (user?.id) {
+      const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+      const storedFailedLessonTitle = localStorage.getItem(getFailedLessonKey('failed_lesson_title'))
+      if (storedFailedLessonId && storedFailedLessonTitle) {
+        setFailedLessonId(storedFailedLessonId)
+        setFailedLessonTitle(storedFailedLessonTitle)
+      }
     }
-  }, [id])
+  }, [id, user?.id])
 
   const handleAnswerSelect = (questionId: string, answerIndex: number) => {
     if (showResults) return // Don't allow changes after showing results
@@ -160,10 +177,10 @@ export const LessonView = () => {
     setQuizResults(results)
     setShowResults(true)
     
-    // Save to localStorage immediately
-    if (id) {
-      localStorage.setItem(`quiz_results_${id}`, JSON.stringify(results))
-      localStorage.setItem(`quiz_show_results_${id}`, 'true')
+    // Save to localStorage immediately (user-scoped)
+    if (id && user?.id) {
+      localStorage.setItem(getStorageKey('quiz_results'), JSON.stringify(results))
+      localStorage.setItem(getStorageKey('quiz_show_results'), 'true')
     }
 
     // Calculate score using the results directly
@@ -180,32 +197,34 @@ export const LessonView = () => {
         // Update progress to 100%
         await api.learner.updateLessonProgress(id, 100)
         
-        // Clear failed lesson if this was the failed lesson
-        const failedLessonId = localStorage.getItem('failed_lesson_id')
-        if (failedLessonId === id) {
-          localStorage.removeItem('failed_lesson_id')
-          localStorage.removeItem('failed_lesson_title')
-          localStorage.removeItem('failed_lesson_subject_id')
-        }
-        
-        // Check if this is a lower grade lesson and user has a failed lesson in the SAME SUBJECT
-        const storedFailedLessonId = localStorage.getItem('failed_lesson_id')
-        const storedFailedLessonSubjectId = localStorage.getItem('failed_lesson_subject_id')
-        if (storedFailedLessonId && storedFailedLessonId !== id && lesson.subjectId === storedFailedLessonSubjectId) {
-          // User passed a lower grade lesson in the same subject, prompt to retake failed lesson
-          setShowRetakePrompt(true)
+        // Clear failed lesson if this was the failed lesson (user-scoped)
+        if (user?.id) {
+          const failedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+          if (failedLessonId === id) {
+            localStorage.removeItem(getFailedLessonKey('failed_lesson_id'))
+            localStorage.removeItem(getFailedLessonKey('failed_lesson_title'))
+            localStorage.removeItem(getFailedLessonKey('failed_lesson_subject_id'))
+          }
+          
+          // Check if this is a lower grade lesson and user has a failed lesson in the SAME SUBJECT
+          const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+          const storedFailedLessonSubjectId = localStorage.getItem(getFailedLessonKey('failed_lesson_subject_id'))
+          if (storedFailedLessonId && storedFailedLessonId !== id && lesson.subjectId === storedFailedLessonSubjectId) {
+            // User passed a lower grade lesson in the same subject, prompt to retake failed lesson
+            setShowRetakePrompt(true)
+          }
         }
       } catch (err) {
         console.error('Error completing lesson:', err)
       }
     } else if (id) {
       // Failed - score is less than 60%
-      // Store this as the failed lesson if it's from the user's current grade
+      // Store this as the failed lesson if it's from the user's current grade (user-scoped)
       const userGrade = useAuthStore.getState().user?.grade
-      if (userGrade && lesson.grade === userGrade) {
-        localStorage.setItem('failed_lesson_id', id)
-        localStorage.setItem('failed_lesson_title', lesson.title)
-        localStorage.setItem('failed_lesson_subject_id', lesson.subjectId)
+      if (userGrade && lesson.grade === userGrade && user?.id) {
+        localStorage.setItem(getFailedLessonKey('failed_lesson_id'), id)
+        localStorage.setItem(getFailedLessonKey('failed_lesson_title'), lesson.title)
+        localStorage.setItem(getFailedLessonKey('failed_lesson_subject_id'), lesson.subjectId || '')
       }
       
       // Update progress based on score
@@ -222,12 +241,12 @@ export const LessonView = () => {
     // Only allow progression if score is 60% or more
     if (score.percentage < 60) {
       // Failed - score is less than 60%
-      // Store this as the failed lesson if it's from the user's current grade
+      // Store this as the failed lesson if it's from the user's current grade (user-scoped)
       const userGrade = useAuthStore.getState().user?.grade
-      if (userGrade && lesson.grade === userGrade && id) {
-        localStorage.setItem('failed_lesson_id', id)
-        localStorage.setItem('failed_lesson_title', lesson.title)
-        localStorage.setItem('failed_lesson_subject_id', lesson.subjectId)
+      if (userGrade && lesson.grade === userGrade && id && user?.id) {
+        localStorage.setItem(getFailedLessonKey('failed_lesson_id'), id)
+        localStorage.setItem(getFailedLessonKey('failed_lesson_title'), lesson.title)
+        localStorage.setItem(getFailedLessonKey('failed_lesson_subject_id'), lesson.subjectId || '')
         setFailedLessonId(id)
         setFailedLessonTitle(lesson.title)
       }
@@ -258,17 +277,20 @@ export const LessonView = () => {
         }
       }
     } else {
-      // Meeting or exceeding - check if this is a lower grade lesson and user has a failed lesson in the SAME SUBJECT
-      const storedFailedLessonId = localStorage.getItem('failed_lesson_id')
-      const storedFailedLessonTitle = localStorage.getItem('failed_lesson_title')
-      const storedFailedLessonSubjectId = localStorage.getItem('failed_lesson_subject_id')
-      
-      if (storedFailedLessonId && storedFailedLessonTitle && storedFailedLessonId !== id && lesson.subjectId === storedFailedLessonSubjectId) {
-        // User passed a lower grade lesson in the same subject, prompt to retake failed lesson
-        setShowRetakePrompt(true)
-        setFailedLessonId(storedFailedLessonId)
-        setFailedLessonTitle(storedFailedLessonTitle)
-      } else {
+      // Meeting or exceeding - check if this is a lower grade lesson and user has a failed lesson in the SAME SUBJECT (user-scoped)
+      if (user?.id) {
+        const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+        const storedFailedLessonTitle = localStorage.getItem(getFailedLessonKey('failed_lesson_title'))
+        const storedFailedLessonSubjectId = localStorage.getItem(getFailedLessonKey('failed_lesson_subject_id'))
+        
+        if (storedFailedLessonId && storedFailedLessonTitle && storedFailedLessonId !== id && lesson.subjectId === storedFailedLessonSubjectId) {
+          // User passed a lower grade lesson in the same subject, prompt to retake failed lesson
+          setShowRetakePrompt(true)
+          setFailedLessonId(storedFailedLessonId)
+          setFailedLessonTitle(storedFailedLessonTitle)
+        }
+      }
+      else {
         // Load next lessons in same sub-strand
         if (id) {
           setLoadingNext(true)
@@ -914,10 +936,12 @@ export const LessonView = () => {
                                 <Link
                                   to={`/learner/lessons/${failedLessonId}`}
                                   onClick={() => {
-                                    // Clear quiz state for the failed lesson
-                                    localStorage.removeItem(`quiz_answers_${failedLessonId}`)
-                                    localStorage.removeItem(`quiz_results_${failedLessonId}`)
-                                    localStorage.removeItem(`quiz_show_results_${failedLessonId}`)
+                                    // Clear quiz state for the failed lesson (user-scoped)
+                                    if (user?.id && failedLessonId) {
+                                      localStorage.removeItem(`quiz_answers_${user.id}_${failedLessonId}`)
+                                      localStorage.removeItem(`quiz_results_${user.id}_${failedLessonId}`)
+                                      localStorage.removeItem(`quiz_show_results_${user.id}_${failedLessonId}`)
+                                    }
                                   }}
                                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-amber-600 text-white font-semibold hover:bg-amber-700 transition-all"
                                   style={{ fontFamily: 'Poppins, sans-serif' }}

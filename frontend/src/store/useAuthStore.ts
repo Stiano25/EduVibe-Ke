@@ -62,6 +62,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user, isAuthenticated: true })
         // Store user ID in sessionStorage for API client
         if (typeof window !== 'undefined' && user.id) {
+          // Clear any quiz-related localStorage from previous sessions
+          clearQuizLocalStorage()
+          
           sessionStorage.setItem('userId', user.id)
           sessionStorage.setItem('user', JSON.stringify(user))
           console.log('User stored in sessionStorage')
@@ -95,6 +98,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Store user ID in sessionStorage for API client
     if (typeof window !== 'undefined') {
       if (user?.id) {
+        // Clear any quiz-related localStorage from previous sessions
+        clearQuizLocalStorage()
+        
         sessionStorage.setItem('userId', user.id)
         sessionStorage.setItem('user', JSON.stringify(user))
       } else {
@@ -104,4 +110,28 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }))
+
+// Helper function to clear all quiz-related localStorage
+// This clears both old unscoped keys and ensures fresh start for new login
+const clearQuizLocalStorage = () => {
+  if (typeof window === 'undefined') return
+  
+  // Get all localStorage keys
+  const keys = Object.keys(localStorage)
+  
+  // Remove all quiz-related keys (both old unscoped and new user-scoped formats)
+  keys.forEach(key => {
+    if (key.startsWith('quiz_answers_') || 
+        key.startsWith('quiz_results_') || 
+        key.startsWith('quiz_show_results_') ||
+        key.startsWith('failed_lesson_id') ||
+        key.startsWith('failed_lesson_title') ||
+        key.startsWith('failed_lesson_subject_id') ||
+        key === 'failed_lesson_id' ||
+        key === 'failed_lesson_title' ||
+        key === 'failed_lesson_subject_id') {
+      localStorage.removeItem(key)
+    }
+  })
+}
 

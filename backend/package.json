@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "migrate": "node database/migrate.js",
     "test-connection": "node test-connection.js",
-    "create-admin": "node create-admin.js"
+    "create-admin": "node create-admin.js",
+    "backup": "node database/backup.js"
   },
   "keywords": [],
   "author": "",

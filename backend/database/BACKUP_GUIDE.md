@@ -473,3 +473,4 @@ psql "$SUPABASE_DB_URL" -c "SELECT pg_size_pretty(pg_database_size('postgres'));
 **Last Updated**: 2024
 **Maintained by**: EduVibe Development Team
 
+

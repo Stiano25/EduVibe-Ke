@@ -1,0 +1,10 @@
+node_modules
+.env.local
+.env.development
+*.log
+.DS_Store
+test-*.js
+create-admin.js
+database/backup.js
+
+

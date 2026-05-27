@@ -39,7 +39,14 @@ export const generateLessonsFromSubStrand = async (subStrandId, numberOfLessons 
                      gradeNumber <= 5 ? 'young children (ages 8-10)' :
                      gradeNumber <= 8 ? 'pre-teens (ages 11-13)' : 'teens (ages 14+)';
 
-    const prompt = `You are creating FUN QUIZ CHALLENGE LESSONS for ${ageGroup} (Grade ${grade}). These are NOT theory sessions - they are interactive, engaging quiz challenges that kids will enjoy!
+const prompt = `You are creating SUBJECT-AWARE, INTERACTIVE LEARNING LESSONS for ${ageGroup} (Grade ${grade}).  
+The goal is REAL LEARNING: knowledge, practical skill, and thinking ability — not just fun quizzes.
+
+Lessons must help learners:
+- Understand concepts
+- Apply knowledge
+- Think logically
+- Improve skills in the way each subject is naturally learned
 
 Context:
 - Grade: ${grade} (${ageGroup})
@@ -50,78 +57,149 @@ ${strand.theme ? `- Theme: ${strand.theme}` : ''}
 - Description: ${subStrand.description || 'N/A'}
 
 Learning Outcomes:
-${subStrand.learningOutcomes.map((outcome, i) => `${i + 1}. ${outcome}`).join('\n')}
+${subStrand.learningOutcomes.map((o, i) => `${i + 1}. ${o}`).join('\n')}
 
 Key Inquiry Questions:
 ${subStrand.keyInquiryQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 
-CRITICAL REQUIREMENTS FOR KID-FRIENDLY QUIZ LESSONS:
-1. LANGUAGE: Use SIMPLE, EASY words that ${ageGroup} can understand. NO hard or complex words!
-2. FORMAT: This is a FUN QUIZ CHALLENGE, not a boring theory lesson. Make it exciting and interactive!
-3. CONTENT TYPE: Always use 'interactive' - these are quiz-based lessons
-4. QUESTIONS: Generate EXACTLY 10 multiple choice questions per lesson, covering ALL difficulty bands:
-   - Include difficulty per question: one of "easy", "intermediate", "advanced" (balanced mix)
-   - Simple, clear question text
-   - 3-4 simple answer options (use easy words!)
-   - Simple examples that kids can relate to (real-life examples)
-   - Provide BOTH feedbackCorrect and feedbackIncorrect with encouraging tone
-5. HIGHLIGHTING EXERCISES: Include a short paragraph (2-3 sentences) in the content that kids can highlight key words or phrases from. Make it simple and fun!
-6. TONE: Make it fun, encouraging, and age-appropriate. Use emojis sparingly if it helps engagement.
-7. EXAMPLES: Use simple, relatable examples that kids understand (toys, animals, games, friends, family, etc.)
+────────────────────────────
+SUBJECT-SPECIFIC CONTENT STYLE (MUST FOLLOW)
+────────────────────────────
 
-Each lesson must have:
-- title: Fun, engaging title (keep it simple!)
-- description: Brief, exciting description that makes kids want to play
-- contentType: "interactive" (always)
-- difficulty: Match the grade level appropriately
-- content: A short, simple introduction paragraph (2-3 sentences) followed by a highlighting exercise paragraph. Keep it VERY simple!
-- tags: Simple, relevant tags
-- duration: 10-15 minutes (short and focused)
-- quiz: Object with:
-  - title: Fun quiz title
-  - questions: Array of EXACTLY 10 multiple choice questions, each with:
-    - question: Simple question text (use easy words!)
-    - type: "multiple-choice"
-    - options: Array of 3-4 simple options (use easy words!)
-    - correctAnswerIndex: Index (0-based) of correct answer
-    - explanation: Simple, encouraging overall explanation for the question
-    - optionExplanations: Array of explanations, one per option, explaining:
-        * why the correct option IS correct
-        * why each incorrect option is NOT correct
-      (Use kid-friendly language and real-life examples)
-    - feedbackCorrect: A short congratulatory message with real-life example
-    - feedbackIncorrect: A short corrective message with real-life example
-    - difficulty: "easy" | "intermediate" | "advanced" (balanced across the 10)
-    - points: 10-20 points per question
-  - passingScore: 60-70 (encouraging for kids)
-  - timeLimit: 10-15 minutes
+📐 MATHEMATICS:
+- Content must be "Worked Examples + Mini Notes"
+- NO stories
+- Include 2–3 worked examples with step-by-step workings
+- Then include 2 quick practice prompts (not graded)
+- Focus on numbers, operations, patterns, time, money, measurement
+- At least 7/10 quiz questions must be calculations
+- Explanations must show working in steps
 
-IMPORTANT: 
-- NO complex vocabulary
-- NO long explanations
-- Make it FUN and GAME-LIKE
-- Kids will check their results after completing the quiz
-- Each question should feel like a fun challenge, not a test
+🗣 LANGUAGES (French, English, Kiswahili, etc.):
+- Content must be "Comprehension + Vocabulary + Sentence Use"
+- Include:
+  - 1 short comprehension passage OR dialogue (6–10 lines)
+  - 6–10 new vocabulary words/phrases with simple meanings
+  - 2 usage tips (best ways to say things)
+- Use cloze-test style questions (with and without options)
+- Focus on correct phrasing, sentence structure, vocabulary growth
 
-Return as JSON array with ${numberOfLessons} lessons:
+🔬 SCIENCE:
+- Content must be scenario-based
+- Use real-life situations (weather, plants, body, home, school)
+- Focus on cause → effect and “why” reasoning
+- Encourage observation and explanation
+
+🌍 SOCIAL STUDIES:
+- Content must be story or real-life scenario
+- May include history-related short story
+- Focus on people, systems, roles, decisions, society
+
+✝️ RELIGIOUS EDUCATION:
+- Content must use short Bible/Quran text or moral story
+- Focus on meaning, values, lessons, interpretation
+
+🎨 ART / MUSIC / PHE:
+- Content must be practical and skill-based
+- Include activity-style guidance (what to do, how to do)
+- Include knowledge of real people in the field (artists, musicians, athletes)
+
+────────────────────────────
+THINKING SKILLS REQUIREMENT
+────────────────────────────
+
+Each lesson must build:
+- Recall
+- Understanding
+- Application
+- Reasoning
+
+At least 3 questions must be real-life or best-choice reasoning.
+
+────────────────────────────
+QUIZ STRUCTURE
+────────────────────────────
+
+Generate EXACTLY 10 multiple choice questions.
+
+Difficulty is about THINKING LEVEL:
+- easy = recall
+- intermediate = apply
+- advanced = reasoning
+
+Distribution:
+- 4 easy
+- 4 intermediate
+- 2 advanced
+
+Each question must include:
+- question
+- type: "multiple-choice"
+- options (3–4)
+- correctAnswerIndex
+- explanation (short, meaningful)
+- optionExplanations (why each is right/wrong)
+- feedbackCorrect
+- feedbackIncorrect
+- difficulty
+- points (10–20)
+
+────────────────────────────
+STYLE RULES
+────────────────────────────
+
+- Use age-appropriate language
+- Introduce correct academic terms but explain simply
+- No long paragraphs
+- No textbook tone
+- No trick questions
+- Make learning feel structured and purposeful
+
+────────────────────────────
+LESSON STRUCTURE
+────────────────────────────
+
+Each lesson must include:
+- title
+- description
+- contentType: "interactive"
+- difficulty
+- content (based on subject style above)
+- tags
+- duration (10–15)
+- quiz (object defined above)
+
+IMPORTANT CONTENT FORMAT RULE:
+- The "content" field MUST be PLAIN TEXT ONLY.
+- Do NOT use any markdown (no # headings, no **bold**, no bullet lists, no tables).
+- Do NOT use LaTeX or math delimiters (no $...$, no \\( ... \\), no \\[ ... \\]).
+- Write any maths and symbols as simple readable text, e.g. "A plus B equals C" or "A + B = C".
+- Do NOT include emojis or special decorative icons.
+
+Return ONLY valid JSON (no markdown, no extra text) as an array with ${numberOfLessons} lessons.
+
 [
   {
-    "title": "Fun, simple title",
-    "description": "Exciting, simple description",
+    "title": "Lesson Title",
+    "description": "Exciting short description",
     "contentType": "interactive",
     "difficulty": "beginner",
-    "content": "A short simple intro (2-3 sentences).\\n\\nThen a paragraph for highlighting exercise (2-3 sentences with key words kids can highlight).",
-    "tags": ["simple", "fun", "quiz"],
+    "content": "Subject-style content here",
+    "tags": ["practice"],
     "duration": 12,
     "quiz": {
-      "title": "Fun Quiz Challenge",
+      "title": "Quiz Challenge",
       "questions": [
         {
-          "question": "Simple question?",
+          "question": "Question text?",
           "type": "multiple-choice",
-          "options": ["Simple option A", "Simple option B", "Simple option C"],
+          "options": ["A", "B", "C"],
           "correctAnswerIndex": 0,
-          "explanation": "Simple, encouraging explanation",
+          "explanation": "Why it is correct.",
+          "optionExplanations": ["A reason", "B reason", "C reason"],
+          "feedbackCorrect": "Great!",
+          "feedbackIncorrect": "Try again!",
+          "difficulty": "easy",
           "points": 15
         }
       ],
@@ -130,6 +208,8 @@ Return as JSON array with ${numberOfLessons} lessons:
     }
   }
 ]`;
+
+                     
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -149,7 +229,7 @@ Return as JSON array with ${numberOfLessons} lessons:
         description: `A lesson about ${subStrand.name}`,
         contentType: 'reading',
         difficulty: 'beginner',
-        content: `# ${subStrand.name}\n\nContent here...`,
+        content: `${subStrand.name} - Content here...`,
         learningObjectives: subStrand.learningOutcomes.slice(0, 3),
         keyConcepts: [],
         examples: [],
@@ -164,6 +244,18 @@ Return as JSON array with ${numberOfLessons} lessons:
       }));
     }
 
+    // Ensure content is plain text (no markdown/LaTeX/emojis) as a safety net
+    const sanitizeContent = (content = '') => {
+      return content
+        // Remove common markdown heading/emphasis markers
+        .replace(/[#*_`]+/g, '')
+        // Remove LaTeX math delimiters
+        .replace(/\$+/g, '')
+        // Strip a few common emoji/decoration characters that often appear in prompts
+        .replace(/[📐🗣🔬🌍✝️🎨🎵🔥⭐✅❌]/g, '')
+        .trim();
+    };
+
     // Map to expected format
     return lessonsData.map(lesson => ({
       title: lesson.title,
@@ -176,7 +268,7 @@ Return as JSON array with ${numberOfLessons} lessons:
       difficulty: lesson.difficulty || 'beginner',
       tags: lesson.tags || [],
       duration: lesson.duration || 30,
-      content: lesson.content || '',
+      content: sanitizeContent(lesson.content || ''),
       learningObjectives: lesson.learningObjectives || [],
       keyConcepts: lesson.keyConcepts || [],
       examples: lesson.examples || [],

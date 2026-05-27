@@ -11,6 +11,7 @@ import Lottie from 'lottie-react'
 import loadingAnimation from '@/animations/loading.json'
 // @ts-ignore - JSON imports for animations
 import flirtingDogAnimation from '@/animations/Flirting Dog.json'
+import { LessonContentRenderer } from '@/components/learner/LessonContentRenderer'
 
 export const LessonView = () => {
   const { id } = useParams()
@@ -288,15 +289,13 @@ export const LessonView = () => {
           setShowRetakePrompt(true)
           setFailedLessonId(storedFailedLessonId)
           setFailedLessonTitle(storedFailedLessonTitle)
-        }
-      }
-      else {
-        // Load next lessons in same sub-strand
-        if (id) {
-          setLoadingNext(true)
-          try {
-            const nextData = await api.learner.getNextLessons(id)
-            setNextLessons(nextData.nextLessons || [])
+        } else {
+          // Load next lessons in same sub-strand
+          if (id) {
+            setLoadingNext(true)
+            try {
+              const nextData = await api.learner.getNextLessons(id)
+              setNextLessons(nextData.nextLessons || [])
             // Store next sub-strand info if available
             if (nextData.nextSubstrand) {
               localStorage.setItem('next_substrand_id', nextData.nextSubstrand.id)
@@ -321,6 +320,49 @@ export const LessonView = () => {
               setNextSubstrand(null)
             }
             // Store completion count
+            const completedCount = nextData.completedCount || 0
+            const canProceed = nextData.canProceedToNextSubstrand || false
+            localStorage.setItem('substrand_completed_count', String(completedCount))
+            localStorage.setItem('can_proceed_to_next_substrand', String(canProceed))
+            setCompletedCount(completedCount)
+            setCanProceedToNextSubstrand(canProceed)
+          } catch (err) {
+            console.error('Error loading next lessons:', err)
+            setNextLessons([])
+          } finally {
+            setLoadingNext(false)
+          }
+        }
+      }
+      } else {
+        // No user ID - load next lessons anyway
+        if (id) {
+          setLoadingNext(true)
+          try {
+            const nextData = await api.learner.getNextLessons(id)
+            setNextLessons(nextData.nextLessons || [])
+            if (nextData.nextSubstrand) {
+              localStorage.setItem('next_substrand_id', nextData.nextSubstrand.id)
+              localStorage.setItem('next_substrand_name', nextData.nextSubstrand.name)
+              if (nextData.nextSubstrand.subjectId) {
+                localStorage.setItem('next_substrand_subject_id', nextData.nextSubstrand.subjectId)
+              }
+              if (nextData.nextSubstrand.strandId) {
+                localStorage.setItem('next_substrand_strand_id', nextData.nextSubstrand.strandId)
+              }
+              setNextSubstrand({ 
+                id: nextData.nextSubstrand.id, 
+                name: nextData.nextSubstrand.name,
+                subjectId: nextData.nextSubstrand.subjectId,
+                strandId: nextData.nextSubstrand.strandId
+              })
+            } else {
+              localStorage.removeItem('next_substrand_id')
+              localStorage.removeItem('next_substrand_name')
+              localStorage.removeItem('next_substrand_subject_id')
+              localStorage.removeItem('next_substrand_strand_id')
+              setNextSubstrand(null)
+            }
             const completedCount = nextData.completedCount || 0
             const canProceed = nextData.canProceedToNextSubstrand || false
             localStorage.setItem('substrand_completed_count', String(completedCount))
@@ -541,82 +583,7 @@ export const LessonView = () => {
                   </div>
                 ) : lesson.content ? (
                   <div className="prose max-w-none">
-                    <div 
-                      className="text-slate-900 leading-relaxed text-base sm:text-lg space-y-6"
-                      style={{ fontFamily: 'Manrope, sans-serif' }}
-                    >
-                      {lesson.content.split('\n').map((line, index) => {
-                        // Handle markdown headers
-                        if (line.startsWith('# ')) {
-                          return (
-                            <h2 key={index} className="text-2xl sm:text-3xl font-black text-[#0F172A] mt-8 mb-4 first:mt-0" style={{ fontFamily: 'Fredoka, sans-serif' }}>
-                              {line.replace('# ', '')}
-                            </h2>
-                          )
-                        }
-                        if (line.startsWith('## ')) {
-                          return (
-                            <h3 key={index} className="text-xl sm:text-2xl font-bold text-[#0F172A] mt-6 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                              {line.replace('## ', '')}
-                            </h3>
-                          )
-                        }
-                        if (line.startsWith('### ')) {
-                          return (
-                            <h4 key={index} className="text-lg sm:text-xl font-semibold text-indigo-700 mt-5 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                              {line.replace('### ', '')}
-                            </h4>
-                          )
-                        }
-                        // Handle bullet points
-                        if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-                          return (
-                            <div key={index} className="flex items-start gap-2 ml-4">
-                              <span className="text-indigo-600 mt-1.5">•</span>
-                              <span>{line.replace(/^[•-]\s*/, '')}</span>
-                            </div>
-                          )
-                        }
-                        // Handle numbered lists
-                        if (/^\d+\.\s/.test(line.trim())) {
-                          return (
-                            <div key={index} className="flex items-start gap-2 ml-4">
-                              <span className="text-indigo-600 font-semibold mt-1.5">{line.match(/^\d+\./)?.[0]}</span>
-                              <span>{line.replace(/^\d+\.\s*/, '')}</span>
-                            </div>
-                          )
-                        }
-                        // Handle bold text
-                        if (line.includes('**')) {
-                          const parts = line.split(/(\*\*[^*]+\*\*)/g)
-                          return (
-                            <p key={index} className="mb-3">
-                              {parts.map((part, i) => 
-                                part.startsWith('**') && part.endsWith('**') ? (
-                                  <strong key={i} className="font-bold text-[#0F172A]">{part.slice(2, -2)}</strong>
-                                ) : (
-                                  <span key={i}>{part}</span>
-                                )
-                              )}
-                            </p>
-                          )
-                        }
-                        // Handle horizontal rule
-                        if (line.trim() === '---') {
-                          return <hr key={index} className="my-6 border-slate-200" />
-                        }
-                        // Handle empty lines
-                        if (line.trim() === '') {
-                          return <br key={index} />
-                        }
-                        // Regular paragraphs
-                        return (
-                          <p key={index} className="mb-3 text-slate-700">
-                            {line}
-                          </p>
-                        )
-                      })}
-                    </div>
+                    <LessonContentRenderer content={lesson.content} />
                   </div>
                 ) : (
                   <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-[16px] p-8 sm:p-12 text-center">

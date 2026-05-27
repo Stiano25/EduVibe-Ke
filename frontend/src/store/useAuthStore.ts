@@ -134,4 +134,3 @@ const clearQuizLocalStorage = () => {
     }
   })
 }
-

@@ -132,4 +132,3 @@ export const loginLearner = async (req, res) => {
     });
   }
 };
-

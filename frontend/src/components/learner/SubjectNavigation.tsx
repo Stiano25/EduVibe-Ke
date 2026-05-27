@@ -15,6 +15,7 @@ import yogaDogAnimation from '@/animations/Yoga Dog.json'
 import flirtingDogAnimation from '@/animations/Flirting Dog.json'
 import cuteTigerAnimation from '@/animations/Cute Tiger.json'
 import fireAnimation from '@/animations/Fire.json'
+import emojiAngryFaceAnimation from '@/animations/Emoji Angry Face.json'
 
 // Available Lottie animations for subjects
 const subjectAnimations = [
@@ -26,7 +27,78 @@ const subjectAnimations = [
   flirtingDogAnimation,
   cuteTigerAnimation,
   fireAnimation,
+  emojiAngryFaceAnimation,
 ]
+
+// Function to get appropriate animation for a subject based on its name
+const getAnimationForSubject = (subjectName: string): any => {
+  const name = subjectName.toLowerCase()
+  
+  // Science subjects - Fire, Teacher
+  if (name.includes('science') || name.includes('biology') || name.includes('chemistry') || 
+      name.includes('physics') || name.includes('agriculture')) {
+    return fireAnimation
+  }
+  
+  // Math subjects - Student, Happy boy
+  if (name.includes('math') || name.includes('mathematics') || name.includes('algebra') || 
+      name.includes('geometry') || name.includes('calculus')) {
+    return studentAnimation
+  }
+  
+  // Language subjects - Happy boy, Student
+  if (name.includes('language') || name.includes('english') || name.includes('kiswahili') || 
+      name.includes('french') || name.includes('arabic') || name.includes('german') || 
+      name.includes('mandarin') || name.includes('literature') || name.includes('fasihi')) {
+    return happyBoyAnimation
+  }
+  
+  // Arts and creative subjects - Cute Tiger, Yoga Dog, Flirting Dog
+  if (name.includes('art') || name.includes('music') || name.includes('dance') || 
+      name.includes('theatre') || name.includes('film') || name.includes('fine art')) {
+    return cuteTigerAnimation
+  }
+  
+  // Sports and PHE - Yoga Dog, Happy boy
+  if (name.includes('sport') || name.includes('phe') || name.includes('physical') || 
+      name.includes('recreation') || name.includes('health')) {
+    return yogaDogAnimation
+  }
+  
+  // Technical subjects - Teacher, Winged Teacher
+  if (name.includes('technical') || name.includes('computer') || name.includes('aviation') || 
+      name.includes('electricity') || name.includes('woodwork') || name.includes('marine') || 
+      name.includes('media') || name.includes('construction')) {
+    return teacherAnimation
+  }
+  
+  // Business and Humanities - Winged Teacher, Student
+  if (name.includes('business') || name.includes('geography') || name.includes('history') || 
+      name.includes('citizenship') || name.includes('community')) {
+    return wingedTeacherAnimation
+  }
+  
+  // Religious Education - Teacher, Winged Teacher
+  if (name.includes('religious') || name.includes('cre') || name.includes('hre') || 
+      name.includes('ire') || name.includes('bible') || name.includes('quran')) {
+    return wingedTeacherAnimation
+  }
+  
+  // Home Science - Happy boy, Flirting Dog
+  if (name.includes('home science') || name.includes('food') || name.includes('nutrition') || 
+      name.includes('clothing') || name.includes('textile')) {
+    return flirtingDogAnimation
+  }
+  
+  // Challenging/difficult subjects - Emoji Angry Face
+  if (name.includes('core') || name.includes('essential') || name.includes('advanced')) {
+    return emojiAngryFaceAnimation
+  }
+  
+  // Default fallback - cycle through animations based on subject name hash
+  const hash = subjectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return subjectAnimations[hash % subjectAnimations.length]
+}
 
 type NavigationView = 'subjects' | 'strands' | 'substrands'
 

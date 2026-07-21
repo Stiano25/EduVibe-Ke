@@ -10,8 +10,11 @@ import quizRoutes from './quiz.js';
 import userRoutes from './user.js';
 import analyticsRoutes from './analytics.js';
 import uploadRoutes from './upload.js';
+import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = express.Router();
+
+router.use(authenticate, requireRole('admin'));
 
 router.use('/dashboard', dashboardRoutes);
 router.use('/curriculum', curriculumRoutes);

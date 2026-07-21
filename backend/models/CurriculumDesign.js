@@ -1,4 +1,5 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../config/supabase.js';
+import { oneOrNull } from '../utils/dbResult.js';
 
 export class CurriculumDesign {
   static tableName = 'curriculum_designs';
@@ -12,7 +13,7 @@ export class CurriculumDesign {
       designName = `Grade${grade}_${subjectName}_Curriculum Design`;
     }
     
-    const { data: curriculumDesign, error } = await supabase
+    const { data: curriculumDesign, error } = await getDbClient()
       .from(this.tableName)
       .insert({
         grade,
@@ -32,33 +33,28 @@ export class CurriculumDesign {
   }
 
   static async findBySubjectName(grade, subjectName) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('grade', grade)
       .eq('subject_name', subjectName)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null; // Not found
-      throw error;
-    }
-    return data ? this.mapToModel(data) : null;
+    return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
-    return data ? this.mapToModel(data) : null;
+    return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
   static async findByGrade(grade) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('grade', grade)
@@ -69,7 +65,7 @@ export class CurriculumDesign {
   }
 
   static async findAll() {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .order('grade', { ascending: true })
@@ -111,7 +107,7 @@ export class CurriculumDesign {
       }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(updateData)
       .eq('id', id)
@@ -123,7 +119,7 @@ export class CurriculumDesign {
   }
 
   static async delete(id) {
-    const { error } = await supabase
+    const { error } = await getDbClient()
       .from(this.tableName)
       .delete()
       .eq('id', id);

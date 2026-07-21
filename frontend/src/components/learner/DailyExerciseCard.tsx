@@ -1,7 +1,4 @@
-// @ts-ignore - lottie-react types
-import Lottie from 'lottie-react'
-// @ts-ignore - JSON imports for animations
-import flirtingDogAnimation from '@/animations/Flirting Dog.json'
+import { LazyLottie } from '@/components/ui/LazyLottie'
 
 export const DailyExerciseCard = () => {
   return (
@@ -9,10 +6,8 @@ export const DailyExerciseCard = () => {
       <div className="relative overflow-hidden rounded-[24px] md:rounded-[32px] border border-white/30 shadow-xl backdrop-blur-xl bg-gradient-to-br from-pink-600 via-rose-600 to-fuchsia-700 max-w-2xl mx-auto">
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-3 sm:gap-4 p-3 sm:p-4 md:p-5" style={{ fontFamily: 'Fredoka, sans-serif' }}>
           <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex-shrink-0">
-            <Lottie 
-              animationData={flirtingDogAnimation}
-              loop
-              autoplay
+            <LazyLottie
+              animationKey="flirtingDog"
               style={{ width: '100%', height: '100%' }}
             />
           </div>
@@ -38,7 +33,7 @@ export const DailyExerciseCard = () => {
                 e.currentTarget.style.transform = ''
               }}
             >
-              Start Quiz
+              Start Now
             </button>
           </div>
         </div>
@@ -46,10 +41,3 @@ export const DailyExerciseCard = () => {
     </div>
   )
 }
-
-
-
-
-
-
-

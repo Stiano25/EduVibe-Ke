@@ -1,4 +1,5 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../config/supabase.js';
+import { oneOrNull } from '../utils/dbResult.js';
 
 export class Quiz {
   static tableName = 'quizzes';
@@ -15,7 +16,7 @@ export class Quiz {
       linkedTo
     } = data;
 
-    const { data: quiz, error } = await supabase
+    const { data: quiz, error } = await getDbClient()
       .from(this.tableName)
       .insert({
         title,
@@ -37,18 +38,17 @@ export class Quiz {
   }
 
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
-    return data ? this.mapToModel(data) : null;
+    return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
   static async findByLink(type, linkId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('linked_to->>type', type)
@@ -60,7 +60,7 @@ export class Quiz {
   }
 
   static async findByGrade(grade) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('grade', grade)
@@ -71,7 +71,7 @@ export class Quiz {
   }
 
   static async findAll() {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .order('created_at', { ascending: false });
@@ -100,7 +100,7 @@ export class Quiz {
       delete updateData.linkedTo;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(updateData)
       .eq('id', id)
@@ -112,7 +112,7 @@ export class Quiz {
   }
 
   static async delete(id) {
-    const { error } = await supabase
+    const { error } = await getDbClient()
       .from(this.tableName)
       .delete()
       .eq('id', id);

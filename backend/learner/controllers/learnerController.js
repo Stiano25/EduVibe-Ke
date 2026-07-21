@@ -4,79 +4,131 @@ import { SubStrand } from '../../models/SubStrand.js';
 import { Lesson } from '../../models/Lesson.js';
 import { findSimilarLessonsWithAI } from '../../admin/services/aiService.js';
 import { User } from '../../models/User.js';
-import { supabase } from '../../config/supabase.js';
+import { getDbClient } from '../../config/supabase.js';
 
-// Helper function to get user's grade
-// For demo purposes, we'll extract user from headers or use a default
-// In production, use proper JWT authentication
+const GRADE_ORDER = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+
+/** Resolve authenticated user id from JWT (set by authenticate middleware) */
+const getUserId = (req) => req.user?.id || null;
+
+/** Resolve learner grade from JWT, with DB refresh as fallback */
 const getUserGrade = async (req) => {
-  // Try to get user ID from headers (for demo - in production use JWT)
-  const userId = req.headers['x-user-id'] || req.body?.userId || req.query?.userId;
-  
-  if (!userId) {
-    // For demo, return null - in production, this should be an error
-    return null;
-  }
+  if (req.user?.grade) return req.user.grade;
+
+  const userId = getUserId(req);
+  if (!userId) return null;
 
   try {
-    const user = await User.findById(userId);
-    if (user) {
-      return user.grade || null;
-    }
-    
-    // If user doesn't exist, try to get grade from request body/headers as fallback
-    // This is for demo purposes - in production, users should exist in DB
-    const gradeFromRequest = req.body?.grade || req.headers['x-user-grade'];
-    if (gradeFromRequest) {
-      return gradeFromRequest;
-    }
-    
-    return null;
+    const user = await User.findById(userId, true);
+    return user?.grade || null;
   } catch (error) {
-    // Handle invalid UUID format or other errors
-    if (error.code === '22P02' || error.code === 'PGRST116') {
-      // Invalid UUID or user not found - try to get grade from request
-      const gradeFromRequest = req.body?.grade || req.headers['x-user-grade'];
-      if (gradeFromRequest) {
-        return gradeFromRequest;
-      }
+    if (error.code !== '22P02') {
+      console.error('Error fetching user grade:', error.message || error);
     }
-    console.error('Error fetching user:', error);
     return null;
   }
 };
 
-// Helper to get user ID from request
-const getUserId = (req) => {
-  return req.headers['x-user-id'] || req.body?.userId || req.query?.userId;
+const requireUserId = (req, res) => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: 'User ID required' });
+    return null;
+  }
+  return userId;
 };
+
+/** Insert or update a lesson_progress row */
+const upsertLessonProgress = async (userId, lessonId, fields) => {
+  const db = getDbClient();
+  const { data: existing, error: findError } = await db
+    .from('lesson_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('lesson_id', lessonId)
+    .maybeSingle();
+
+  if (findError) throw findError;
+
+  const progressData = {
+    user_id: userId,
+    lesson_id: lessonId,
+    last_accessed: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...fields
+  };
+
+  if (existing) {
+    const { data, error } = await db
+      .from('lesson_progress')
+      .update(progressData)
+      .eq('id', existing.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  const { data, error } = await db
+    .from('lesson_progress')
+    .insert(progressData)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+const mapLessonRow = (item, { lowerGrade, strandMap } = {}) => ({
+  id: item.id,
+  title: item.title,
+  description: item.description,
+  strandId: item.strand_id,
+  subStrandId: item.sub_strand_id,
+  subjectId: item.subject_id,
+  grade: item.grade || lowerGrade,
+  contentType: item.content_type,
+  difficulty: item.difficulty,
+  tags: item.tags || [],
+  duration: item.duration,
+  videoUrl: item.video_url,
+  content: item.content,
+  images: item.images || [],
+  videos: item.videos || [],
+  learningObjectives: item.learning_objectives || [],
+  keyConcepts: item.key_concepts || [],
+  examples: item.examples || [],
+  summary: item.summary,
+  quiz: item.quiz || null,
+  isAIGenerated: item.is_ai_generated,
+  status: item.status,
+  approvedAt: item.approved_at,
+  approvedBy: item.approved_by,
+  lessonOrder: item.lesson_order || 0,
+  createdAt: item.created_at,
+  updatedAt: item.updated_at,
+  ...(strandMap ? { strandName: strandMap[item.strand_id] || '' } : {})
+});
 
 // Get subjects for learner's grade (only subjects with strands)
 export const getLearnerSubjects = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required. Please provide x-user-id header or userId in body/query.' });
-    }
+    if (!requireUserId(req, res)) return;
 
     const grade = await getUserGrade(req);
     if (!grade) {
       return res.status(400).json({ error: 'Grade not set for user' });
     }
 
-    // Get all subjects for the learner's grade
     const subjects = await Subject.findByGrade(grade);
-    
-    // Filter subjects that have at least one strand
-    const subjectsWithStrands = [];
-    for (const subject of subjects) {
-      const strands = await Strand.findBySubject(subject.id);
-      if (strands.length > 0) {
-        subjectsWithStrands.push(subject);
-      }
+    if (subjects.length === 0) {
+      return res.json([]);
     }
 
-    res.json(subjectsWithStrands);
+    const subjectIdsWithStrands = await Strand.findSubjectIdsHavingAny(
+      subjects.map((subject) => subject.id)
+    );
+
+    res.json(subjects.filter((subject) => subjectIdsWithStrands.has(subject.id)));
   } catch (error) {
     console.error('Error fetching learner subjects:', error);
     res.status(500).json({ error: 'Failed to fetch subjects' });
@@ -86,51 +138,134 @@ export const getLearnerSubjects = async (req, res) => {
 // Get strands for a subject
 export const getLearnerStrands = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required' });
-    }
+    if (!requireUserId(req, res)) return;
 
     const { subjectId } = req.params;
     const grade = await getUserGrade(req);
-    
-    // Verify subject belongs to learner's grade
+
     const subject = await Subject.findById(subjectId);
     if (!subject || subject.grade !== grade) {
       return res.status(404).json({ error: 'Subject not found' });
     }
 
-    // Get strands for this subject
     const strands = await Strand.findBySubject(subjectId);
-    
-    // Filter strands that have at least one substrand
-    const strandsWithSubstrands = [];
-    for (const strand of strands) {
-      const substrands = await SubStrand.findByStrand(strand.id);
-      if (substrands.length > 0) {
-        strandsWithSubstrands.push(strand);
-      }
+    if (strands.length === 0) {
+      return res.json([]);
     }
 
-    res.json(strandsWithSubstrands);
+    // Prefer the copy that has sub-strands (useful after duplicate PDF parses)
+    const strandIdsWithSubstrands = await SubStrand.findStrandIdsHavingAny(
+      strands.map((strand) => strand.id)
+    );
+
+    const withContent = strands.filter((strand) =>
+      strandIdsWithSubstrands.has(strand.id)
+    );
+    const source = withContent.length > 0 ? withContent : strands;
+
+    // Curriculum order, collapse near-duplicate names from re-parsed PDFs
+    res.json(Strand.dedupeByNamePreserveOrder(source));
   } catch (error) {
     console.error('Error fetching learner strands:', error);
     res.status(500).json({ error: 'Failed to fetch strands' });
   }
 };
 
+/** Single subject for the learner's grade */
+export const getLearnerSubject = async (req, res) => {
+  try {
+    if (!requireUserId(req, res)) return;
+
+    const grade = await getUserGrade(req);
+    const subject = await Subject.findById(req.params.id);
+    if (!subject || subject.grade !== grade) {
+      return res.status(404).json({ error: 'Subject not found' });
+    }
+
+    res.json(subject);
+  } catch (error) {
+    console.error('Error fetching learner subject:', error);
+    res.status(500).json({ error: 'Failed to fetch subject' });
+  }
+};
+
+/** Single strand belonging to the learner's grade */
+export const getLearnerStrand = async (req, res) => {
+  try {
+    if (!requireUserId(req, res)) return;
+
+    const grade = await getUserGrade(req);
+    const strand = await Strand.findById(req.params.id);
+    if (!strand) {
+      return res.status(404).json({ error: 'Strand not found' });
+    }
+
+    const subject = await Subject.findById(strand.subjectId);
+    if (!subject || subject.grade !== grade) {
+      return res.status(404).json({ error: 'Strand not found' });
+    }
+
+    res.json(strand);
+  } catch (error) {
+    console.error('Error fetching learner strand:', error);
+    res.status(500).json({ error: 'Failed to fetch strand' });
+  }
+};
+
+/** Single sub-strand belonging to the learner's grade */
+export const getLearnerSubstrandById = async (req, res) => {
+  try {
+    if (!requireUserId(req, res)) return;
+
+    const grade = await getUserGrade(req);
+    const substrand = await SubStrand.findById(req.params.id);
+    if (!substrand) {
+      return res.status(404).json({ error: 'Substrand not found' });
+    }
+
+    const subject = await Subject.findById(substrand.subjectId);
+    if (!subject || subject.grade !== grade) {
+      return res.status(404).json({ error: 'Substrand not found' });
+    }
+
+    res.json(substrand);
+  } catch (error) {
+    console.error('Error fetching learner substrand:', error);
+    res.status(500).json({ error: 'Failed to fetch substrand' });
+  }
+};
+
+/** Single approved lesson belonging to the learner's grade */
+export const getLearnerLesson = async (req, res) => {
+  try {
+    if (!requireUserId(req, res)) return;
+
+    const grade = await getUserGrade(req);
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson || lesson.status !== 'approved') {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    if (grade && lesson.grade !== grade) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    res.json(lesson);
+  } catch (error) {
+    console.error('Error fetching learner lesson:', error);
+    res.status(500).json({ error: 'Failed to fetch lesson' });
+  }
+};
+
 // Get substrands for a strand
 export const getLearnerSubstrands = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
     const { strandId } = req.params;
     const grade = await getUserGrade(req);
-    
-    // Get strand and verify it belongs to learner's grade
+
     const strand = await Strand.findById(strandId);
     if (!strand) {
       return res.status(404).json({ error: 'Strand not found' });
@@ -141,20 +276,16 @@ export const getLearnerSubstrands = async (req, res) => {
       return res.status(404).json({ error: 'Strand not found' });
     }
 
-    // Get substrands for this strand
     const substrands = await SubStrand.findByStrand(strandId);
-    
-    // Filter substrands that have at least one approved lesson
-    const substrandsWithLessons = [];
-    for (const substrand of substrands) {
-      const lessons = await Lesson.findBySubStrand(substrand.id);
-      const approvedLessons = lessons.filter(l => l.status === 'approved');
-      if (approvedLessons.length > 0) {
-        substrandsWithLessons.push(substrand);
-      }
+    if (substrands.length === 0) {
+      return res.json([]);
     }
 
-    res.json(substrandsWithLessons);
+    const substrandIdsWithLessons = await Lesson.findSubStrandIdsWithApproved(
+      substrands.map((substrand) => substrand.id)
+    );
+
+    res.json(substrands.filter((substrand) => substrandIdsWithLessons.has(substrand.id)));
   } catch (error) {
     console.error('Error fetching learner substrands:', error);
     res.status(500).json({ error: 'Failed to fetch substrands' });
@@ -164,10 +295,8 @@ export const getLearnerSubstrands = async (req, res) => {
 // Get approved lessons for a substrand with unlock status
 export const getLearnerLessons = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
     const { substrandId } = req.params;
     const grade = await getUserGrade(req);
@@ -194,7 +323,7 @@ export const getLearnerLessons = async (req, res) => {
       .sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
 
     // Get user's progress for these lessons
-    const { data: progressData, error: progressError } = await supabase
+    const { data: progressData, error: progressError } = await getDbClient()
       .from('lesson_progress')
       .select('*')
       .eq('user_id', userId)
@@ -244,67 +373,26 @@ export const getLearnerLessons = async (req, res) => {
 // Mark lesson as completed
 export const completeLesson = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
     const { lessonId } = req.params;
-
-    // Check if lesson exists and is approved
     const lesson = await Lesson.findById(lessonId);
     if (!lesson || lesson.status !== 'approved') {
       return res.status(404).json({ error: 'Lesson not found or not approved' });
     }
 
-    // Verify user's grade matches lesson grade (optional check for demo)
     const grade = await getUserGrade(req);
     if (grade && lesson.grade !== grade) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Update or create progress record
-    const { data: existingProgress, error: findError } = await supabase
-      .from('lesson_progress')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('lesson_id', lessonId)
-      .single();
-
-    if (findError && findError.code !== 'PGRST116') { // PGRST116 = not found
-      throw findError;
-    }
-
-    const progressData = {
-      user_id: userId,
-      lesson_id: lessonId,
+    const progress = await upsertLessonProgress(userId, lessonId, {
       completed: true,
       progress: 100,
-      completed_at: new Date().toISOString(),
-      last_accessed: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    if (existingProgress) {
-      const { data, error } = await supabase
-        .from('lesson_progress')
-        .update(progressData)
-        .eq('id', existingProgress.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      res.json({ message: 'Lesson completed', progress: data });
-    } else {
-      const { data, error } = await supabase
-        .from('lesson_progress')
-        .insert(progressData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      res.json({ message: 'Lesson completed', progress: data });
-    }
+      completed_at: new Date().toISOString()
+    });
+    res.json({ message: 'Lesson completed', progress });
   } catch (error) {
     console.error('Error completing lesson:', error);
     res.status(500).json({ error: 'Failed to complete lesson' });
@@ -314,10 +402,8 @@ export const completeLesson = async (req, res) => {
 // Update lesson progress
 export const updateLessonProgress = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
     const { lessonId } = req.params;
     const { progress } = req.body;
@@ -326,56 +412,22 @@ export const updateLessonProgress = async (req, res) => {
       return res.status(400).json({ error: 'Progress must be between 0 and 100' });
     }
 
-    // Check if lesson exists and is approved
     const lesson = await Lesson.findById(lessonId);
     if (!lesson || lesson.status !== 'approved') {
       return res.status(404).json({ error: 'Lesson not found or not approved' });
     }
 
-    // Verify user's grade matches lesson grade (optional check for demo)
     const grade = await getUserGrade(req);
     if (grade && lesson.grade !== grade) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Update or create progress record
-    const { data: existingProgress, error: findError } = await supabase
-      .from('lesson_progress')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('lesson_id', lessonId)
-      .single();
-
-    const progressData = {
-      user_id: userId,
-      lesson_id: lessonId,
-      progress: progress,
+    const record = await upsertLessonProgress(userId, lessonId, {
+      progress,
       completed: progress >= 100,
-      completed_at: progress >= 100 ? new Date().toISOString() : null,
-      last_accessed: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    if (existingProgress) {
-      const { data, error } = await supabase
-        .from('lesson_progress')
-        .update(progressData)
-        .eq('id', existingProgress.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      res.json({ message: 'Progress updated', progress: data });
-    } else {
-      const { data, error } = await supabase
-        .from('lesson_progress')
-        .insert(progressData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      res.json({ message: 'Progress updated', progress: data });
-    }
+      completed_at: progress >= 100 ? new Date().toISOString() : null
+    });
+    res.json({ message: 'Progress updated', progress: record });
   } catch (error) {
     console.error('Error updating lesson progress:', error);
     res.status(500).json({ error: 'Failed to update progress' });
@@ -387,212 +439,99 @@ export const getSimilarLessonsFromLowerGrades = async (req, res) => {
   try {
     const { lessonId } = req.params;
     const grade = await getUserGrade(req);
-    
+
     if (!grade) {
       return res.status(400).json({ error: 'User grade is required' });
     }
 
-    // Get the current lesson
     const currentLesson = await Lesson.findById(lessonId);
     if (!currentLesson) {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    console.log('🔍 Searching for similar lessons...');
-    console.log('Current lesson:', {
-      id: currentLesson.id,
-      title: currentLesson.title,
-      strandId: currentLesson.strandId,
-      subjectId: currentLesson.subjectId,
-      grade: currentLesson.grade
-    });
-
-    // Get strand to find theme
     const strand = await Strand.findById(currentLesson.strandId);
     if (!strand) {
-      console.log('❌ Strand not found for lesson:', currentLesson.strandId);
       return res.status(404).json({ error: 'Strand not found' });
     }
 
-    // Get subject to find subject name
     const subject = await Subject.findById(currentLesson.subjectId);
     if (!subject) {
-      console.log('❌ Subject not found for lesson:', currentLesson.subjectId);
       return res.status(404).json({ error: 'Subject not found' });
     }
 
-    const theme = strand.theme;
-    const strandName = strand.name; // Also match by strand name/topic
+    const strandName = strand.name;
     const subjectName = subject.name;
-    const currentGradeNum = grade === 'K' ? 0 : parseInt(grade);
-
-    console.log('📋 Search criteria:', {
-      currentGrade: grade,
-      currentGradeNum,
-      subjectName,
-      strandName,
-      theme: theme || 'N/A'
-    });
-
-    // NEW APPROACH: Collect all candidate lessons from lower grades, then use AI to find similar ones
+    const currentGradeNum = grade === 'K' ? 0 : parseInt(grade, 10);
     const candidateLessons = [];
-    const gradesToTry = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-    
-    console.log('\n📚 Step 1: Collecting all candidate lessons from lower grades...');
-    
-    // Collect all approved lessons from lower grades in the same subject
+    const db = getDbClient();
+
     for (let i = currentGradeNum - 1; i >= 0; i--) {
-      const lowerGrade = gradesToTry[i];
-      console.log(`  🔎 Checking Grade ${lowerGrade}...`);
-      
-      // Find subjects with same name in lower grade
-      const { data: lowerGradeSubjects, error: subjectError } = await supabase
+      const lowerGrade = GRADE_ORDER[i];
+
+      const { data: lowerGradeSubjects, error: subjectError } = await db
         .from('subjects')
         .select('id, name, grade')
         .eq('name', subjectName)
         .eq('grade', lowerGrade);
 
-      if (subjectError) {
-        console.log(`  ❌ Error finding subjects:`, subjectError.message);
-        continue;
-      }
+      if (subjectError || !lowerGradeSubjects?.length) continue;
 
-      if (!lowerGradeSubjects || lowerGradeSubjects.length === 0) {
-        console.log(`  ⚠️  No subjects named "${subjectName}" in grade ${lowerGrade}`);
-        continue;
-      }
-
-      const subjectIds = lowerGradeSubjects.map(s => s.id);
-
-      // Get all strands in these subjects
-      const { data: allStrands, error: strandError } = await supabase
+      const subjectIds = lowerGradeSubjects.map((s) => s.id);
+      const { data: allStrands, error: strandError } = await db
         .from('strands')
         .select('id, name, theme')
         .in('subject_id', subjectIds);
 
-      if (strandError || !allStrands || allStrands.length === 0) {
-        console.log(`  ⚠️  No strands found in grade ${lowerGrade}`);
-        continue;
-      }
+      if (strandError || !allStrands?.length) continue;
 
-      const strandIds = allStrands.map(s => s.id);
-
-      // Get all approved lessons from these strands
-      const { data: lessons, error: lessonError } = await supabase
+      const strandMap = Object.fromEntries(allStrands.map((s) => [s.id, s.name]));
+      const { data: lessons, error: lessonError } = await db
         .from('lessons')
         .select('*')
-        .in('strand_id', strandIds)
+        .in('strand_id', allStrands.map((s) => s.id))
         .eq('status', 'approved')
-        .limit(20); // Get up to 20 candidates per grade
+        .limit(20);
 
-      if (!lessonError && lessons && lessons.length > 0) {
-        // Create a map of strand IDs to strand names for quick lookup
-        const strandMap = {};
-        allStrands.forEach(s => {
-          strandMap[s.id] = s.name;
-        });
-
-        const mappedLessons = lessons.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          strandId: item.strand_id,
-          subStrandId: item.sub_strand_id,
-          subjectId: item.subject_id,
-          grade: item.grade || lowerGrade,
-          contentType: item.content_type,
-          difficulty: item.difficulty,
-          tags: item.tags || [],
-          duration: item.duration,
-          videoUrl: item.video_url,
-          content: item.content,
-          images: item.images || [],
-          videos: item.videos || [],
-          learningObjectives: item.learning_objectives || [],
-          keyConcepts: item.key_concepts || [],
-          examples: item.examples || [],
-          summary: item.summary,
-          quiz: item.quiz || null,
-          isAIGenerated: item.is_ai_generated,
-          status: item.status,
-          approvedAt: item.approved_at,
-          approvedBy: item.approved_by,
-          lessonOrder: item.lesson_order || 0,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-          strandName: strandMap[item.strand_id] || ''
-        }));
-        
-        candidateLessons.push(...mappedLessons);
-        console.log(`  ✅ Found ${lessons.length} approved lesson(s) in grade ${lowerGrade}`);
+      if (!lessonError && lessons?.length) {
+        candidateLessons.push(
+          ...lessons.map((item) => mapLessonRow(item, { lowerGrade, strandMap }))
+        );
       }
     }
 
-    console.log(`\n📊 Total candidate lessons collected: ${candidateLessons.length}`);
-
     if (candidateLessons.length === 0) {
-      console.log('💡 No lessons found in lower grades');
       return res.json([]);
     }
 
-    // Step 2: Use AI to find semantically similar lessons
-    console.log('\n🤖 Step 2: Using AI to find semantically similar lessons...');
-    const currentLessonInfo = {
-      title: currentLesson.title,
-      description: currentLesson.description || '',
-      strandName: strandName,
-      grade: grade
-    };
+    const similarLessons = await findSimilarLessonsWithAI(
+      {
+        title: currentLesson.title,
+        description: currentLesson.description || '',
+        strandName,
+        grade
+      },
+      candidateLessons
+    );
 
-    const similarLessons = await findSimilarLessonsWithAI(currentLessonInfo, candidateLessons);
-
-    // Step 3: Filter out completed lessons
     const userId = getUserId(req);
     if (userId && similarLessons.length > 0) {
-      const lessonIds = similarLessons.map(l => l.id);
-      
-      // Get completion status for these lessons
-      const { data: progressData, error: progressError } = await supabase
+      const lessonIds = similarLessons.map((l) => l.id);
+      const { data: progressData, error: progressError } = await db
         .from('lesson_progress')
         .select('lesson_id, completed')
         .eq('user_id', userId)
         .in('lesson_id', lessonIds);
-      
+
       if (!progressError && progressData) {
-        const completedLessonIds = new Set(
-          progressData
-            .filter(p => p.completed === true)
-            .map(p => p.lesson_id)
+        const completedIds = new Set(
+          progressData.filter((p) => p.completed === true).map((p) => p.lesson_id)
         );
-        
-        // Filter out completed lessons
-        const filteredLessons = similarLessons.filter(lesson => !completedLessonIds.has(lesson.id));
-        
-        console.log(`\n✨ Final result: ${filteredLessons.length} lesson(s) selected (${similarLessons.length - filteredLessons.length} already completed)`);
-        if (filteredLessons.length > 0) {
-          console.log('   Selected lessons:');
-          filteredLessons.forEach((lesson, idx) => {
-            console.log(`   ${idx + 1}. "${lesson.title}" (Grade ${lesson.grade})`);
-          });
-        } else {
-          console.log('   ⚠️  All similar lessons have been completed');
-        }
-        
-        return res.json(filteredLessons.slice(0, 3)); // Return max 3 lessons
+        const filtered = similarLessons.filter((lesson) => !completedIds.has(lesson.id));
+        return res.json(filtered.slice(0, 3));
       }
     }
 
-    console.log(`\n✨ Final result: ${similarLessons.length} lesson(s) selected`);
-    if (similarLessons.length > 0) {
-      console.log('   Selected lessons:');
-      similarLessons.forEach((lesson, idx) => {
-        console.log(`   ${idx + 1}. "${lesson.title}" (Grade ${lesson.grade})`);
-      });
-    } else {
-      console.log('   ⚠️  No lessons selected - this might indicate an issue');
-    }
-    
-    res.json(similarLessons.slice(0, 3)); // Return max 3 lessons
+    res.json(similarLessons.slice(0, 3));
   } catch (error) {
     console.error('Error finding similar lessons:', error);
     res.status(500).json({ error: 'Failed to find similar lessons' });
@@ -602,10 +541,8 @@ export const getSimilarLessonsFromLowerGrades = async (req, res) => {
 // Get next lessons in the same sub-strand and check if user can proceed to next sub-strand
 export const getNextLessonsInSubstrand = async (req, res) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: 'User ID required' });
-    }
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
     const { lessonId } = req.params;
     
@@ -627,7 +564,7 @@ export const getNextLessonsInSubstrand = async (req, res) => {
       .sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
 
     // Get user's progress for these lessons
-    const { data: progressData, error: progressError } = await supabase
+    const { data: progressData, error: progressError } = await getDbClient()
       .from('lesson_progress')
       .select('lesson_id, completed')
       .eq('user_id', userId)

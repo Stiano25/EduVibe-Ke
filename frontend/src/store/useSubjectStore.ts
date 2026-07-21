@@ -17,56 +17,55 @@ interface SubjectState {
   getSubjectsByGrade: (grade: string) => Subject[]
 }
 
+const toErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback
+
 export const useSubjectStore = create<SubjectState>((set, get) => ({
   subjects: [],
   isLoading: false,
   error: null,
-  
+
   fetchSubjects: async () => {
     set({ isLoading: true, error: null })
     try {
       const subjects = await api.admin.getSubjects()
       set({ subjects, isLoading: false })
     } catch (error) {
-      console.error('Error fetching subjects:', error)
-      set({ error: error instanceof Error ? error.message : 'Failed to fetch subjects', isLoading: false })
+      set({ error: toErrorMessage(error, 'Failed to fetch subjects'), isLoading: false })
     }
   },
-  
-  fetchSubjectsByCurriculumDesign: async (curriculumDesignId: string) => {
+
+  fetchSubjectsByCurriculumDesign: async (curriculumDesignId) => {
     set({ isLoading: true, error: null })
     try {
       const subjects = await api.admin.getSubjectsByCurriculumDesign(curriculumDesignId)
       set({ subjects, isLoading: false })
     } catch (error) {
-      console.error('Error fetching subjects by curriculum design:', error)
-      set({ error: error instanceof Error ? error.message : 'Failed to fetch subjects', isLoading: false })
+      set({ error: toErrorMessage(error, 'Failed to fetch subjects'), isLoading: false })
     }
   },
-  
-  fetchSubjectsByGrade: async (grade: string) => {
+
+  fetchSubjectsByGrade: async (grade) => {
     set({ isLoading: true, error: null })
     try {
       const subjects = await api.admin.getSubjectsByGrade(grade)
       set({ subjects, isLoading: false })
     } catch (error) {
-      console.error('Error fetching subjects by grade:', error)
-      set({ error: error instanceof Error ? error.message : 'Failed to fetch subjects', isLoading: false })
+      set({ error: toErrorMessage(error, 'Failed to fetch subjects'), isLoading: false })
     }
   },
-  
+
   addSubject: async (subjectData) => {
     set({ isLoading: true, error: null })
     try {
       const newSubject = await api.admin.createSubject(subjectData)
       set((state) => ({ subjects: [...state.subjects, newSubject], isLoading: false }))
     } catch (error) {
-      console.error('Error creating subject:', error)
-      set({ error: error instanceof Error ? error.message : 'Failed to create subject', isLoading: false })
+      set({ error: toErrorMessage(error, 'Failed to create subject'), isLoading: false })
       throw error
     }
   },
-  
+
   updateSubject: async (id, updates) => {
     set({ isLoading: true, error: null })
     try {
@@ -75,41 +74,33 @@ export const useSubjectStore = create<SubjectState>((set, get) => ({
         subjects: state.subjects.map((subject) =>
           subject.id === id ? updatedSubject : subject
         ),
-        isLoading: false
+        isLoading: false,
       }))
     } catch (error) {
-      console.error('Error updating subject:', error)
-      set({ error: error instanceof Error ? error.message : 'Failed to update subject', isLoading: false })
+      set({ error: toErrorMessage(error, 'Failed to update subject'), isLoading: false })
       throw error
     }
   },
-  
+
   deleteSubject: async (id) => {
     set({ isLoading: true, error: null })
     try {
       await api.admin.deleteSubject(id)
       set((state) => ({
         subjects: state.subjects.filter((subject) => subject.id !== id),
-        isLoading: false
+        isLoading: false,
       }))
     } catch (error) {
-      console.error('Error deleting subject:', error)
-      set({ error: error instanceof Error ? error.message : 'Failed to delete subject', isLoading: false })
+      set({ error: toErrorMessage(error, 'Failed to delete subject'), isLoading: false })
       throw error
     }
   },
-  
-  getSubjectById: (id) => {
-    return get().subjects.find((subject) => subject.id === id)
-  },
-  
-  getSubjectsByCurriculumDesign: (curriculumDesignId) => {
-    return get().subjects.filter((subject) => subject.curriculumDesignId === curriculumDesignId)
-  },
-  
-  getSubjectsByGrade: (grade) => {
-    return get().subjects.filter((subject) => subject.grade === grade)
-  },
-  
-}))
 
+  getSubjectById: (id) => get().subjects.find((subject) => subject.id === id),
+
+  getSubjectsByCurriculumDesign: (curriculumDesignId) =>
+    get().subjects.filter((subject) => subject.curriculumDesignId === curriculumDesignId),
+
+  getSubjectsByGrade: (grade) =>
+    get().subjects.filter((subject) => subject.grade === grade),
+}))

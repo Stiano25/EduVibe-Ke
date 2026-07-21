@@ -55,7 +55,7 @@ export const getStrandById = async (req, res) => {
 export const getStrandsBySubject = async (req, res) => {
   try {
     const strands = await Strand.findBySubject(req.params.subjectId);
-    res.json(strands);
+    res.json(Strand.dedupeByNamePreserveOrder(strands));
   } catch (error) {
     console.error('Error fetching strands by subject:', error);
     res.status(500).json({ error: 'Failed to fetch strands' });

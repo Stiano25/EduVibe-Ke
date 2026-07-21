@@ -1,104 +1,10 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { SubStrandCards } from './SubStrandCards'
+import { LazyLottie } from '@/components/ui/LazyLottie'
+import { animationKeyForSubjectId } from '@/lib/lottieAnimations'
 import type { Subject, Strand, SubStrand } from '@/types'
-// @ts-ignore - lottie-react types
-import Lottie from 'lottie-react'
-// @ts-ignore - JSON imports for animations
-import loadingAnimation from '@/animations/loading.json'
-import studentAnimation from '@/animations/STUDENT.json'
-import teacherAnimation from '@/animations/Teacher in Classroom.json'
-import wingedTeacherAnimation from '@/animations/Winged Teacher.json'
-import happyBoyAnimation from '@/animations/Happy boy.json'
-import yogaDogAnimation from '@/animations/Yoga Dog.json'
-import flirtingDogAnimation from '@/animations/Flirting Dog.json'
-import cuteTigerAnimation from '@/animations/Cute Tiger.json'
-import fireAnimation from '@/animations/Fire.json'
-import emojiAngryFaceAnimation from '@/animations/Emoji Angry Face.json'
-
-// Available Lottie animations for subjects
-const subjectAnimations = [
-  studentAnimation,
-  teacherAnimation,
-  wingedTeacherAnimation,
-  happyBoyAnimation,
-  yogaDogAnimation,
-  flirtingDogAnimation,
-  cuteTigerAnimation,
-  fireAnimation,
-  emojiAngryFaceAnimation,
-]
-
-// Function to get appropriate animation for a subject based on its name
-const getAnimationForSubject = (subjectName: string): any => {
-  const name = subjectName.toLowerCase()
-  
-  // Science subjects - Fire, Teacher
-  if (name.includes('science') || name.includes('biology') || name.includes('chemistry') || 
-      name.includes('physics') || name.includes('agriculture')) {
-    return fireAnimation
-  }
-  
-  // Math subjects - Student, Happy boy
-  if (name.includes('math') || name.includes('mathematics') || name.includes('algebra') || 
-      name.includes('geometry') || name.includes('calculus')) {
-    return studentAnimation
-  }
-  
-  // Language subjects - Happy boy, Student
-  if (name.includes('language') || name.includes('english') || name.includes('kiswahili') || 
-      name.includes('french') || name.includes('arabic') || name.includes('german') || 
-      name.includes('mandarin') || name.includes('literature') || name.includes('fasihi')) {
-    return happyBoyAnimation
-  }
-  
-  // Arts and creative subjects - Cute Tiger, Yoga Dog, Flirting Dog
-  if (name.includes('art') || name.includes('music') || name.includes('dance') || 
-      name.includes('theatre') || name.includes('film') || name.includes('fine art')) {
-    return cuteTigerAnimation
-  }
-  
-  // Sports and PHE - Yoga Dog, Happy boy
-  if (name.includes('sport') || name.includes('phe') || name.includes('physical') || 
-      name.includes('recreation') || name.includes('health')) {
-    return yogaDogAnimation
-  }
-  
-  // Technical subjects - Teacher, Winged Teacher
-  if (name.includes('technical') || name.includes('computer') || name.includes('aviation') || 
-      name.includes('electricity') || name.includes('woodwork') || name.includes('marine') || 
-      name.includes('media') || name.includes('construction')) {
-    return teacherAnimation
-  }
-  
-  // Business and Humanities - Winged Teacher, Student
-  if (name.includes('business') || name.includes('geography') || name.includes('history') || 
-      name.includes('citizenship') || name.includes('community')) {
-    return wingedTeacherAnimation
-  }
-  
-  // Religious Education - Teacher, Winged Teacher
-  if (name.includes('religious') || name.includes('cre') || name.includes('hre') || 
-      name.includes('ire') || name.includes('bible') || name.includes('quran')) {
-    return wingedTeacherAnimation
-  }
-  
-  // Home Science - Happy boy, Flirting Dog
-  if (name.includes('home science') || name.includes('food') || name.includes('nutrition') || 
-      name.includes('clothing') || name.includes('textile')) {
-    return flirtingDogAnimation
-  }
-  
-  // Challenging/difficult subjects - Emoji Angry Face
-  if (name.includes('core') || name.includes('essential') || name.includes('advanced')) {
-    return emojiAngryFaceAnimation
-  }
-  
-  // Default fallback - cycle through animations based on subject name hash
-  const hash = subjectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return subjectAnimations[hash % subjectAnimations.length]
-}
 
 type NavigationView = 'subjects' | 'strands' | 'substrands'
 
@@ -242,24 +148,14 @@ export const SubjectNavigation = () => {
       {loading && (
         <div className="text-center py-8">
           <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto">
-            <Lottie 
-              animationData={loadingAnimation}
-              loop
-              autoplay
-              style={{ width: '100%', height: '100%' }}
-            />
+            <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
           </div>
         </div>
       )}
 
       {!loading && navigationView === 'subjects' && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
-          {subjects.map((subject) => {
-            // Get consistent Lottie animation per subject based on subject ID
-            const animationIndex = parseInt(subject.id.slice(-1) || '0', 16) % subjectAnimations.length
-            const subjectLottie = subjectAnimations[animationIndex]
-            
-            return (
+          {subjects.map((subject) => (
               <button
                 key={subject.id}
                 onClick={() => {
@@ -279,10 +175,8 @@ export const SubjectNavigation = () => {
                 }}
               >
                 <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-                  <Lottie 
-                    animationData={subjectLottie}
-                    loop
-                    autoplay
+                  <LazyLottie
+                    animationKey={animationKeyForSubjectId(subject.id)}
                     style={{ width: '100%', height: '100%' }}
                   />
                 </div>
@@ -290,8 +184,7 @@ export const SubjectNavigation = () => {
                   {subject.name}
                 </span>
               </button>
-            )
-          })}
+          ))}
         </div>
       )}
 

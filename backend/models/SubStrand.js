@@ -1,4 +1,5 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../config/supabase.js';
+import { oneOrNull } from '../utils/dbResult.js';
 
 export class SubStrand {
   static tableName = 'sub_strands';
@@ -14,7 +15,7 @@ export class SubStrand {
       isAIGenerated
     } = data;
 
-    const { data: subStrand, error } = await supabase
+    const { data: subStrand, error } = await getDbClient()
       .from(this.tableName)
       .insert({
         name,
@@ -47,7 +48,7 @@ export class SubStrand {
       updated_at: new Date().toISOString()
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .insert(insertData)
       .select();
@@ -57,29 +58,41 @@ export class SubStrand {
   }
 
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
-    return data ? this.mapToModel(data) : null;
+    return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
   static async findByStrand(strandId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('strand_id', strandId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
     return data.map(item => this.mapToModel(item));
   }
 
+  /** Return strand IDs that have at least one sub-strand (single query). */
+  static async findStrandIdsHavingAny(strandIds) {
+    if (!strandIds?.length) return new Set();
+
+    const { data, error } = await getDbClient()
+      .from(this.tableName)
+      .select('strand_id')
+      .in('strand_id', strandIds);
+
+    if (error) throw error;
+    return new Set((data || []).map((row) => row.strand_id));
+  }
+
   static async findBySubject(subjectId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('subject_id', subjectId)
@@ -90,7 +103,7 @@ export class SubStrand {
   }
 
   static async findAll() {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .order('created_at', { ascending: false });
@@ -127,7 +140,7 @@ export class SubStrand {
       delete updateData.isAIGenerated;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(updateData)
       .eq('id', id)
@@ -139,7 +152,7 @@ export class SubStrand {
   }
 
   static async delete(id) {
-    const { error } = await supabase
+    const { error } = await getDbClient()
       .from(this.tableName)
       .delete()
       .eq('id', id);

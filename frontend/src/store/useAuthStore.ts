@@ -7,130 +7,123 @@ interface AuthState {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
+  setSession: (user: User, token: string) => void
   setUser: (user: User | null) => void
   initializeAuth: () => void
 }
 
-// Initialize auth state from sessionStorage
-const getStoredUser = () => {
+const TOKEN_KEY = 'token'
+const USER_KEY = 'user'
+
+const getStoredToken = (): string | null => {
   if (typeof window === 'undefined') return null
-  
-  try {
-    const userStr = sessionStorage.getItem('user')
-    if (userStr) {
-      const user = JSON.parse(userStr)
-      return user
-    }
-  } catch (e) {
-    console.error('Error restoring auth state:', e)
-  }
-  return null
+  return sessionStorage.getItem(TOKEN_KEY)
 }
 
-const storedUser = getStoredUser()
+const getStoredUser = (): User | null => {
+  if (typeof window === 'undefined') return null
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: storedUser,
-  isAuthenticated: !!storedUser,
-  
-  initializeAuth: () => {
-    const user = getStoredUser()
-    if (user) {
-      set({ user, isAuthenticated: true })
-    } else {
-      set({ user: null, isAuthenticated: false })
-    }
-  },
-  
-  login: async (email: string, password: string) => {
-    try {
-      console.log('Attempting login for:', email)
-      const response = await api.learner.login({ email, password })
-      console.log('Login response:', response)
-      
-      if (response && response.user) {
-        const user: User = {
-          id: response.user.id,
-          name: response.user.name,
-          email: response.user.email,
-          role: response.user.role,
-          grade: response.user.grade,
-          avatar: response.user.avatar
-        }
-        
-        console.log('Setting user in store:', user)
-        set({ user, isAuthenticated: true })
-        // Store user ID in sessionStorage for API client
-        if (typeof window !== 'undefined' && user.id) {
-          // Clear any quiz-related localStorage from previous sessions
-          clearQuizLocalStorage()
-          
-          sessionStorage.setItem('userId', user.id)
-          sessionStorage.setItem('user', JSON.stringify(user))
-          console.log('User stored in sessionStorage')
-        }
-        return true
-      }
-      
-      console.warn('Login response missing user data:', response)
-      return false
-    } catch (error: any) {
-      console.error('Login error details:', error)
-      console.error('Error message:', error.message)
-      console.error('Error error:', error.error)
-      // Re-throw error with message for better error handling
-      const errorMessage = error.message || error.error || 'Failed to login. Please check your credentials.'
-      throw new Error(errorMessage)
-    }
-  },
-  
-  logout: () => {
-    set({ user: null, isAuthenticated: false })
-    // Clear sessionStorage
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('userId')
-      sessionStorage.removeItem('user')
-    }
-  },
-  
-  setUser: (user: User | null) => {
-    set({ user, isAuthenticated: !!user })
-    // Store user ID in sessionStorage for API client
-    if (typeof window !== 'undefined') {
-      if (user?.id) {
-        // Clear any quiz-related localStorage from previous sessions
-        clearQuizLocalStorage()
-        
-        sessionStorage.setItem('userId', user.id)
-        sessionStorage.setItem('user', JSON.stringify(user))
-      } else {
-        sessionStorage.removeItem('userId')
-        sessionStorage.removeItem('user')
-      }
-    }
-  },
-}))
+  try {
+    const userStr = sessionStorage.getItem(USER_KEY)
+    return userStr ? JSON.parse(userStr) : null
+  } catch {
+    return null
+  }
+}
 
-// Helper function to clear all quiz-related localStorage
-// This clears both old unscoped keys and ensures fresh start for new login
 const clearQuizLocalStorage = () => {
   if (typeof window === 'undefined') return
-  
-  // Get all localStorage keys
-  const keys = Object.keys(localStorage)
-  
-  // Remove all quiz-related keys (both old unscoped and new user-scoped formats)
-  keys.forEach(key => {
-    if (key.startsWith('quiz_answers_') || 
-        key.startsWith('quiz_results_') || 
-        key.startsWith('quiz_show_results_') ||
-        key.startsWith('failed_lesson_id') ||
-        key.startsWith('failed_lesson_title') ||
-        key.startsWith('failed_lesson_subject_id') ||
-        key === 'failed_lesson_id' ||
-        key === 'failed_lesson_title' ||
-        key === 'failed_lesson_subject_id') {
+
+  Object.keys(localStorage).forEach((key) => {
+    if (
+      key.startsWith('quiz_answers_') ||
+      key.startsWith('quiz_results_') ||
+      key.startsWith('quiz_show_results_') ||
+      key.startsWith('failed_lesson_id') ||
+      key.startsWith('failed_lesson_title') ||
+      key.startsWith('failed_lesson_subject_id')
+    ) {
       localStorage.removeItem(key)
     }
   })
 }
+
+const persistSession = (user: User | null, token: string | null) => {
+  if (typeof window === 'undefined') return
+
+  if (user?.id && token) {
+    clearQuizLocalStorage()
+    sessionStorage.setItem(TOKEN_KEY, token)
+    sessionStorage.setItem(USER_KEY, JSON.stringify(user))
+    sessionStorage.setItem('userId', user.id)
+  } else {
+    sessionStorage.removeItem(TOKEN_KEY)
+    sessionStorage.removeItem(USER_KEY)
+    sessionStorage.removeItem('userId')
+  }
+}
+
+const storedUser = getStoredUser()
+const storedToken = getStoredToken()
+const hasValidSession = !!(storedUser && storedToken)
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: hasValidSession ? storedUser : null,
+  isAuthenticated: hasValidSession,
+
+  initializeAuth: () => {
+    const user = getStoredUser()
+    const token = getStoredToken()
+    const valid = !!(user && token)
+    set({ user: valid ? user : null, isAuthenticated: valid })
+    if (!valid) persistSession(null, null)
+  },
+
+  login: async (email: string, password: string) => {
+    try {
+      const response = await api.learner.login({ email, password })
+
+      if (!response?.user || !response?.token) return false
+
+      const user: User = {
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        role: response.user.role,
+        grade: response.user.grade,
+        avatar: response.user.avatar,
+      }
+
+      set({ user, isAuthenticated: true })
+      persistSession(user, response.token)
+      return true
+    } catch (error: any) {
+      throw new Error(error.message || error.error || 'Failed to login. Please check your credentials.')
+    }
+  },
+
+  logout: () => {
+    set({ user: null, isAuthenticated: false })
+    persistSession(null, null)
+  },
+
+  setSession: (user, token) => {
+    set({ user, isAuthenticated: true })
+    persistSession(user, token)
+  },
+
+  setUser: (user) => {
+    if (!user) {
+      set({ user: null, isAuthenticated: false })
+      persistSession(null, null)
+      return
+    }
+    const token = getStoredToken()
+    if (!token) {
+      set({ user, isAuthenticated: false })
+      return
+    }
+    set({ user, isAuthenticated: true })
+    persistSession(user, token)
+  },
+}))

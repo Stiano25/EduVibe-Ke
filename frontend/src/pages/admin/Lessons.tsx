@@ -11,13 +11,33 @@ import { Lesson, Strand, Subject, SubStrand, Grade } from '@/types'
 import { Modal } from '@/components/modals/Modal'
 import { LessonFormModal } from '@/components/modals/LessonFormModal'
 import { api } from '@/lib/api'
+import { AiProgressOverlay } from '@/components/ui/AiProgressOverlay'
 
 const grades: Grade[] = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
+const LESSON_GEN_STEPS = [
+  'Reading learning outcomes...',
+  'Asking Gemini to design lessons...',
+  'Building lesson content and activities...',
+  'Creating review questions...',
+  'Saving generated lessons...',
+  'Almost done — finishing up...',
+]
+
 export const AdminLessons = () => {
-  const { lessons, isLoading: lessonsLoading, fetchLessons, deleteLesson, updateLesson, approveLesson, rejectLesson, addAIGeneratedLessons, getLessonsByStrand } = useLessonStore()
+  const {
+    lessons,
+    isLoading: lessonsLoading,
+    fetchLessonsBySubStrand,
+    clearLessons,
+    deleteLesson,
+    updateLesson,
+    approveLesson,
+    rejectLesson,
+    addAIGeneratedLessons,
+  } = useLessonStore()
   const { subjects, fetchSubjects } = useSubjectStore()
-  const { strands, fetchStrands, getStrandsBySubject } = useStrandStore()
+  const { strands, fetchStrandsBySubject, getStrandsBySubject } = useStrandStore()
   const { subStrands, fetchSubStrandsByStrand, getSubStrandsByStrand } = useSubStrandStore()
   
   const [selectedGrade, setSelectedGrade] = useState<Grade | ''>('')
@@ -43,12 +63,39 @@ export const AdminLessons = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Fetch data on mount
+  const refreshSubStrandLessons = async () => {
+    if (selectedSubStrand) {
+      await fetchLessonsBySubStrand(selectedSubStrand.id)
+    }
+  }
+
+  // Subjects only on mount — avoid downloading every lesson/strand up front
   useEffect(() => {
     fetchSubjects()
-    fetchStrands()
-    fetchLessons()
-  }, [fetchSubjects, fetchStrands, fetchLessons])
+  }, [fetchSubjects])
+
+  // Strands for the selected subject only
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchStrandsBySubject(selectedSubject.id)
+    }
+  }, [selectedSubject, fetchStrandsBySubject])
+
+  // Sub-strands when strand is selected
+  useEffect(() => {
+    if (selectedStrand) {
+      fetchSubStrandsByStrand(selectedStrand.id)
+    }
+  }, [selectedStrand, fetchSubStrandsByStrand])
+
+  // Lessons only for the selected sub-strand
+  useEffect(() => {
+    if (selectedSubStrand) {
+      fetchLessonsBySubStrand(selectedSubStrand.id)
+    } else {
+      clearLessons()
+    }
+  }, [selectedSubStrand, fetchLessonsBySubStrand, clearLessons])
 
   // Filter subjects by grade
   const filteredSubjects = useMemo(() => {
@@ -62,30 +109,16 @@ export const AdminLessons = () => {
     return getStrandsBySubject(selectedSubject.id)
   }, [selectedSubject, strands, getStrandsBySubject])
 
-  // Fetch sub-strands when strand is selected
-  useEffect(() => {
-    if (selectedStrand) {
-      fetchSubStrandsByStrand(selectedStrand.id)
-    }
-  }, [selectedStrand, fetchSubStrandsByStrand])
-
-  // Fetch lessons when sub-strand is selected
-  useEffect(() => {
-    if (selectedSubStrand) {
-      fetchLessons() // Refresh lessons to show newly generated ones
-    }
-  }, [selectedSubStrand, fetchLessons])
-
   // Get sub-strands for selected strand
   const strandSubStrands = useMemo(() => {
     if (!selectedStrand) return []
     return getSubStrandsByStrand(selectedStrand.id)
   }, [selectedStrand, subStrands, getSubStrandsByStrand])
 
-  // Get lessons for selected sub-strand
+  // Store is already scoped to the selected sub-strand
   const subStrandLessons = useMemo(() => {
     if (!selectedSubStrand) return []
-    return lessons.filter(l => l.subStrandId === selectedSubStrand.id)
+    return lessons
   }, [selectedSubStrand, lessons])
 
   // AI Lesson Generation from Sub-strand
@@ -100,14 +133,11 @@ export const AdminLessons = () => {
       })
       
       addAIGeneratedLessons(generatedLessons)
-      await fetchLessons() // Refresh lessons from database
+      await refreshSubStrandLessons()
       setGenerateModal({ isOpen: false })
-      // Keep the sub-strand selected so lessons can be viewed
       setNumberOfLessons(5)
-      // Show success message
       alert(`Successfully generated ${generatedLessons.length} lesson(s)! Review and approve them below.`)
     } catch (error) {
-      console.error('Error generating lessons:', error)
       alert('Failed to generate lessons: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       setIsGeneratingLessons(false)
@@ -121,10 +151,12 @@ export const AdminLessons = () => {
   const handleDeleteConfirm = async () => {
     if (!deleteModal.lesson) return
     setIsDeleting(true)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    deleteLesson(deleteModal.lesson.id)
-    setIsDeleting(false)
-    setDeleteModal({ isOpen: false, lesson: null })
+    try {
+      await deleteLesson(deleteModal.lesson.id)
+    } finally {
+      setIsDeleting(false)
+      setDeleteModal({ isOpen: false, lesson: null })
+    }
   }
 
   const handleEditClick = (lesson: Lesson) => {
@@ -134,9 +166,8 @@ export const AdminLessons = () => {
   const handleApprove = async (lesson: Lesson) => {
     try {
       await approveLesson(lesson.id)
-      await fetchLessons() // Refresh to show updated status
+      await refreshSubStrandLessons()
     } catch (error) {
-      console.error('Error approving lesson:', error)
       alert('Failed to approve lesson: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
@@ -144,16 +175,14 @@ export const AdminLessons = () => {
   const handleReject = async (lesson: Lesson) => {
     try {
       await rejectLesson(lesson.id)
-      await fetchLessons() // Refresh to show updated status
+      await refreshSubStrandLessons()
     } catch (error) {
-      console.error('Error rejecting lesson:', error)
       alert('Failed to reject lesson: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
   const handleSave = async (lessonData: any) => {
     if (editModal.lesson) {
-      // Ensure required fields are preserved
       const updatedData = {
         ...lessonData,
         subStrandId: editModal.lesson.subStrandId,
@@ -162,7 +191,7 @@ export const AdminLessons = () => {
         grade: editModal.lesson.grade,
       }
       await updateLesson(editModal.lesson.id, updatedData)
-      await fetchLessons() // Refresh to show updated lesson
+      await refreshSubStrandLessons()
     }
     setEditModal({ isOpen: false, lesson: null })
   }
@@ -531,11 +560,13 @@ export const AdminLessons = () => {
       <Modal
         isOpen={generateModal.isOpen}
         onClose={() => {
+          if (isGeneratingLessons) return
           setGenerateModal({ isOpen: false })
           setSelectedSubStrand(null)
         }}
         title="Generate AI Lessons"
         size="md"
+        preventClose={isGeneratingLessons}
       >
         {selectedSubStrand && (
           <div className="space-y-4">
@@ -798,6 +829,13 @@ export const AdminLessons = () => {
           </div>
         </Modal>
       )}
+
+      <AiProgressOverlay
+        isOpen={isGeneratingLessons}
+        title="Generating AI lessons"
+        subtitle={selectedSubStrand?.name}
+        steps={LESSON_GEN_STEPS}
+      />
     </div>
   )
 }

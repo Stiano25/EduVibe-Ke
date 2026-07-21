@@ -1,55 +1,81 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, Suspense, lazy, type ReactNode } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Shell } from '@/components/layout/Shell'
+
+// Keep entry/auth screens eager for fast first paint
 import { Login } from '@/pages/landing/Login'
 import { Landing } from '@/pages/landing/Landing'
 import { Signup } from '@/pages/landing/Signup'
 
-// Admin pages
-import { AdminDashboard } from '@/pages/admin/Dashboard'
-import { AdminLessons } from '@/pages/admin/Lessons'
-import { LessonForm } from '@/pages/admin/LessonForm'
-import { AdminUsers } from '@/pages/admin/Users'
-import { AdminAnalytics } from '@/pages/admin/Analytics'
-import { AdminStrands } from '@/pages/admin/Strands'
-import { AdminCurriculum } from '@/pages/admin/Curriculum'
-import { AdminSubStrands } from '@/pages/admin/SubStrands'
-import { AdminNotes } from '@/pages/admin/Notes'
-import { AdminQuizzes } from '@/pages/admin/Quizzes'
-import { AdminSubjects } from '@/pages/admin/Subjects'
+// Heavy admin/learner pages load only when navigated to
+const AdminDashboard = lazy(() =>
+  import('@/pages/admin/Dashboard').then((m) => ({ default: m.AdminDashboard }))
+)
+const AdminLessons = lazy(() =>
+  import('@/pages/admin/Lessons').then((m) => ({ default: m.AdminLessons }))
+)
+const LessonForm = lazy(() =>
+  import('@/pages/admin/LessonForm').then((m) => ({ default: m.LessonForm }))
+)
+const AdminUsers = lazy(() =>
+  import('@/pages/admin/Users').then((m) => ({ default: m.AdminUsers }))
+)
+const AdminAnalytics = lazy(() =>
+  import('@/pages/admin/Analytics').then((m) => ({ default: m.AdminAnalytics }))
+)
+const AdminStrands = lazy(() =>
+  import('@/pages/admin/Strands').then((m) => ({ default: m.AdminStrands }))
+)
+const AdminCurriculum = lazy(() =>
+  import('@/pages/admin/Curriculum').then((m) => ({ default: m.AdminCurriculum }))
+)
+const AdminSubStrands = lazy(() =>
+  import('@/pages/admin/SubStrands').then((m) => ({ default: m.AdminSubStrands }))
+)
+const AdminNotes = lazy(() =>
+  import('@/pages/admin/Notes').then((m) => ({ default: m.AdminNotes }))
+)
+const AdminQuizzes = lazy(() =>
+  import('@/pages/admin/Quizzes').then((m) => ({ default: m.AdminQuizzes }))
+)
+const AdminSubjects = lazy(() =>
+  import('@/pages/admin/Subjects').then((m) => ({ default: m.AdminSubjects }))
+)
 
-// Learner pages
-import { LearnerDashboard } from '@/pages/learner/Dashboard'
-import { LearnerLessons } from '@/pages/learner/Lessons'
-import { LessonView } from '@/pages/learner/LessonView'
-import { LearnerRecommendations } from '@/pages/learner/Recommendations'
+const LearnerDashboard = lazy(() =>
+  import('@/pages/learner/Dashboard').then((m) => ({ default: m.LearnerDashboard }))
+)
+const LearnerLessons = lazy(() =>
+  import('@/pages/learner/Lessons').then((m) => ({ default: m.LearnerLessons }))
+)
+const LessonView = lazy(() =>
+  import('@/pages/learner/LessonView').then((m) => ({ default: m.LessonView }))
+)
+const LearnerRecommendations = lazy(() =>
+  import('@/pages/learner/Recommendations').then((m) => ({
+    default: m.LearnerRecommendations,
+  }))
+)
 
-const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'admin' | 'learner' }) => {
+const PageFallback = () => (
+  <div className="min-h-[40vh] flex items-center justify-center">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600" />
+  </div>
+)
+
+const ProtectedRoute = ({
+  children,
+  requiredRole,
+}: {
+  children: ReactNode
+  requiredRole?: 'admin' | 'learner'
+}) => {
   const { isAuthenticated, user, initializeAuth } = useAuthStore()
-  const [isInitializing, setIsInitializing] = useState(true)
 
-  // Ensure auth is initialized before checking
   useEffect(() => {
     initializeAuth()
-    // Small delay to ensure sessionStorage is read
-    const timer = setTimeout(() => {
-      setIsInitializing(false)
-    }, 100)
-    return () => clearTimeout(timer)
   }, [initializeAuth])
-
-  // Show loading state while initializing
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-text-secondary">Loading...</p>
-        </div>
-      </div>
-    )
-  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -59,13 +85,16 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     return <Navigate to={user?.role === 'admin' ? '/admin' : '/learner'} replace />
   }
 
-  return <Shell>{children}</Shell>
+  return (
+    <Shell>
+      <Suspense fallback={<PageFallback />}>{children}</Suspense>
+    </Shell>
+  )
 }
 
 function App() {
   const { initializeAuth } = useAuthStore()
 
-  // Initialize auth state from sessionStorage on app mount
   useEffect(() => {
     initializeAuth()
   }, [initializeAuth])
@@ -76,7 +105,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        
+
         <Route
           path="/admin"
           element={
@@ -173,7 +202,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/learner"
           element={
@@ -212,4 +241,3 @@ function App() {
 }
 
 export default App
-

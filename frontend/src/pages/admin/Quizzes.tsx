@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuizStore } from '@/store/useQuizStore'
 import { Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
@@ -8,7 +8,15 @@ import { QuizFormModal } from '@/components/modals/QuizFormModal'
 import { Quiz } from '@/types'
 
 export const AdminQuizzes = () => {
-  const { quizzes, deleteQuiz, addQuiz, updateQuiz } = useQuizStore()
+  const {
+    quizzes,
+    isLoading,
+    error,
+    fetchQuizzes,
+    deleteQuiz,
+    addQuiz,
+    updateQuiz,
+  } = useQuizStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [filterGrade, setFilterGrade] = useState<string>('all')
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all')
@@ -22,6 +30,10 @@ export const AdminQuizzes = () => {
   })
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    fetchQuizzes()
+  }, [fetchQuizzes])
 
   const filteredQuizzes = useMemo(() => {
     return quizzes.filter((quiz) => {
@@ -42,10 +54,12 @@ export const AdminQuizzes = () => {
   const handleDeleteConfirm = async () => {
     if (!deleteModal.quiz) return
     setIsDeleting(true)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    deleteQuiz(deleteModal.quiz.id)
-    setIsDeleting(false)
-    setDeleteModal({ isOpen: false, quiz: null })
+    try {
+      await deleteQuiz(deleteModal.quiz.id)
+    } finally {
+      setIsDeleting(false)
+      setDeleteModal({ isOpen: false, quiz: null })
+    }
   }
 
   const handleAddClick = () => {
@@ -58,16 +72,16 @@ export const AdminQuizzes = () => {
 
   const handleSave = async (quizData: Omit<Quiz, 'id' | 'createdAt' | 'updatedAt'>) => {
     setIsSaving(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    if (formModal.quiz) {
-      updateQuiz(formModal.quiz.id, quizData)
-    } else {
-      addQuiz(quizData)
+    try {
+      if (formModal.quiz) {
+        await updateQuiz(formModal.quiz.id, quizData)
+      } else {
+        await addQuiz(quizData)
+      }
+      setFormModal({ isOpen: false, quiz: null })
+    } finally {
+      setIsSaving(false)
     }
-    
-    setIsSaving(false)
-    setFormModal({ isOpen: false, quiz: null })
   }
 
   return (
@@ -157,7 +171,22 @@ export const AdminQuizzes = () => {
               </div>
 
               {/* Quizzes Grid */}
-              {filteredQuizzes.length > 0 ? (
+              {isLoading && filteredQuizzes.length === 0 ? (
+                <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-12 text-center">
+                  <p className="text-lg font-semibold text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    Loading quizzes...
+                  </p>
+                </div>
+              ) : error && quizzes.length === 0 ? (
+                <div className="bg-red-50 backdrop-blur-md rounded-[24px] border-2 border-red-200 p-12 text-center">
+                  <p className="text-lg font-semibold text-red-700 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    Failed to load quizzes
+                  </p>
+                  <p className="text-sm text-red-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    {error}
+                  </p>
+                </div>
+              ) : filteredQuizzes.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {filteredQuizzes.map((quiz) => (
                     <div
@@ -194,25 +223,25 @@ export const AdminQuizzes = () => {
                           G{quiz.grade}
                         </span>
                         <span className="px-2 py-0.5 text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                          {quiz.difficulty.slice(0, 3)}
+                          {quiz.difficulty?.slice(0, 3) || 'n/a'}
                         </span>
                       </div>
                       <div className="text-xs text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                        {quiz.questions.length} question{quiz.questions.length !== 1 ? 's' : ''}
+                        {quiz.questions?.length || 0} question{(quiz.questions?.length || 0) !== 1 ? 's' : ''}
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : !isLoading ? (
                 <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-12 text-center">
                   <p className="text-lg font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                     No quizzes found
                   </p>
                   <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    Try adjusting your search or filters
+                    Create your first quiz or adjust your search filters
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           </StaggeredEntry>
         </div>

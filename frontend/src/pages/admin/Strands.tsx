@@ -26,10 +26,7 @@ export const AdminStrands = () => {
   const handleDeleteConfirm = async () => {
     if (!deleteModal.strand) return
     setIsDeleting(true)
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log('Delete strand:', deleteModal.strand.id)
-    // In real app, this would call an API
     setIsDeleting(false)
     setDeleteModal({ isOpen: false, strand: null })
   }
@@ -42,12 +39,9 @@ export const AdminStrands = () => {
     setFormModal({ isOpen: true, strand: null })
   }
 
-  const handleSave = async (data: { name: string; color: string }) => {
+  const handleSave = async (_data: { name: string; color: string }) => {
     setIsSaving(true)
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log(formModal.strand ? 'Update strand:' : 'Create strand:', data)
-    // In real app, this would call an API
     setIsSaving(false)
     setFormModal({ isOpen: false, strand: null })
   }

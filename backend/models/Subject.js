@@ -1,4 +1,5 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../config/supabase.js';
+import { oneOrNull } from '../utils/dbResult.js';
 
 export class Subject {
   static tableName = 'subjects';
@@ -6,7 +7,7 @@ export class Subject {
   static async create(data) {
     const { name, description, curriculumDesignId, grade, icon, color } = data;
     
-    const { data: subject, error } = await supabase
+    const { data: subject, error } = await getDbClient()
       .from(this.tableName)
       .insert({
         name,
@@ -26,18 +27,17 @@ export class Subject {
   }
 
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
-    return data ? this.mapToModel(data) : null;
+    return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
   static async findByCurriculumDesign(curriculumDesignId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('curriculum_design_id', curriculumDesignId)
@@ -48,7 +48,7 @@ export class Subject {
   }
 
   static async findByGrade(grade) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('grade', grade)
@@ -60,7 +60,7 @@ export class Subject {
 
 
   static async findAll() {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .order('grade', { ascending: true })
@@ -91,7 +91,7 @@ export class Subject {
       delete updateData.curriculumDesignId;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(updateData)
       .eq('id', id)
@@ -103,7 +103,7 @@ export class Subject {
   }
 
   static async delete(id) {
-    const { error } = await supabase
+    const { error } = await getDbClient()
       .from(this.tableName)
       .delete()
       .eq('id', id);

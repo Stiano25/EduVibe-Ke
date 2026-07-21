@@ -12,7 +12,7 @@ import { GraduationCap, Lock, ShieldCheck, Sparkles } from 'lucide-react'
 
 export const Signup = () => {
   const navigate = useNavigate()
-  const setUser = useAuthStore((s) => s.setUser)
+  const setSession = useAuthStore((s) => s.setSession)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -57,22 +57,27 @@ export const Signup = () => {
     setLoading(true)
 
     try {
-      // Register user in the database
       const response = await api.learner.register({
         name: name.trim(),
         email: email.trim(),
-        password: password, // In production, this should be hashed
+        password: password,
         grade: grade,
       })
 
-      // Set user in auth store
-      setUser({
-        id: response.user.id,
-        name: response.user.name,
-        email: response.user.email,
-        role: response.user.role,
-        grade: response.user.grade,
-      })
+      if (!response?.user || !response?.token) {
+        throw new Error('Registration succeeded but session token was missing')
+      }
+
+      setSession(
+        {
+          id: response.user.id,
+          name: response.user.name,
+          email: response.user.email,
+          role: response.user.role,
+          grade: response.user.grade,
+        },
+        response.token
+      )
 
       navigate('/learner')
     } catch (err: any) {

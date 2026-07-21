@@ -1,4 +1,5 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../config/supabase.js';
+import { oneOrNull } from '../utils/dbResult.js';
 
 export class Lesson {
   static tableName = 'lessons';
@@ -25,10 +26,11 @@ export class Lesson {
       summary,
       quiz,
       isAIGenerated,
-      status
+      status,
+      lessonOrder
     } = data;
 
-    const { data: lesson, error } = await supabase
+    const { data: lesson, error } = await getDbClient()
       .from(this.tableName)
       .insert({
         title,
@@ -90,7 +92,7 @@ export class Lesson {
       updated_at: new Date().toISOString()
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .insert(insertData)
       .select();
@@ -100,18 +102,17 @@ export class Lesson {
   }
 
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
-    return data ? this.mapToModel(data) : null;
+    return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
   static async findByStrand(strandId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('strand_id', strandId)
@@ -122,7 +123,7 @@ export class Lesson {
   }
 
   static async findBySubStrand(subStrandId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('sub_strand_id', subStrandId)
@@ -133,8 +134,22 @@ export class Lesson {
     return data.map(item => this.mapToModel(item));
   }
 
+  /** Return sub-strand IDs that have at least one approved lesson (single query). */
+  static async findSubStrandIdsWithApproved(subStrandIds) {
+    if (!subStrandIds?.length) return new Set();
+
+    const { data, error } = await getDbClient()
+      .from(this.tableName)
+      .select('sub_strand_id')
+      .in('sub_strand_id', subStrandIds)
+      .eq('status', 'approved');
+
+    if (error) throw error;
+    return new Set((data || []).map((row) => row.sub_strand_id));
+  }
+
   static async findBySubject(subjectId) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('subject_id', subjectId)
@@ -145,7 +160,7 @@ export class Lesson {
   }
 
   static async findByStatus(status) {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .eq('status', status)
@@ -156,7 +171,7 @@ export class Lesson {
   }
 
   static async findAll() {
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .select('*')
       .order('created_at', { ascending: false });
@@ -217,7 +232,7 @@ export class Lesson {
       delete updateData.lessonOrder;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(updateData)
       .eq('id', id)
@@ -229,7 +244,7 @@ export class Lesson {
   }
 
   static async delete(id) {
-    const { error } = await supabase
+    const { error } = await getDbClient()
       .from(this.tableName)
       .delete()
       .eq('id', id);

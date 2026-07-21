@@ -19,5 +19,15 @@ export default defineConfig({
       '@images': path.resolve(__dirname, './src/images'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-lottie': ['lottie-react'],
+          'vendor-charts': ['recharts'],
+          'vendor-motion': ['framer-motion', 'gsap'],
+        },
+      },
+    },
+  },
 })
-

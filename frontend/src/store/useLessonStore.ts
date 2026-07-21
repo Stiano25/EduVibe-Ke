@@ -8,15 +8,17 @@ interface LessonState {
   error: string | null
   fetchLessons: () => Promise<void>
   fetchLessonsByStrand: (strandId: string) => Promise<void>
+  fetchLessonsBySubStrand: (subStrandId: string) => Promise<void>
   fetchLessonsBySubject: (subjectId: string) => Promise<void>
   fetchLessonsByStatus: (status: string) => Promise<void>
+  clearLessons: () => void
   addLesson: (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   updateLesson: (id: string, lesson: Partial<Lesson>) => Promise<void>
   deleteLesson: (id: string) => Promise<void>
   getLessonById: (id: string) => Lesson | undefined
   getLessonsByStrand: (strandId: string) => Lesson[]
   getLessonsBySubject: (subjectId: string) => Lesson[]
-  approveLesson: (id: string, approvedBy: string) => Promise<void>
+  approveLesson: (id: string) => Promise<void>
   rejectLesson: (id: string) => Promise<void>
   addAIGeneratedLessons: (lessons: Lesson[]) => Promise<void>
 }
@@ -43,9 +45,22 @@ export const useLessonStore = create<LessonState>((set, get) => ({
       const lessons = await api.admin.getLessonsByStrand(strandId)
       set({ lessons, isLoading: false })
     } catch (error) {
-      console.error('Error fetching lessons by strand:', error)
       set({ error: error instanceof Error ? error.message : 'Failed to fetch lessons', isLoading: false })
     }
+  },
+
+  fetchLessonsBySubStrand: async (subStrandId: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      const lessons = await api.admin.getLessonsBySubStrand(subStrandId)
+      set({ lessons, isLoading: false })
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to fetch lessons', isLoading: false })
+    }
+  },
+
+  clearLessons: () => {
+    set({ lessons: [], error: null })
   },
   
   fetchLessonsBySubject: async (subjectId: string) => {

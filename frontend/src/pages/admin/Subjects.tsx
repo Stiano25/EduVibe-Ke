@@ -8,8 +8,18 @@ import { Subject, Grade } from '@/types'
 import { Modal } from '@/components/modals/Modal'
 import { Save, X } from 'lucide-react'
 import { api } from '@/lib/api'
+import { AiProgressOverlay } from '@/components/ui/AiProgressOverlay'
 
 const grades: Grade[] = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+
+const PDF_PARSE_STEPS = [
+  'Reading your curriculum PDF...',
+  'Sending content to Gemini AI...',
+  'Extracting themes and strands...',
+  'Finding sub-strands and learning outcomes...',
+  'Saving curriculum structure...',
+  'Almost done — finishing up...',
+]
 
 export const AdminSubjects = () => {
   const { subjects, isLoading: subjectsLoading, error: subjectsError, fetchSubjects, addSubject, updateSubject, deleteSubject } = useSubjectStore()
@@ -271,7 +281,7 @@ export const AdminSubjects = () => {
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : !subjectsLoading ? (
                 <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-12 text-center">
                   <p className="text-lg font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                     No subjects found
@@ -280,7 +290,7 @@ export const AdminSubjects = () => {
                     Create your first subject from a curriculum design
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           </StaggeredEntry>
         </div>
@@ -304,6 +314,17 @@ export const AdminSubjects = () => {
         onSave={handleSave}
         subject={formModal.subject}
         isLoading={isSaving}
+      />
+
+      <AiProgressOverlay
+        isOpen={!!parsingSubjectId}
+        title="Parsing curriculum PDF"
+        subtitle={
+          parsingSubjectId
+            ? subjects.find((s) => s.id === parsingSubjectId)?.name
+            : undefined
+        }
+        steps={PDF_PARSE_STEPS}
       />
     </div>
   )

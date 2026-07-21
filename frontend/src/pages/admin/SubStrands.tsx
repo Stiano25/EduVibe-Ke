@@ -9,10 +9,8 @@ export const AdminSubStrands = () => {
   const [selectedStrand, setSelectedStrand] = useState<MainSubject | null>(null)
   const [selectedCurriculum, setSelectedCurriculum] = useState<CurriculumSubject | null>(null)
 
-  const handleDelete = (strandId: string, curriculumId: string, substrandId: string) => {
-    if (confirm('Are you sure you want to delete this sub-strand?')) {
-      console.log('Delete sub-strand:', strandId, curriculumId, substrandId)
-    }
+  const handleDelete = (_strandId: string, _curriculumId: string, _substrandId: string) => {
+    if (!confirm('Are you sure you want to delete this sub-strand?')) return
   }
 
   if (selectedCurriculum && selectedStrand) {

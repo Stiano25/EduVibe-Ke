@@ -24,6 +24,19 @@ export const supabaseAdmin = supabaseServiceRoleKey
     })
   : null;
 
+/**
+ * Prefer service-role client for server-side DB access.
+ * The anon key has no user JWT here, so RLS blocks most reads/writes.
+ */
+let warnedMissingServiceRole = false;
+export const getDbClient = () => {
+  if (!supabaseAdmin && !warnedMissingServiceRole) {
+    warnedMissingServiceRole = true;
+    console.warn('SUPABASE_SERVICE_ROLE_KEY not set; using anon client (RLS may block operations).');
+  }
+  return supabaseAdmin || supabase;
+};
+
 export default supabase;
 
 

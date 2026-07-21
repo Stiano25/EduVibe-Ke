@@ -7,9 +7,11 @@ interface ModalProps {
   title: string
   children: React.ReactNode
   size?: 'sm' | 'md' | 'lg'
+  /** When true, backdrop click and X are disabled (long-running ops). */
+  preventClose?: boolean
 }
 
-export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, size = 'md', preventClose = false }: ModalProps) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -29,10 +31,14 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
     lg: 'max-w-2xl',
   }
 
+  const handleClose = () => {
+    if (!preventClose) onClose()
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={handleClose}
       style={{ fontFamily: 'Manrope, sans-serif' }}
     >
       {/* Backdrop */}
@@ -51,12 +57,14 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalPr
           <h2 className="text-lg sm:text-xl font-bold text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
             {title}
           </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all"
-          >
-            <X className="w-4 h-4 text-slate-700" />
-          </button>
+          {!preventClose && (
+            <button
+              onClick={handleClose}
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all"
+            >
+              <X className="w-4 h-4 text-slate-700" />
+            </button>
+          )}
         </div>
 
         {/* Body */}

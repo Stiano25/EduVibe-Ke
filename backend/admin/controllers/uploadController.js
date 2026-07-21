@@ -27,13 +27,7 @@ export const uploadPDF = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Prefer admin client for storage operations (bypasses RLS)
-    if (!supabaseAdmin) {
-      console.warn('Supabase admin client not available. Using regular client. Make sure SUPABASE_SERVICE_ROLE_KEY is set in .env');
-    }
-
     const storageClient = supabaseAdmin || supabase;
-    
     if (!storageClient) {
       return res.status(500).json({ error: 'Supabase client not configured' });
     }
@@ -41,13 +35,10 @@ export const uploadPDF = async (req, res) => {
     const file = req.file;
     const fileExtension = file.originalname.split('.').pop();
     const fileName = `${randomUUID()}.${fileExtension}`;
-    const folderPath = 'curriculum-designs'; // Folder in Supabase Storage
+    const folderPath = 'curriculum-designs';
     const bucketName = 'curriculum-designs';
 
-    console.log(`Uploading PDF to bucket: ${bucketName}, path: ${folderPath}/${fileName}`);
-    
-    // Upload to Supabase Storage
-    const { data, error } = await storageClient.storage
+    const { error } = await storageClient.storage
       .from(bucketName)
       .upload(`${folderPath}/${fileName}`, file.buffer, {
         contentType: 'application/pdf',
@@ -55,30 +46,20 @@ export const uploadPDF = async (req, res) => {
       });
 
     if (error) {
-      console.error('Error uploading to Supabase Storage:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      
-      // Provide helpful error messages
+      console.error('Error uploading to Supabase Storage:', error.message || error);
       if (error.message?.includes('Bucket not found') || error.message?.includes('does not exist')) {
-        return res.status(500).json({ 
-          error: 'Storage bucket not found. Please create the "curriculum-designs" bucket in Supabase Storage and run the setup-storage.sql script.' 
+        return res.status(500).json({
+          error: 'Storage bucket not found. Please create the "curriculum-designs" bucket in Supabase Storage and run the setup-storage.sql script.'
         });
       }
-      
-      return res.status(500).json({ 
-        error: 'Failed to upload PDF: ' + (error.message || 'Unknown error'),
-        details: error
+      return res.status(500).json({
+        error: 'Failed to upload PDF: ' + (error.message || 'Unknown error')
       });
     }
 
-    console.log('PDF uploaded successfully:', data);
-
-    // Get public URL
     const { data: urlData } = storageClient.storage
       .from(bucketName)
       .getPublicUrl(`${folderPath}/${fileName}`);
-
-    console.log('Public URL generated:', urlData.publicUrl);
 
     res.json({
       url: urlData.publicUrl,
@@ -86,10 +67,10 @@ export const uploadPDF = async (req, res) => {
       path: `${folderPath}/${fileName}`,
     });
   } catch (error) {
-    console.error('Error in uploadPDF:', error);
-    res.status(500).json({ 
+    console.error('Error in uploadPDF:', error.message || error);
+    res.status(500).json({
       error: 'Failed to upload PDF',
-      message: error.message 
+      message: error.message
     });
   }
 };

@@ -1,56 +1,49 @@
 import express from 'express';
 import {
   getLearnerSubjects,
+  getLearnerSubject,
   getLearnerStrands,
+  getLearnerStrand,
   getLearnerSubstrands,
+  getLearnerSubstrandById,
   getLearnerLessons,
+  getLearnerLesson,
   completeLesson,
   updateLessonProgress,
   getSimilarLessonsFromLowerGrades,
   getNextLessonsInSubstrand
 } from '../controllers/learnerController.js';
 import { registerLearner, loginLearner } from '../controllers/authController.js';
+import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = express.Router();
 
-// Middleware to extract user from request (assuming it's set by auth middleware)
-// For now, we'll use a simple approach - in production, use proper JWT auth
-router.use((req, res, next) => {
-  // TODO: Replace with proper authentication middleware
-  // For now, we'll expect user to be set by auth middleware
-  // req.user should contain { id: string, grade: string }
-  next();
-});
-
-// Auth routes (must be before other routes to avoid conflicts)
+// Public auth + health
 router.post('/register', registerLearner);
 router.post('/login', loginLearner);
-
-// Subjects - only for learner's grade, only those with strands
-router.get('/subjects', getLearnerSubjects);
-
-// Strands - for a subject, only those with substrands
-router.get('/strands/:subjectId', getLearnerStrands);
-
-// Substrands - for a strand, only those with approved lessons
-router.get('/substrands/:strandId', getLearnerSubstrands);
-
-// Progress tracking (must come before general lessons route to avoid conflicts)
-router.post('/lessons/:lessonId/complete', completeLesson);
-router.patch('/lessons/:lessonId/progress', updateLessonProgress);
-
-// Get similar lessons from lower grades (for remediation)
-router.get('/lessons/:lessonId/similar', getSimilarLessonsFromLowerGrades);
-
-// Get next lessons in same sub-strand (must come before general lessons route)
-router.get('/lessons/:lessonId/next', getNextLessonsInSubstrand);
-
-// Lessons - approved lessons for a substrand with unlock status (must be last to avoid conflicts)
-router.get('/lessons/:substrandId', getLearnerLessons);
-
-// Health check
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Learner routes are ready' });
 });
+
+// Authenticated learner routes
+router.use(authenticate, requireRole('learner'));
+
+// Collections (param = parent id)
+router.get('/subjects', getLearnerSubjects);
+router.get('/strands/:subjectId', getLearnerStrands);
+router.get('/substrands/:strandId', getLearnerSubstrands);
+
+// Single resources (singular paths avoid clashing with collection params)
+router.get('/subject/:id', getLearnerSubject);
+router.get('/strand/:id', getLearnerStrand);
+router.get('/substrand/:id', getLearnerSubstrandById);
+router.get('/lesson/:id', getLearnerLesson);
+
+// Lesson actions / related (specific paths before :substrandId list)
+router.post('/lessons/:lessonId/complete', completeLesson);
+router.patch('/lessons/:lessonId/progress', updateLessonProgress);
+router.get('/lessons/:lessonId/similar', getSimilarLessonsFromLowerGrades);
+router.get('/lessons/:lessonId/next', getNextLessonsInSubstrand);
+router.get('/lessons/:substrandId', getLearnerLessons);
 
 export default router;

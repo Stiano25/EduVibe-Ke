@@ -5,12 +5,7 @@ import { ArrowLeft, Clock, BookOpen, Play, CheckCircle, XCircle, Sparkles, Trend
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/useAuthStore'
 import type { Lesson, QuizQuestion } from '@/types'
-// @ts-ignore - lottie-react types
-import Lottie from 'lottie-react'
-// @ts-ignore - JSON imports for animations
-import loadingAnimation from '@/animations/loading.json'
-// @ts-ignore - JSON imports for animations
-import flirtingDogAnimation from '@/animations/Flirting Dog.json'
+import { LazyLottie } from '@/components/ui/LazyLottie'
 import { LessonContentRenderer } from '@/components/learner/LessonContentRenderer'
 
 export const LessonView = () => {
@@ -130,10 +125,7 @@ export const LessonView = () => {
       try {
         setLoading(true)
         setError(null)
-        // Fetch lesson from API - we'll need to add this endpoint or use existing one
-        // For now, let's try to get it from the learner lessons endpoint
-        // We might need to create a new endpoint to get a single lesson
-        const lessonData = await api.admin.getLesson(id)
+        const lessonData = await api.learner.getLesson(id)
         setLesson(lessonData)
       } catch (err: any) {
         console.error('Error fetching lesson:', err)
@@ -460,13 +452,7 @@ export const LessonView = () => {
       <div className="min-h-screen premium-mesh flex items-center justify-center p-4">
         <div className="bg-white/80 backdrop-blur-md rounded-[32px] border-2 border-slate-200 p-8 text-center max-w-md">
           <div className="w-40 h-40 sm:w-48 sm:h-48 mx-auto">
-            {/* @ts-ignore - lottie-react types */}
-            <Lottie 
-              animationData={loadingAnimation}
-              loop
-              autoplay
-              style={{ width: '100%', height: '100%' }}
-            />
+            <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
           </div>
         </div>
       </div>
@@ -756,12 +742,7 @@ export const LessonView = () => {
                               <div className="bg-white rounded-2xl shadow-2xl border-2 border-amber-200 p-4 relative">
                                 {/* Flirting Dog Animation */}
                                 <div className="w-32 h-32 mx-auto mb-3">
-                                  <Lottie 
-                                    animationData={flirtingDogAnimation}
-                                    loop
-                                    autoplay
-                                    style={{ width: '100%', height: '100%' }}
-                                  />
+                                  <LazyLottie animationKey="flirtingDog" style={{ width: '100%', height: '100%' }} />
                                 </div>
                                 
                                 {/* Message */}
@@ -828,12 +809,7 @@ export const LessonView = () => {
                             {loadingSimilar ? (
                               <div className="text-center py-8">
                                 <div className="w-16 h-16 mx-auto">
-                                  <Lottie 
-                                    animationData={loadingAnimation}
-                                    loop
-                                    autoplay
-                                    style={{ width: '100%', height: '100%' }}
-                                  />
+                                  <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
                                 </div>
                                 <p className="text-sm text-text-secondary mt-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                                   Finding practice exercises...
@@ -929,12 +905,7 @@ export const LessonView = () => {
                             {loadingNext ? (
                               <div className="text-center py-8">
                                 <div className="w-16 h-16 mx-auto">
-                                  <Lottie 
-                                    animationData={loadingAnimation}
-                                    loop
-                                    autoplay
-                                    style={{ width: '100%', height: '100%' }}
-                                  />
+                                  <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
                                 </div>
                                 <p className="text-sm text-text-secondary mt-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                                   Loading next lessons...

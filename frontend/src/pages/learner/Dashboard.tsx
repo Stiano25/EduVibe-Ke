@@ -27,8 +27,8 @@ export const LearnerDashboard = () => {
     return matchesSearch
   })
 
-  const handleQuizClick = (quizId: string) => {
-    console.log('Navigate to quiz:', quizId)
+  const handleQuizClick = (_quizId: string) => {
+    // Quiz navigation not wired yet
   }
 
   return (

@@ -3,19 +3,9 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
 import { ArrowLeft, Play, Clock, Lock } from 'lucide-react'
 import { api } from '@/lib/api'
+import { LazyLottie } from '@/components/ui/LazyLottie'
+import { animationKeyForSubjectId, type AnimationKey } from '@/lib/lottieAnimations'
 import type { Lesson, Subject, Strand, SubStrand } from '@/types'
-// @ts-ignore - lottie-react types
-import Lottie from 'lottie-react'
-// @ts-ignore - JSON imports for animations
-import loadingAnimation from '@/animations/loading.json'
-import studentAnimation from '@/animations/STUDENT.json'
-import teacherAnimation from '@/animations/Teacher in Classroom.json'
-import wingedTeacherAnimation from '@/animations/Winged Teacher.json'
-import happyBoyAnimation from '@/animations/Happy boy.json'
-import yogaDogAnimation from '@/animations/Yoga Dog.json'
-import flirtingDogAnimation from '@/animations/Flirting Dog.json'
-import cuteTigerAnimation from '@/animations/Cute Tiger.json'
-import fireAnimation from '@/animations/Fire.json'
 
 interface LessonWithUnlock extends Lesson {
   isUnlocked: boolean
@@ -24,18 +14,6 @@ interface LessonWithUnlock extends Lesson {
   lastAccessed?: string
   theme?: string | null
 }
-
-// Available Lottie animations for subjects
-const subjectAnimations = [
-  studentAnimation,
-  teacherAnimation,
-  wingedTeacherAnimation,
-  happyBoyAnimation,
-  yogaDogAnimation,
-  flirtingDogAnimation,
-  cuteTigerAnimation,
-  fireAnimation,
-]
 
 // Extract theme number from theme string (e.g., "Theme 1" -> 1, "1" -> 1)
 const extractThemeNumber = (theme: string | null | undefined): number | null => {
@@ -57,12 +35,9 @@ export const LearnerLessons = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Get random Lottie animation for subject
-  const subjectLottie = useMemo(() => {
+  const subjectLottieKey: AnimationKey | null = useMemo(() => {
     if (!subjectId) return null
-    // Use subjectId to get consistent animation per subject
-    const index = parseInt(subjectId.slice(-1) || '0', 16) % subjectAnimations.length
-    return subjectAnimations[index]
+    return animationKeyForSubjectId(subjectId)
   }, [subjectId])
 
   // Fetch subject, strand, and substrand info
@@ -80,9 +55,9 @@ export const LearnerLessons = () => {
 
         // Fetch subject, strand, and substrand in parallel
         const [subjectData, strandData, substrandData, lessonsData] = await Promise.all([
-          api.admin.getSubject(subjectId),
-          api.admin.getStrand(strandId),
-          api.admin.getSubStrand(substrandId),
+          api.learner.getSubject(subjectId),
+          api.learner.getStrand(strandId),
+          api.learner.getSubStrand(substrandId),
           api.learner.getLessons(substrandId)
         ])
 
@@ -204,12 +179,7 @@ export const LearnerLessons = () => {
           <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
             <div className="flex flex-col items-center justify-center py-12">
               <div className="w-40 h-40 sm:w-48 sm:h-48">
-                <Lottie 
-                  animationData={loadingAnimation}
-                  loop
-                  autoplay
-                  style={{ width: '100%', height: '100%' }}
-                />
+                <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
               </div>
             </div>
           </div>
@@ -351,17 +321,10 @@ export const LearnerLessons = () => {
                 : 'from-indigo-500 to-purple-600'
             } flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden`}>
               {(() => {
-                // Select a consistent animation for this lesson based on lesson ID
-                const animationIndex = parseInt(lesson.id.slice(-1) || '0', 16) % subjectAnimations.length
-                const lessonAnimation = subjectAnimations[animationIndex]
+                const lessonKey = animationKeyForSubjectId(lesson.id)
                 return (
                   <div className="w-full h-full">
-                    <Lottie 
-                      animationData={lessonAnimation}
-                      loop
-                      autoplay
-                      style={{ width: '100%', height: '100%' }}
-                    />
+                    <LazyLottie animationKey={lessonKey} style={{ width: '100%', height: '100%' }} />
                   </div>
                 )
               })()}
@@ -489,12 +452,10 @@ export const LearnerLessons = () => {
               {substrand && strand && subject ? (
                 <>
                   <div className="flex items-center gap-4 mb-4">
-                    {subjectLottie ? (
+                    {subjectLottieKey ? (
                       <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
-                        <Lottie 
-                          animationData={subjectLottie}
-                          loop
-                          autoplay
+                        <LazyLottie
+                          animationKey={subjectLottieKey}
                           style={{ width: '100%', height: '100%' }}
                         />
                       </div>
@@ -521,21 +482,14 @@ export const LearnerLessons = () => {
               ) : (
                 <div className="flex items-center gap-4 mb-2">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg overflow-hidden">
-                    {subjectLottie ? (
-                      <Lottie 
-                        animationData={subjectLottie}
-                        loop
-                        autoplay
+                    {subjectLottieKey ? (
+                      <LazyLottie
+                        animationKey={subjectLottieKey}
                         style={{ width: '100%', height: '100%' }}
                       />
                     ) : (
                       <div className="w-full h-full">
-                        <Lottie 
-                          animationData={studentAnimation}
-                          loop
-                          autoplay
-                          style={{ width: '100%', height: '100%' }}
-                        />
+                        <LazyLottie animationKey="student" style={{ width: '100%', height: '100%' }} />
                       </div>
                     )}
                   </div>
@@ -604,12 +558,7 @@ export const LearnerLessons = () => {
             ) : (
               <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-12 text-center">
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
-                  <Lottie 
-                    animationData={studentAnimation}
-                    loop
-                    autoplay
-                    style={{ width: '100%', height: '100%' }}
-                  />
+                  <LazyLottie animationKey="student" style={{ width: '100%', height: '100%' }} />
                 </div>
                 <p className="text-lg font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
                   No lessons found

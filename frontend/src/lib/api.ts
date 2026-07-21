@@ -14,73 +14,52 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
-    // Get user ID for learner routes
-    // Note: In a real app, this would come from a JWT token or auth context
-    // For now, we get it from sessionStorage where the auth store saves it
-    let userId = null;
+
+    let token: string | null = null;
     if (typeof window !== 'undefined') {
-      try {
-        // First try sessionStorage (where auth store saves userId)
-        userId = sessionStorage.getItem('userId');
-        
-        // Fallback: try to get from user object in sessionStorage
-        if (!userId) {
-          const userStr = sessionStorage.getItem('user');
-          if (userStr) {
-            const user = JSON.parse(userStr);
-            userId = user?.id;
-          }
-        }
-        
-        // Last fallback: try localStorage (if auth store uses persist)
-        if (!userId) {
-          const authData = localStorage.getItem('auth-storage');
-          if (authData) {
-            const parsed = JSON.parse(authData);
-            userId = parsed?.state?.user?.id;
-          }
-        }
-      } catch (e) {
-        // Ignore parsing errors
-        console.warn('Error getting user ID from storage:', e);
-      }
+      token = sessionStorage.getItem('token');
     }
-    
-    // Debug log for learner routes
-    if (endpoint.startsWith('/learner') && !userId) {
-      console.warn('No user ID found for learner route:', endpoint);
-      console.log('sessionStorage userId:', sessionStorage.getItem('userId'));
-      console.log('sessionStorage user:', sessionStorage.getItem('user'));
-    }
-    
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(userId && endpoint.startsWith('/learner') ? { 'x-user-id': userId } : {}),
-        ...options.headers,
-      },
+
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> | undefined),
     };
 
-    try {
-      const response = await fetch(url, config);
-      
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Request failed' }));
-        // Preserve error details from backend
-        const errorObj = new Error(error.error || `HTTP error! status: ${response.status}`);
-        if (error.details) errorObj.details = error.details;
-        if (error.hint) errorObj.hint = error.hint;
-        if (error.message) errorObj.message = error.message;
-        throw errorObj;
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`API Error [${endpoint}]:`, error);
-      throw error;
+    // Don't override FormData content-type
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     }
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      const message =
+        error.message ||
+        error.error ||
+        `HTTP error! status: ${response.status}`;
+      const errorObj = new Error(message) as Error & {
+        details?: string;
+        hint?: string;
+        code?: string;
+        error?: string;
+        status?: number;
+      };
+      if (error.details) errorObj.details = error.details;
+      if (error.hint) errorObj.hint = error.hint;
+      if (error.code) errorObj.code = error.code;
+      if (error.error) errorObj.error = error.error;
+      errorObj.status = response.status;
+      throw errorObj;
+    }
+
+    return response.json();
   }
 
   // Admin API methods
@@ -120,19 +99,10 @@ class ApiClient {
     uploadPDF: async (file: File) => {
       const formData = new FormData();
       formData.append('pdf', file);
-      
-      const url = `${this.baseUrl}/admin/upload/pdf`;
-      const response = await fetch(url, {
+      return this.request('/admin/upload/pdf', {
         method: 'POST',
         body: formData,
       });
-      
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Upload failed' }));
-        throw new Error(error.error || `HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
     },
 
     // Strands
@@ -230,25 +200,34 @@ class ApiClient {
   learner = {
     // Auth
     register: (data: { name: string; email: string; password: string; grade: string }) =>
-      this.request('/learner/register', { method: 'POST', body: JSON.stringify(data) }),
+      this.request<{ message: string; token: string; user: any }>('/learner/register', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     login: (data: { email: string; password: string }) =>
-      this.request('/learner/login', { method: 'POST', body: JSON.stringify(data) }),
+      this.request<{ message: string; token: string; user: any }>('/learner/login', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     
     // Subjects - only for learner's grade, only those with strands
     getSubjects: () => this.request('/learner/subjects'),
-    
+    getSubject: (id: string) => this.request(`/learner/subject/${id}`),
+
     // Strands - for a subject, only those with substrands
-    getStrands: (subjectId: string) => 
+    getStrands: (subjectId: string) =>
       this.request(`/learner/strands/${subjectId}`),
-    
+    getStrand: (id: string) => this.request(`/learner/strand/${id}`),
+
     // Substrands - for a strand, only those with approved lessons
-    getSubstrands: (strandId: string) => 
+    getSubstrands: (strandId: string) =>
       this.request(`/learner/substrands/${strandId}`),
-    
+    getSubStrand: (id: string) => this.request(`/learner/substrand/${id}`),
+
     // Lessons - approved lessons for a substrand with unlock status
-    getLessons: (substrandId: string) => 
+    getLessons: (substrandId: string) =>
       this.request(`/learner/lessons/${substrandId}`),
-    
+    getLesson: (id: string) => this.request(`/learner/lesson/${id}`),
     // Progress tracking
     completeLesson: (lessonId: string) => 
       this.request(`/learner/lessons/${lessonId}/complete`, { method: 'POST' }),

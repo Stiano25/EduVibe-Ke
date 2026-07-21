@@ -57,9 +57,8 @@ const extractTextFromPDF = async (pdfBuffer) => {
       const pdfParse = await import('pdf-parse');
       const data = await pdfParse.default(pdfBuffer);
       return data.text;
-    } catch (importError) {
-      // If pdf-parse is not available, return null and we'll use Gemini's PDF handling
-      console.log('pdf-parse not available, using Gemini PDF handling');
+    } catch {
+      // pdf-parse unavailable — Gemini prompt will use URL fallback
       return null;
     }
   } catch (error) {
@@ -75,25 +74,15 @@ const extractTextFromPDF = async (pdfBuffer) => {
 export const parsePDFContent = async (pdfUrl, subjectId, subjectName, grade) => {
   try {
     const model = getModel();
-    
-    console.log(`Starting PDF parsing for ${subjectName} (Grade ${grade})`);
-    console.log(`PDF URL: ${pdfUrl}`);
-    
-    // Download PDF
+
     let pdfBuffer;
     let pdfText = null;
-    
+
     try {
       pdfBuffer = await downloadPDF(pdfUrl);
-      console.log(`PDF downloaded, size: ${pdfBuffer.length} bytes`);
-      
-      // Try to extract text
       pdfText = await extractTextFromPDF(pdfBuffer);
-      if (pdfText) {
-        console.log(`Extracted ${pdfText.length} characters from PDF`);
-      }
     } catch (downloadError) {
-      console.error('Error downloading PDF:', downloadError);
+      console.error('Error downloading PDF:', downloadError.message || downloadError);
       throw new Error('Failed to download PDF: ' + downloadError.message);
     }
     
@@ -155,25 +144,16 @@ Extract the following structure:
 Return as JSON with the structure specified.`;
     }
 
-    console.log('Sending request to Gemini 3 Flash Preview...');
     const result = await model.generateContent(prompt);
-    
-    const response = await result.response;
-    const text = response.text();
-    
-    console.log('Received response from Gemini, length:', text.length);
+    const text = (await result.response).text();
 
-    // Parse JSON response
     let parsedData;
     try {
       const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
       const jsonText = jsonMatch ? jsonMatch[1] : text;
       parsedData = JSON.parse(jsonText);
-      console.log('Successfully parsed JSON response');
-      console.log(`Found ${parsedData.strands?.length || 0} strands`);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      console.error('Response text:', text.substring(0, 500));
+      console.error('Failed to parse AI PDF response:', parseError.message || parseError);
       throw new Error('Failed to parse PDF content: ' + parseError.message);
     }
 
@@ -185,7 +165,8 @@ Return as JSON with the structure specified.`;
 };
 
 /**
- * Process parsed PDF data and save to database
+ * Process parsed PDF data and save to database.
+ * Reuses existing strands by name so re-parsing does not create duplicates.
  */
 export const processParsedPDF = async (parsedData, subjectId) => {
   try {
@@ -193,32 +174,47 @@ export const processParsedPDF = async (parsedData, subjectId) => {
     const createdStrands = [];
     const createdSubStrands = [];
 
-    // Create strands and sub-strands
-    for (const strandData of strands) {
-      // Create strand
-      const strand = await Strand.create({
-        name: strandData.name,
-        description: strandData.description || '',
-        subjectId,
-        theme: theme || null,
-        isAIGenerated: true
-      });
+    for (const strandData of strands || []) {
+      const strandName = (strandData.name || '').trim();
+      if (!strandName) continue;
+
+      let strand = await Strand.findBySubjectAndName(subjectId, strandName);
+      if (!strand) {
+        strand = await Strand.create({
+          name: strandName,
+          description: strandData.description || '',
+          subjectId,
+          theme: theme || null,
+          isAIGenerated: true
+        });
+      }
       createdStrands.push(strand);
 
-      // Create sub-strands for this strand
-      if (strandData.subStrands && strandData.subStrands.length > 0) {
-        const subStrandsData = strandData.subStrands.map(subStrand => ({
-          name: subStrand.name,
-          description: subStrand.description || '',
-          strandId: strand.id,
-          subjectId,
-          learningOutcomes: subStrand.learningOutcomes || [],
-          keyInquiryQuestions: subStrand.keyInquiryQuestions || [],
-          isAIGenerated: true
-        }));
+      if (strandData.subStrands?.length > 0) {
+        const existingSubStrands = await SubStrand.findByStrand(strand.id);
+        const existingNames = new Set(
+          existingSubStrands.map((s) => (s.name || '').trim().toLowerCase())
+        );
 
-        const subStrands = await SubStrand.createMany(subStrandsData);
-        createdSubStrands.push(...subStrands);
+        const subStrandsData = strandData.subStrands
+          .filter((subStrand) => {
+            const name = (subStrand.name || '').trim();
+            return name && !existingNames.has(name.toLowerCase());
+          })
+          .map((subStrand) => ({
+            name: subStrand.name.trim(),
+            description: subStrand.description || '',
+            strandId: strand.id,
+            subjectId,
+            learningOutcomes: subStrand.learningOutcomes || [],
+            keyInquiryQuestions: subStrand.keyInquiryQuestions || [],
+            isAIGenerated: true
+          }));
+
+        if (subStrandsData.length > 0) {
+          const subStrands = await SubStrand.createMany(subStrandsData);
+          createdSubStrands.push(...subStrands);
+        }
       }
     }
 

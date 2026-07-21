@@ -66,7 +66,7 @@ export class Lesson {
   }
 
   static async createMany(lessonsData) {
-    const insertData = lessonsData.map(data => ({
+    const insertData = lessonsData.map((data, index) => ({
       title: data.title,
       description: data.description,
       strand_id: data.strandId,
@@ -88,6 +88,7 @@ export class Lesson {
       quiz: data.quiz || null,
       is_ai_generated: data.isAIGenerated ?? true,
       status: data.status || 'pending',
+      lesson_order: data.lessonOrder ?? index + 1,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }));

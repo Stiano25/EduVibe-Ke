@@ -257,7 +257,7 @@ Return ONLY valid JSON (no markdown, no extra text) as an array with ${numberOfL
     };
 
     // Map to expected format
-    return lessonsData.map(lesson => ({
+    return lessonsData.map((lesson, index) => ({
       title: lesson.title,
       description: lesson.description || '',
       strandId: subStrand.strandId,
@@ -275,6 +275,7 @@ Return ONLY valid JSON (no markdown, no extra text) as an array with ${numberOfL
       summary: lesson.summary || '',
       isAIGenerated: true,
       status: 'pending',
+      lessonOrder: lesson.lessonOrder ?? index + 1,
       quiz: lesson.quiz // Include quiz if present
     }));
   } catch (error) {

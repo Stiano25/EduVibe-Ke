@@ -202,7 +202,7 @@ export const processParsedPDF = async (parsedData, subjectId) => {
             return name && !existingNames.has(name.toLowerCase());
           })
           .map((subStrand) => ({
-            name: subStrand.name.trim(),
+            name: (subStrand.name || '').trim(),
             description: subStrand.description || '',
             strandId: strand.id,
             subjectId,

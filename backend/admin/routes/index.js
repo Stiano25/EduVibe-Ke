@@ -10,6 +10,7 @@ import quizRoutes from './quiz.js';
 import userRoutes from './user.js';
 import analyticsRoutes from './analytics.js';
 import uploadRoutes from './upload.js';
+import knowledgeRoutes from './knowledge.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = express.Router();
@@ -27,6 +28,7 @@ router.use('/quizzes', quizRoutes);
 router.use('/users', userRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/knowledge', knowledgeRoutes);
 
 export default router;
 

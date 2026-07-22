@@ -13,6 +13,17 @@ import {
   getSimilarLessonsFromLowerGrades,
   getNextLessonsInSubstrand
 } from '../controllers/learnerController.js';
+import {
+  getLearnerProfile,
+  updateLearnerProfile,
+  submitSkillAttempts,
+  getScaffoldForLesson,
+  getSkillMastery,
+  startAdaptiveQuiz,
+  nextAdaptiveQuiz,
+  getAdaptiveReview
+} from '../controllers/adaptiveController.js';
+import { getProgressReport } from '../controllers/progressReportController.js';
 import { registerLearner, loginLearner } from '../controllers/authController.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 
@@ -27,6 +38,17 @@ router.get('/health', (req, res) => {
 
 // Authenticated learner routes
 router.use(authenticate, requireRole('learner'));
+
+// Learner model / adaptive
+router.get('/profile', getLearnerProfile);
+router.patch('/profile', updateLearnerProfile);
+router.post('/skill-attempts', submitSkillAttempts);
+router.get('/skill-mastery', getSkillMastery);
+router.get('/progress-report', getProgressReport);
+router.get('/lessons/:lessonId/scaffold', getScaffoldForLesson);
+router.post('/lessons/:lessonId/adaptive-start', startAdaptiveQuiz);
+router.post('/lessons/:lessonId/adaptive-next', nextAdaptiveQuiz);
+router.get('/lessons/:lessonId/adaptive-review', getAdaptiveReview);
 
 // Collections (param = parent id)
 router.get('/subjects', getLearnerSubjects);

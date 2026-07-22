@@ -105,6 +105,30 @@ class ApiClient {
       });
     },
 
+    // Knowledge bank (exam / past-paper RAG)
+    listKnowledge: () => this.request('/admin/knowledge'),
+    uploadKnowledge: async (file: File, meta: {
+      title?: string
+      grade?: string
+      subjectId?: string
+      subjectName?: string
+      sourceType?: 'exam' | 'past_paper' | 'notes'
+    }) => {
+      const formData = new FormData();
+      formData.append('pdf', file);
+      if (meta.title) formData.append('title', meta.title);
+      if (meta.grade) formData.append('grade', meta.grade);
+      if (meta.subjectId) formData.append('subjectId', meta.subjectId);
+      if (meta.subjectName) formData.append('subjectName', meta.subjectName);
+      if (meta.sourceType) formData.append('sourceType', meta.sourceType);
+      return this.request('/admin/knowledge/upload', {
+        method: 'POST',
+        body: formData,
+      });
+    },
+    deleteKnowledge: (id: string) =>
+      this.request(`/admin/knowledge/${id}`, { method: 'DELETE' }),
+
     // Strands
     getStrands: () => this.request('/admin/strands'),
     getStrand: (id: string) => this.request(`/admin/strands/${id}`),
@@ -144,10 +168,126 @@ class ApiClient {
       this.request(`/admin/lessons/status/${status}`),
     createLesson: (data: any) => 
       this.request('/admin/lessons', { method: 'POST', body: JSON.stringify(data) }),
-    createAIGeneratedLessons: (data: { subStrandId: string; numberOfLessons?: number }) => 
+    createAIGeneratedLessons: (data: { subStrandId: string; numberOfLessons?: number }) =>
       this.request('/admin/lessons/ai-generate', { method: 'POST', body: JSON.stringify(data) }),
+    createAIGeneratedLessonsStream: async (
+      data: { subStrandId: string; numberOfLessons?: number },
+      onProgress?: (info: { percent: number; message: string }) => void
+    ) => {
+      const token =
+        typeof window !== 'undefined' ? sessionStorage.getItem('token') : null
+      const response = await fetch(
+        `${this.baseUrl}/admin/lessons/ai-generate?stream=1`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(data),
+        }
+      )
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Request failed' }))
+        throw new Error(error.message || error.error || `HTTP ${response.status}`)
+      }
+
+      if (!response.body) {
+        throw new Error('No response stream from server')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let lessons: unknown[] | null = null
+      let lastError: string | null = null
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() || ''
+
+        for (const chunk of parts) {
+          const line = chunk
+            .split('\n')
+            .find((l) => l.startsWith('data:'))
+          if (!line) continue
+          try {
+            const payload = JSON.parse(line.slice(5).trim()) as {
+              type?: string
+              percent?: number
+              message?: string
+              lessons?: unknown[]
+            }
+            if (payload.type === 'progress' || payload.percent != null) {
+              onProgress?.({
+                percent: payload.percent ?? 0,
+                message: payload.message || 'Working…',
+              })
+            }
+            if (payload.type === 'done') {
+              lessons = payload.lessons || []
+              onProgress?.({
+                percent: 100,
+                message: payload.message || 'Done',
+              })
+            }
+            if (payload.type === 'error') {
+              lastError = payload.message || 'Generation failed'
+            }
+          } catch {
+            /* ignore malformed SSE chunks */
+          }
+        }
+      }
+
+      if (lastError) throw new Error(lastError)
+      if (!lessons) throw new Error('Generation finished without lessons')
+      return lessons
+    },
     updateLesson: (id: string, data: any) => 
       this.request(`/admin/lessons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    topUpQuizBank: (id: string) =>
+      this.request(`/admin/lessons/${id}/quiz/top-up`, { method: 'POST' }) as Promise<{
+        lesson: unknown
+        added: number
+        bankSize: number
+        bankStats: Record<string, unknown>
+      }>,
+    previewDiagram: (brief: Record<string, unknown>) =>
+      this.request('/admin/lessons/preview-diagram', {
+        method: 'POST',
+        body: JSON.stringify(brief),
+      }) as Promise<{ svg: string; diagramType: string }>,
+    updateLessonVisuals: (
+      id: string,
+      data: { visualBriefs?: unknown[]; contentBlocks?: unknown[] }
+    ) =>
+      this.request(`/admin/lessons/${id}/visuals`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    regenerateLessonVisual: (
+      lessonId: string,
+      briefId: string,
+      data?: { instruction?: string; preferredType?: string }
+    ) =>
+      this.request(`/admin/lessons/${lessonId}/visuals/${briefId}/regenerate`, {
+        method: 'POST',
+        body: JSON.stringify(data || {}),
+      }),
+    uploadLessonVisual: async (lessonId: string, briefId: string, file: File) => {
+      const form = new FormData()
+      form.append('file', file)
+      return this.request(`/admin/lessons/${lessonId}/visuals/${briefId}/upload`, {
+        method: 'POST',
+        body: form,
+      })
+    },
     approveLesson: (id: string) => 
       this.request(`/admin/lessons/${id}/approve`, { 
         method: 'PATCH'
@@ -245,6 +385,41 @@ class ApiClient {
     // Get next lessons in same sub-strand
     getNextLessons: (lessonId: string) => 
       this.request(`/learner/lessons/${lessonId}/next`),
+
+    getProfile: () => this.request('/learner/profile'),
+    updateProfile: (data: {
+      preferredModality?: 'visual' | 'text_steps' | 'practice' | 'mixed'
+      modalityPromptSeen?: boolean
+    }) =>
+      this.request('/learner/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    submitSkillAttempts: (data: {
+      lessonId: string
+      modalityShown?: string
+      answers: { questionId: string; selectedOptionIndex: number }[]
+    }) =>
+      this.request('/learner/skill-attempts', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    getScaffold: (lessonId: string) =>
+      this.request(`/learner/lessons/${lessonId}/scaffold`),
+    startAdaptiveQuiz: (lessonId: string) =>
+      this.request(`/learner/lessons/${lessonId}/adaptive-start`, { method: 'POST' }),
+    nextAdaptiveQuiz: (
+      lessonId: string,
+      data: { session: Record<string, unknown>; selectedOptionIndex: number }
+    ) =>
+      this.request(`/learner/lessons/${lessonId}/adaptive-next`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    getAdaptiveReview: (lessonId: string) =>
+      this.request(`/learner/lessons/${lessonId}/adaptive-review`),
+    getProgressReport: () => this.request('/learner/progress-report'),
+    getSkillMastery: () => this.request('/learner/skill-mastery'),
   };
 }
 

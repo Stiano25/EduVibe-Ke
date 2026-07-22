@@ -30,6 +30,15 @@ export class Lesson {
       lessonOrder
     } = data;
 
+    const quizPayload = quiz
+      ? {
+          ...quiz,
+          visualBriefs: data.visualBriefs || quiz.visualBriefs || [],
+          visualAssets: data.visualAssets || quiz.visualAssets || [],
+          contentBlocks: data.contentBlocks || quiz.contentBlocks || []
+        }
+      : null;
+
     const { data: lesson, error } = await getDbClient()
       .from(this.tableName)
       .insert({
@@ -51,13 +60,13 @@ export class Lesson {
         key_concepts: keyConcepts,
         examples,
         summary,
-      quiz: quiz || null,
+      quiz: quizPayload,
       is_ai_generated: isAIGenerated ?? true,
       status: status || 'pending',
       lesson_order: lessonOrder || 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-      })
+    })
       .select()
       .single();
 
@@ -85,7 +94,14 @@ export class Lesson {
       key_concepts: data.keyConcepts || [],
       examples: data.examples || [],
       summary: data.summary,
-      quiz: data.quiz || null,
+      quiz: data.quiz
+        ? {
+            ...data.quiz,
+            visualBriefs: data.visualBriefs || data.quiz.visualBriefs || [],
+            visualAssets: data.visualAssets || data.quiz.visualAssets || [],
+            contentBlocks: data.contentBlocks || data.quiz.contentBlocks || []
+          }
+        : null,
       is_ai_generated: data.isAIGenerated ?? true,
       status: data.status || 'pending',
       lesson_order: data.lessonOrder ?? index + 1,
@@ -233,6 +249,21 @@ export class Lesson {
       delete updateData.lessonOrder;
     }
 
+    // visualBriefs / contentBlocks / visualAssets live inside quiz JSON, not columns
+    const stripIntoQuiz = ['visualBriefs', 'contentBlocks', 'visualAssets'];
+    const hasQuizExtras = stripIntoQuiz.some((k) => updates[k] !== undefined);
+    if (hasQuizExtras || updates.quiz) {
+      // Caller should pass a full quiz object when updating visuals; merge extras if present
+      const baseQuiz = updates.quiz || {};
+      updateData.quiz = {
+        ...baseQuiz,
+        ...(updates.visualBriefs !== undefined ? { visualBriefs: updates.visualBriefs } : {}),
+        ...(updates.contentBlocks !== undefined ? { contentBlocks: updates.contentBlocks } : {}),
+        ...(updates.visualAssets !== undefined ? { visualAssets: updates.visualAssets } : {})
+      };
+      for (const k of stripIntoQuiz) delete updateData[k];
+    }
+
     const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(updateData)
@@ -255,6 +286,7 @@ export class Lesson {
   }
 
   static mapToModel(data) {
+    const quiz = data.quiz || null;
     return {
       id: data.id,
       title: data.title,
@@ -275,7 +307,10 @@ export class Lesson {
       keyConcepts: data.key_concepts || [],
       examples: data.examples || [],
       summary: data.summary,
-      quiz: data.quiz || null,
+      quiz,
+      visualBriefs: quiz?.visualBriefs || [],
+      visualAssets: quiz?.visualAssets || [],
+      contentBlocks: quiz?.contentBlocks || [],
       isAIGenerated: data.is_ai_generated,
       status: data.status,
       approvedAt: data.approved_at,

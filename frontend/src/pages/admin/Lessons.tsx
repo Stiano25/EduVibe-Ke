@@ -5,23 +5,24 @@ import { useStrandStore } from '@/store/useStrandStore'
 import { useSubStrandStore } from '@/store/useSubStrandStore'
 import { Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
-import { ArrowLeft, Edit, Trash2, BookOpen, Search, Sparkles, Check, X, RefreshCw, Loader2 } from 'lucide-react'
+import { Edit, Trash2, BookOpen, Search, Sparkles, Check, X, RefreshCw, Loader2, GraduationCap, Library } from 'lucide-react'
 import { DeleteModal } from '@/components/modals/DeleteModal'
 import { Lesson, Strand, Subject, SubStrand, Grade } from '@/types'
 import { Modal } from '@/components/modals/Modal'
 import { LessonFormModal } from '@/components/modals/LessonFormModal'
+import { LessonReviewModal } from '@/components/admin/LessonReviewModal'
 import { api } from '@/lib/api'
 import { AiProgressOverlay } from '@/components/ui/AiProgressOverlay'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
 const grades: Grade[] = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
 const LESSON_GEN_STEPS = [
-  'Reading learning outcomes...',
-  'Asking Gemini to design lessons...',
-  'Building lesson content and activities...',
-  'Creating review questions...',
-  'Saving generated lessons...',
-  'Almost done — finishing up...',
+  'Loading curriculum…',
+  'Retrieving exam exemplars…',
+  'Generating lesson with Gemini…',
+  'Parsing and normalizing…',
+  'Saving lessons…',
 ]
 
 export const AdminLessons = () => {
@@ -44,9 +45,11 @@ export const AdminLessons = () => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [selectedStrand, setSelectedStrand] = useState<Strand | null>(null)
   const [selectedSubStrand, setSelectedSubStrand] = useState<SubStrand | null>(null)
-  const [numberOfLessons, setNumberOfLessons] = useState(5)
+  const [numberOfLessons, setNumberOfLessons] = useState(2)
   const [searchQuery, setSearchQuery] = useState('')
   const [isGeneratingLessons, setIsGeneratingLessons] = useState(false)
+  const [genPercent, setGenPercent] = useState(0)
+  const [genStatus, setGenStatus] = useState<string | null>(null)
   const [generateModal, setGenerateModal] = useState<{ isOpen: boolean }>({ isOpen: false })
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; lesson: Lesson | null }>({
     isOpen: false,
@@ -60,8 +63,11 @@ export const AdminLessons = () => {
     isOpen: false,
     lesson: null,
   })
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const closeReviewModal = () => {
+    setReviewModal({ isOpen: false, lesson: null })
+  }
 
   const refreshSubStrandLessons = async () => {
     if (selectedSubStrand) {
@@ -124,23 +130,38 @@ export const AdminLessons = () => {
   // AI Lesson Generation from Sub-strand
   const generateLessons = async () => {
     if (!selectedSubStrand) return
-    
+
     setIsGeneratingLessons(true)
+    setGenPercent(2)
+    setGenStatus('Starting…')
     try {
-      const generatedLessons = await api.admin.createAIGeneratedLessons({
-        subStrandId: selectedSubStrand.id,
-        numberOfLessons: numberOfLessons
-      })
-      
+      const generatedLessons = (await api.admin.createAIGeneratedLessonsStream(
+        {
+          subStrandId: selectedSubStrand.id,
+          numberOfLessons: numberOfLessons,
+        },
+        ({ percent, message }) => {
+          setGenPercent(percent)
+          setGenStatus(message)
+        }
+      )) as Lesson[]
+
       addAIGeneratedLessons(generatedLessons)
       await refreshSubStrandLessons()
       setGenerateModal({ isOpen: false })
-      setNumberOfLessons(5)
-      alert(`Successfully generated ${generatedLessons.length} lesson(s)! Review and approve them below.`)
+      setNumberOfLessons(2)
+      alert(
+        `Successfully generated ${generatedLessons.length} lesson(s)! Review and approve them below.`
+      )
     } catch (error) {
-      alert('Failed to generate lessons: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      alert(
+        'Failed to generate lessons: ' +
+          (error instanceof Error ? error.message : 'Unknown error')
+      )
     } finally {
       setIsGeneratingLessons(false)
+      setGenPercent(0)
+      setGenStatus(null)
     }
   }
 
@@ -202,35 +223,64 @@ export const AdminLessons = () => {
         <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
           <StaggeredEntry>
             <div className="space-y-4">
-              {/* Header */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Link
-                    to="/admin"
-                    className="p-1.5 sm:p-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all"
-                  >
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
-                  </Link>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
-                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                        Manage Lessons
-                      </h1>
-                      <p className="text-xs text-text-secondary hidden sm:block" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                        AI-generated lessons from subjects
-                      </p>
-                    </div>
-                  </div>
+              <AdminPageHeader
+                title="Lessons"
+                subtitle="Step 3 — pick Grade → Subject → Strand → Sub-strand, then generate and approve"
+                icon={BookOpen}
+                iconClassName="from-cyan-500 to-blue-600"
+                actions={
+                  <>
+                    <Link
+                      to="/admin/subjects"
+                      className="px-3 py-1.5 rounded-full bg-white border-2 border-purple-200 text-purple-800 font-semibold text-xs sm:text-sm hover:bg-purple-50 inline-flex items-center gap-1.5"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      Subjects
+                    </Link>
+                    <Link
+                      to="/admin/knowledge"
+                      className="px-3 py-1.5 rounded-full bg-white border-2 border-teal-200 text-teal-800 font-semibold text-xs sm:text-sm hover:bg-teal-50 inline-flex items-center gap-1.5"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      <Library className="w-4 h-4" />
+                      Exam bank
+                    </Link>
+                  </>
+                }
+              />
+
+              {(selectedSubject || selectedStrand || selectedSubStrand) && (
+                <div
+                  className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 px-1"
+                  style={{ fontFamily: 'Manrope, sans-serif' }}
+                >
+                  <span className="font-semibold text-slate-500">Path:</span>
+                  {selectedGrade && (
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100">Grade {selectedGrade}</span>
+                  )}
+                  {selectedSubject && (
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800">
+                      {selectedSubject.name}
+                    </span>
+                  )}
+                  {selectedStrand && (
+                    <span className="px-2 py-0.5 rounded-full bg-violet-50 text-violet-800">
+                      {selectedStrand.name}
+                    </span>
+                  )}
+                  {selectedSubStrand && (
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-900 font-semibold">
+                      {selectedSubStrand.name}
+                    </span>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Grade Selection */}
               <div className="bg-white/80 backdrop-blur-md rounded-[20px] border-2 border-slate-200 p-3 sm:p-4">
                 <label className="block text-sm font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  Select Grade *
+                  1. Select Grade *
                 </label>
                 <select
                   value={selectedGrade}
@@ -256,7 +306,7 @@ export const AdminLessons = () => {
               {selectedGrade && (
                 <div className="bg-white/80 backdrop-blur-md rounded-[20px] border-2 border-slate-200 p-3 sm:p-4">
                   <label className="block text-sm font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    Select Subject *
+                    2. Select Subject *
                   </label>
                   {filteredSubjects.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -292,7 +342,7 @@ export const AdminLessons = () => {
               {selectedSubject && (
                 <div className="bg-white/80 backdrop-blur-md rounded-[20px] border-2 border-slate-200 p-4">
                   <h2 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    Select Strand (Topic)
+                    3. Select Strand (Topic)
                   </h2>
                   {subjectStrands.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -335,7 +385,7 @@ export const AdminLessons = () => {
                 <div className="bg-white/80 backdrop-blur-md rounded-[20px] border-2 border-slate-200 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      Select Sub-strand (Sub-topic)
+                      4. Select Sub-strand (Sub-topic)
                     </h2>
                     {selectedSubStrand && (
                       <button
@@ -470,7 +520,6 @@ export const AdminLessons = () => {
                                   <button
                                     onClick={() => {
                                       setReviewModal({ isOpen: true, lesson })
-                                      setCurrentQuestionIndex(0)
                                     }}
                                     className="px-2 py-1 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-700 text-[10px] font-semibold transition-all"
                                     title="Review Questions"
@@ -515,7 +564,7 @@ export const AdminLessons = () => {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-sm text-text-secondary mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                        No lessons generated yet. Click "Generate Lessons" to create up to 5 lessons from this sub-strand.
+                        No lessons generated yet. Click "Generate Lessons" to create short AI lessons (recommended: 2).
                       </p>
                       <button
                         onClick={() => setGenerateModal({ isOpen: true })}
@@ -612,9 +661,13 @@ export const AdminLessons = () => {
                 {[1, 2, 3, 4, 5].map((num) => (
                   <option key={num} value={num}>
                     {num} {num === 1 ? 'Lesson' : 'Lessons'}
+                    {num === 2 ? ' (recommended)' : ''}
                   </option>
                 ))}
               </select>
+              <p className="mt-2 text-xs text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                Each lesson gets a shorter ~18-question bank (learners still see 10–12 live). Fewer lessons = faster.
+              </p>
             </div>
             <div className="flex items-center gap-3 pt-4 border-t-2 border-slate-200">
               <button
@@ -663,171 +716,15 @@ export const AdminLessons = () => {
         />
       )}
 
-      {/* Review Questions Modal */}
       {reviewModal.lesson && reviewModal.lesson.quiz && (
-        <Modal
+        <LessonReviewModal
           isOpen={reviewModal.isOpen}
-          onClose={() => {
-            setReviewModal({ isOpen: false, lesson: null })
-            setCurrentQuestionIndex(0)
-          }}
-          title={`Review: ${reviewModal.lesson.title}`}
-          size="lg"
-        >
-          <div className="space-y-4">
-            {/* Lesson Info */}
-            <div className="bg-slate-50 rounded-[16px] p-4 border-2 border-slate-200">
-              <p className="text-sm text-text-secondary mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                {reviewModal.lesson.description}
-              </p>
-              {reviewModal.lesson.content && (
-                <div className="mt-3 p-3 bg-white rounded-[12px] border border-slate-200">
-                  <p className="text-xs font-semibold text-slate-600 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    Content (for highlighting exercise):
-                  </p>
-                  <p className="text-sm text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    {reviewModal.lesson.content}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* All Questions List */}
-            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-              {reviewModal.lesson.quiz.questions.map((q, idx) => (
-                <div key={idx} className="bg-white rounded-[16px] p-4 border-2 border-slate-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-semibold text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      Question {idx + 1}
-                    </p>
-                    <span className="text-xs text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      Points: {q.points}
-                    </span>
-                  </div>
-                  <p className="text-base text-[#0F172A] mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    {q.question}
-                  </p>
-
-                  {q.type === 'multiple-choice' && q.options && (
-                    <div className="space-y-2 mb-3">
-                      {q.options.map((option, optIdx) => {
-                        const isCorrect = optIdx === q.correctAnswerIndex
-                        const optExplanation = q.optionExplanations?.[optIdx]
-                        return (
-                          <div
-                            key={optIdx}
-                            className={`p-3 rounded-[12px] border-2 ${
-                              isCorrect ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-slate-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                {String.fromCharCode(65 + optIdx)}.
-                              </span>
-                              <span className="text-sm text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                {option}
-                              </span>
-                              {isCorrect && (
-                                <span className="ml-auto px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 rounded-full" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                  Correct
-                                </span>
-                              )}
-                            </div>
-                            {optExplanation && (
-                              <p
-                                className={`mt-2 text-xs whitespace-pre-line rounded-[8px] p-2 border ${
-                                  isCorrect
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                                    : 'bg-red-50 border-red-200 text-red-800'
-                                }`}
-                                style={{ fontFamily: 'Manrope, sans-serif' }}
-                              >
-                                {isCorrect ? 'Correct: ' : 'Not correct: '} {optExplanation}
-                              </p>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  {(q.explanation || q.feedbackCorrect || q.feedbackIncorrect) && (
-                    <div className="pt-3 border-t border-slate-200 space-y-2">
-                      {q.explanation && (
-                        <div>
-                          <p className="text-xs font-semibold text-slate-600 mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            Explanation:
-                          </p>
-                          <p className="text-sm text-[#0F172A] whitespace-pre-line bg-slate-50 rounded-[10px] p-3 border border-slate-200" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            {q.explanation}
-                          </p>
-                        </div>
-                      )}
-                      {q.feedbackCorrect && (
-                        <div>
-                          <p className="text-xs font-semibold text-emerald-700 mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            If correct:
-                          </p>
-                          <p className="text-sm text-emerald-800 whitespace-pre-line bg-emerald-50 rounded-[10px] p-3 border border-emerald-200" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            {q.feedbackCorrect}
-                          </p>
-                        </div>
-                      )}
-                      {q.feedbackIncorrect && (
-                        <div>
-                          <p className="text-xs font-semibold text-red-700 mb-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            If incorrect:
-                          </p>
-                          <p className="text-sm text-red-800 whitespace-pre-line bg-red-50 rounded-[10px] p-3 border border-red-200" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            {q.feedbackIncorrect}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-3 pt-2 border-t-2 border-slate-200">
-              <button
-                onClick={() => {
-                  setReviewModal({ isOpen: false, lesson: null })
-                  setCurrentQuestionIndex(0)
-                }}
-                className="flex-1 px-4 py-2.5 rounded-full bg-white border-2 border-slate-200 hover:bg-slate-50 transition-all text-sm font-semibold text-slate-700"
-                style={{ fontFamily: 'Manrope, sans-serif' }}
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  handleEditClick(reviewModal.lesson!)
-                  setReviewModal({ isOpen: false, lesson: null })
-                  setCurrentQuestionIndex(0)
-                }}
-                className="flex-1 px-4 py-2.5 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-all text-sm font-semibold text-indigo-700 flex items-center justify-center"
-                style={{ fontFamily: 'Manrope, sans-serif' }}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Lesson
-              </button>
-              <button
-                onClick={async () => {
-                  await handleApprove(reviewModal.lesson!)
-                  setReviewModal({ isOpen: false, lesson: null })
-                  setCurrentQuestionIndex(0)
-                }}
-                className="flex-1 px-4 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:from-emerald-700 hover:to-green-700 transition-all text-sm font-semibold flex items-center justify-center"
-                style={{ fontFamily: 'Manrope, sans-serif' }}
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Approve Lesson
-              </button>
-            </div>
-          </div>
-        </Modal>
+          lesson={reviewModal.lesson}
+          onClose={closeReviewModal}
+          onEdit={handleEditClick}
+          onApprove={handleApprove}
+          onLessonUpdated={(updated) => setReviewModal({ isOpen: true, lesson: updated })}
+        />
       )}
 
       <AiProgressOverlay
@@ -835,6 +732,8 @@ export const AdminLessons = () => {
         title="Generating AI lessons"
         subtitle={selectedSubStrand?.name}
         steps={LESSON_GEN_STEPS}
+        percent={genPercent}
+        statusMessage={genStatus}
       />
     </div>
   )

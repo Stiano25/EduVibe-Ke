@@ -1,10 +1,9 @@
+import './config/loadEnv.js'; // must be first — loads backend/.env before other imports
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import adminRoutes from './admin/routes/index.js';
 import learnerRoutes from './learner/routes/index.js';
 
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

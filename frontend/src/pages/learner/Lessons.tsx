@@ -170,11 +170,11 @@ export const LearnerLessons = () => {
     return unlocked || lessons[0]
   }, [lessons])
 
-  const iconColor = subject?.color || 'from-indigo-500 to-purple-600'
+  const iconColor = subject?.color || 'bg-primary-600'
 
   if (loading) {
     return (
-      <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+      <div className="min-h-screen premium-mesh" className="">
         <div className="p-[5px] pt-[5px]">
           <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
             <div className="flex flex-col items-center justify-center py-12">
@@ -190,14 +190,14 @@ export const LearnerLessons = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+      <div className="min-h-screen premium-mesh" className="">
         <div className="p-[5px] pt-[5px]">
           <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
             <div className="bg-red-50 backdrop-blur-md rounded-[24px] border-2 border-red-200 p-8 text-center">
-              <p className="text-lg font-semibold text-red-700 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              <p className="text-lg font-semibold text-red-700 mb-2"  >
                 Error loading lessons
               </p>
-              <p className="text-sm text-red-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              <p className="text-sm text-red-600"  >
                 {error}
               </p>
             </div>
@@ -217,7 +217,7 @@ export const LearnerLessons = () => {
     const isIncomplete = progressPercentage < 60
 
     // Different color gradients based on status
-    let cardTheme = 'from-purple-400 via-violet-400 to-indigo-400'
+    let cardTheme = 'from-primary-400 via-primary-500 to-teal-400'
     let cardBorderColor = 'border-slate-200'
     let cardBgColor = 'bg-white/80'
     
@@ -233,12 +233,12 @@ export const LearnerLessons = () => {
       cardBgColor = 'bg-gradient-to-br from-emerald-50/90 to-teal-50/90'
     } else if (isPartiallyCompleted) {
       // Partially completed - blue/indigo
-      cardTheme = 'from-blue-400 via-indigo-400 to-purple-400'
+      cardTheme = 'from-primary-400 via-teal-400 to-primary-500'
       cardBorderColor = 'border-blue-300'
       cardBgColor = 'bg-gradient-to-br from-blue-50/90 to-indigo-50/90'
     } else {
       // Incomplete (not main) - default purple
-      cardTheme = 'from-purple-400 via-violet-400 to-indigo-400'
+      cardTheme = 'from-primary-400 via-primary-500 to-teal-400'
       cardBorderColor = 'border-slate-200'
       cardBgColor = 'bg-white/80'
     }
@@ -278,21 +278,21 @@ export const LearnerLessons = () => {
       >
         {isMainPriority && isIncomplete && (
           <div className="absolute -top-2 right-3 rotate-[-3deg] z-20">
-            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-[10px] font-black text-white shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-[10px] font-black text-white shadow-lg"  >
               Focus Lesson
             </span>
           </div>
         )}
         {isFullyCompleted && (
           <div className="absolute -top-2 right-3 rotate-[-3deg] z-20">
-            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-[10px] font-black text-white shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-[10px] font-black text-white shadow-lg"  >
               Completed ✓
             </span>
           </div>
         )}
         {isPartiallyCompleted && !isFullyCompleted && (
           <div className="absolute -top-2 right-3 rotate-[-3deg] z-20">
-            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-[10px] font-black text-white shadow-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-700 text-[10px] font-black text-white shadow-lg"  >
               In Progress
             </span>
           </div>
@@ -302,7 +302,7 @@ export const LearnerLessons = () => {
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-[24px] z-10">
             <div className="text-center">
               <Lock className="w-8 h-8 text-slate-400 mx-auto mb-2" strokeWidth={2.5} />
-              <p className="text-xs font-semibold text-slate-600" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              <p className="text-xs font-semibold text-slate-600"  >
                 Complete previous lesson to unlock
               </p>
             </div>
@@ -317,8 +317,8 @@ export const LearnerLessons = () => {
                 : isFullyCompleted
                 ? 'from-emerald-500 to-teal-600'
                 : isPartiallyCompleted
-                ? 'from-blue-500 to-indigo-600'
-                : 'from-indigo-500 to-purple-600'
+                ? 'from-primary-500 to-primary-700'
+                : 'bg-primary-600'
             } flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden`}>
               {(() => {
                 const lessonKey = animationKeyForSubjectId(lesson.id)
@@ -329,26 +329,26 @@ export const LearnerLessons = () => {
                 )
               })()}
             </div>
-            <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize border border-emerald-200" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize border border-emerald-200"  >
               {lesson.contentType}
             </span>
           </div>
 
-          <h3 className="text-lg sm:text-xl font-black text-[#0F172A] mb-2 group-hover:text-indigo-600 transition-colors leading-snug" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+          <h3 className="text-lg sm:text-xl font-black text-[#0F172A] mb-2 group-hover:text-primary-700 transition-colors leading-snug" className="">
             {lesson.title}
           </h3>
-          <p className="text-sm text-text-secondary mb-4 line-clamp-2 leading-relaxed" style={{ fontFamily: 'Manrope, sans-serif' }}>
+          <p className="text-sm text-text-secondary mb-4 line-clamp-2 leading-relaxed"  >
             {lesson.description}
           </p>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 rounded-full"  >
               Grade {lesson.grade}
             </span>
-            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize"  >
               {lesson.difficulty}
             </span>
-            <div className="flex items-center gap-1 ml-auto text-xs text-text-secondary font-medium" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            <div className="flex items-center gap-1 ml-auto text-xs text-text-secondary font-medium"  >
               <Clock className="w-3.5 h-3.5" strokeWidth={2.5} />
               <span>{lesson.duration}m</span>
             </div>
@@ -359,13 +359,13 @@ export const LearnerLessons = () => {
               <span 
                 key={tag} 
                 className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded-full font-medium"
-                style={{ fontFamily: 'Manrope, sans-serif' }}
+                 
               >
                 {tag}
               </span>
             ))}
             {lesson.tags.length > 3 && (
-              <span className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded-full font-medium" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              <span className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded-full font-medium"  >
                 +{lesson.tags.length - 3}
               </span>
             )}
@@ -374,17 +374,17 @@ export const LearnerLessons = () => {
           <div className="mt-auto pt-4 border-t border-slate-200">
             <div className="flex items-center justify-between mb-2">
               {isLocked ? (
-                <div className="flex items-center gap-1.5 text-slate-400 font-semibold text-sm" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <div className="flex items-center gap-1.5 text-slate-400 font-semibold text-sm"  >
                   <Lock className="w-4 h-4" strokeWidth={2.5} />
                   <span>Locked</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 text-indigo-600 font-semibold text-sm group-hover:gap-2 transition-all" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <div className="flex items-center gap-1.5 text-primary-700 font-semibold text-sm group-hover:gap-2 transition-all"  >
                   <Play className="w-4 h-4 fill-current" strokeWidth={2.5} />
                   <span>Start Lesson</span>
                 </div>
               )}
-              <span className="text-xs font-semibold text-slate-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              <span className="text-xs font-semibold text-slate-600"  >
                 {progressPercentage}%
               </span>
             </div>
@@ -424,7 +424,7 @@ export const LearnerLessons = () => {
   }
 
   return (
-    <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+    <div className="min-h-screen premium-mesh" className="">
       <div className="p-[5px] pt-[5px]">
         <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
           <StaggeredEntry>
@@ -432,7 +432,7 @@ export const LearnerLessons = () => {
             <Link
               to="/learner"
               className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
-              style={{ fontFamily: 'Manrope, sans-serif' }}
+               
               onMouseDown={(e) => {
                 e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
               }}
@@ -467,21 +467,21 @@ export const LearnerLessons = () => {
                       </div>
                     )}
                     <div>
-                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-[#0F172A]" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-[#0F172A]" className="">
                         {substrand.name}
                       </h1>
-                      <p className="text-text-secondary mt-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      <p className="text-text-secondary mt-1"  >
                         {strand.name} • {subject.name}
                       </p>
                     </div>
                   </div>
-                  <p className="text-base text-text-secondary max-w-2xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                    Explore lessons and activities for <span className="font-semibold text-indigo-600">{substrand.name}</span> in {strand.name}
+                  <p className="text-base text-text-secondary max-w-2xl"  >
+                    Explore lessons and activities for <span className="font-semibold text-primary-700">{substrand.name}</span> in {strand.name}
                   </p>
                 </>
               ) : (
                 <div className="flex items-center gap-4 mb-2">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg overflow-hidden">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br bg-primary-600 flex items-center justify-center shadow-lg overflow-hidden">
                     {subjectLottieKey ? (
                       <LazyLottie
                         animationKey={subjectLottieKey}
@@ -494,10 +494,10 @@ export const LearnerLessons = () => {
                     )}
                   </div>
                   <div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A]" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A]" className="">
                       All Lessons
                     </h1>
-                    <p className="text-text-secondary mt-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    <p className="text-text-secondary mt-1"  >
                       Explore and discover new learning opportunities
                     </p>
                   </div>
@@ -516,11 +516,11 @@ export const LearnerLessons = () => {
                   return (
                     <div key={themeNum} className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+                        <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]" className="">
                           Theme {themeNum}
                         </h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200" />
-                        <span className="text-sm font-semibold text-slate-600 px-3 py-1 bg-slate-100 rounded-full" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                        <div className="flex-1 h-px bg-gradient-to-r from-primary-200 via-primary-100 to-secondary-100" />
+                        <span className="text-sm font-semibold text-slate-600 px-3 py-1 bg-slate-100 rounded-full"  >
                           {themeLessons.length} {themeLessons.length === 1 ? 'lesson' : 'lessons'}
                         </span>
                       </div>
@@ -538,11 +538,11 @@ export const LearnerLessons = () => {
                 {lessonsByTheme.noTheme.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+                      <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]" className="">
                         Other Lessons
                       </h2>
-                      <div className="flex-1 h-px bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200" />
-                      <span className="text-sm font-semibold text-slate-600 px-3 py-1 bg-slate-100 rounded-full" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      <div className="flex-1 h-px bg-gradient-to-r from-primary-200 via-primary-100 to-secondary-100" />
+                      <span className="text-sm font-semibold text-slate-600 px-3 py-1 bg-slate-100 rounded-full"  >
                         {lessonsByTheme.noTheme.length} {lessonsByTheme.noTheme.length === 1 ? 'lesson' : 'lessons'}
                       </span>
                     </div>
@@ -560,10 +560,10 @@ export const LearnerLessons = () => {
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
                   <LazyLottie animationKey="student" style={{ width: '100%', height: '100%' }} />
                 </div>
-                <p className="text-lg font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <p className="text-lg font-semibold text-[#0F172A] mb-2"  >
                   No lessons found
                 </p>
-                <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                <p className="text-sm text-text-secondary"  >
                   {substrand 
                     ? `No approved lessons available for ${substrand.name} yet.`
                     : 'No lessons available at the moment.'}

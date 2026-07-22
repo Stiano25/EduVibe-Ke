@@ -8,6 +8,13 @@ import type { Subject, Strand, SubStrand } from '@/types'
 
 type NavigationView = 'subjects' | 'strands' | 'substrands'
 
+/** Learner substrands endpoint enriches each substrand with progress info */
+type SubStrandWithProgress = SubStrand & {
+  progressPercent?: number
+  lessonCount?: number
+  estimatedMinutes?: number
+}
+
 export const SubjectNavigation = () => {
   const [navigationView, setNavigationView] = useState<NavigationView>('subjects')
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
@@ -15,7 +22,7 @@ export const SubjectNavigation = () => {
   
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [strands, setStrands] = useState<Strand[]>([])
-  const [substrands, setSubstrands] = useState<SubStrand[]>([])
+  const [substrands, setSubstrands] = useState<SubStrandWithProgress[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -99,10 +106,10 @@ export const SubjectNavigation = () => {
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
           <ArrowLeft className="w-8 h-8 text-slate-400" />
         </div>
-        <p className="text-lg font-semibold text-[#0F172A] mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <p className="text-lg font-semibold text-[#0F172A] mb-2"  >
           No subjects available
         </p>
-        <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+        <p className="text-sm text-text-secondary"  >
           There are no subjects currently available for your grade. Please check back later.
         </p>
       </div>
@@ -113,10 +120,10 @@ export const SubjectNavigation = () => {
   if (error && navigationView === 'subjects') {
     return (
       <div className="mb-6 bg-red-50 backdrop-blur-md rounded-[24px] border-2 border-red-200 p-8 text-center">
-        <p className="text-lg font-semibold text-red-700 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <p className="text-lg font-semibold text-red-700 mb-2"  >
           Error loading subjects
         </p>
-        <p className="text-sm text-red-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+        <p className="text-sm text-red-600"  >
           {error}
         </p>
       </div>
@@ -129,7 +136,7 @@ export const SubjectNavigation = () => {
         <button
           onClick={handleBack}
           className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
-          style={{ fontFamily: 'Manrope, sans-serif' }}
+           
           onMouseDown={(e) => {
             e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
           }}
@@ -163,7 +170,7 @@ export const SubjectNavigation = () => {
                   setNavigationView('strands')
                 }}
                 className="group flex flex-col items-center justify-center gap-2 sm:gap-3 hover:scale-105 transition-transform"
-                style={{ fontFamily: 'Poppins, sans-serif' }}
+                 
                 onMouseDown={(e) => {
                   e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
                 }}
@@ -180,7 +187,7 @@ export const SubjectNavigation = () => {
                     style={{ width: '100%', height: '100%' }}
                   />
                 </div>
-                <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight"  >
                   {subject.name}
                 </span>
               </button>
@@ -192,14 +199,14 @@ export const SubjectNavigation = () => {
         <>
           {strands.length === 0 ? (
             <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-8 text-center">
-              <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              <p className="text-sm text-text-secondary"  >
                 No strands available for this subject.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
               {strands.map((strand) => {
-                const iconColor = selectedSubject?.color || 'from-indigo-500 to-purple-600'
+                const iconColor = selectedSubject?.color || 'bg-primary-600'
                 return (
                   <button
                     key={strand.id}
@@ -208,7 +215,7 @@ export const SubjectNavigation = () => {
                       setNavigationView('substrands')
                     }}
                     className="group flex flex-col items-center justify-center gap-2 sm:gap-3 hover:scale-105 transition-transform"
-                    style={{ fontFamily: 'Poppins, sans-serif' }}
+                     
                     onMouseDown={(e) => {
                       e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
                     }}
@@ -224,7 +231,7 @@ export const SubjectNavigation = () => {
                         {strand.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight"  >
                       {strand.name}
                     </span>
                   </button>
@@ -239,13 +246,19 @@ export const SubjectNavigation = () => {
         <>
           {substrands.length === 0 ? (
             <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-8 text-center">
-              <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              <p className="text-sm text-text-secondary"  >
                 No substrands with approved lessons available for this strand.
               </p>
             </div>
           ) : (
             <SubStrandCards
-              subStrands={substrands.map(ss => ({ id: ss.id, name: ss.name }))}
+              subStrands={substrands.map(ss => ({
+                id: ss.id,
+                name: ss.name,
+                progressPercent: ss.progressPercent,
+                lessonCount: ss.lessonCount,
+                estimatedMinutes: ss.estimatedMinutes,
+              }))}
               strand={selectedStrand}
               subject={selectedSubject}
             />

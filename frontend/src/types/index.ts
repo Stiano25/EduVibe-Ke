@@ -14,36 +14,106 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 export type Grade = 'K' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12'
 
 // Quiz Question - Multiple Choice Only
-export interface QuizQuestion {
-  id: string
-  question: string
-  type: 'multiple-choice'
-  options: string[] // 2-6 options
-  correctAnswerIndex: number // Index of correct option
-  explanation: string // General explanation for the question
-  optionExplanations?: string[] // One explanation per option (why each is or isn't correct)
-  feedbackCorrect?: string // Congratulatory, with example
-  feedbackIncorrect?: string // Corrective, with example
-  difficulty?: 'easy' | 'intermediate' | 'advanced'
-  points: number
+export type BloomLevel = 'recall' | 'understand' | 'apply' | 'reason'
+export type LearnerModality = 'visual' | 'text_steps' | 'practice' | 'mixed'
+
+export interface QuizDistractor {
+  optionIndex: number
+  misconception: string
 }
 
-// Standalone Quiz
-export interface Quiz {
+export interface QuizQuestion {
   id: string
+  question?: string
+  type?: 'multiple-choice'
+  options?: string[] // 2-6 options
+  /** Omitted on learner lesson payloads — served only via adaptive endpoints */
+  correctAnswerIndex?: number
+  explanation?: string
+  optionExplanations?: string[]
+  feedbackCorrect?: string
+  feedbackIncorrect?: string
+  difficulty?: 'easy' | 'intermediate' | 'advanced'
+  points?: number
+  learningOutcomeIndex?: number
+  learningOutcomeKey?: string
+  skillFocus?: string
+  bloomLevel?: BloomLevel
+  distractors?: QuizDistractor[]
+  modality?: Exclude<LearnerModality, 'mixed'> | 'practice' | 'visual' | 'text_steps'
+  diagramBriefId?: string | null
+  steps?: string[]
+}
+
+export interface QuizBankStats {
+  total: number
+  byBloom: Record<string, number>
+  byModality: Record<string, number>
+  byOutcome: Record<string, { total: number; visual: number; text_steps: number; practice: number }>
+}
+
+// Standalone Quiz / lesson quiz envelope
+export interface Quiz {
+  id?: string
   title: string
   description?: string
-  grade: Grade
-  difficulty: Difficulty
+  grade?: Grade
+  difficulty?: Difficulty
   questions: QuizQuestion[]
-  passingScore: number // Percentage
-  timeLimit?: number // in minutes
+  /** Present on learner-sanitized payloads (stems stripped) */
+  questionCount?: number
+  bankStats?: QuizBankStats
+  passingScore: number
+  timeLimit?: number
   linkedTo?: {
     type: 'note' | 'substrand'
     id: string
   }
-  createdAt: string
-  updatedAt: string
+  contentBlocks?: LessonContentBlock[]
+  visualBriefs?: LessonVisualBrief[]
+  visualAssets?: LessonVisualAsset[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface LessonVisualBrief {
+  id?: string
+  skillFocus: string
+  outcomeKey?: string
+  brief: string
+  diagramType?: string
+  params?: Record<string, unknown>
+  /** teaching = lesson content; question = one visual quiz item */
+  scope?: 'teaching' | 'question'
+  questionId?: string
+  /** template = code SVG; upload = admin file */
+  source?: 'template' | 'upload'
+  customUrl?: string
+}
+
+export interface LessonContentBlock {
+  id?: string
+  type: 'text' | 'diagram'
+  text?: string
+  briefId?: string
+}
+
+export interface LessonVisualAsset {
+  id?: string | null
+  url: string
+  skillFocus?: string
+  outcomeKey?: string
+  alt?: string
+  brief?: string
+  diagramType?: string
+  attribution?: string
+}
+
+export interface LearnerProfile {
+  userId: string
+  preferredModality: LearnerModality
+  scaffoldTolerance: number
+  modalityPromptSeen: boolean
 }
 
 // Note - Content Only (No Quizzes)
@@ -147,7 +217,11 @@ export interface Lesson {
   examples?: string[]
   summary?: string
   quiz?: Quiz
+  visualAssets?: LessonVisualAsset[]
+  visualBriefs?: LessonVisualBrief[]
+  contentBlocks?: LessonContentBlock[]
   theme?: string | null // Theme from strand (e.g., "Theme 1", "1")
+  lessonOrder?: number
   // Approval workflow
   isAIGenerated: boolean
   status: 'pending' | 'approved' | 'rejected' | 'draft'

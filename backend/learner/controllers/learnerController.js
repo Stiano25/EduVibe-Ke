@@ -78,6 +78,33 @@ const upsertLessonProgress = async (userId, lessonId, fields) => {
   return data;
 };
 
+/**
+ * Strip the answer key from a quiz before sending it to a learner.
+ * Keeps only per-question metadata (for skill filtering and counts) plus the
+ * visual briefs/assets needed to render diagrams. Stems, options, correct
+ * answers and explanations are served one-by-one via the adaptive endpoints.
+ */
+const sanitizeQuizForLearner = (quiz) => {
+  if (!quiz) return null;
+  return {
+    title: quiz.title || 'Quiz Challenge',
+    passingScore: quiz.passingScore ?? 65,
+    timeLimit: quiz.timeLimit ?? 12,
+    questionCount: (quiz.questions || []).length,
+    questions: (quiz.questions || []).map((q) => ({
+      id: q.id,
+      learningOutcomeIndex: q.learningOutcomeIndex,
+      learningOutcomeKey: q.learningOutcomeKey,
+      skillFocus: q.skillFocus,
+      bloomLevel: q.bloomLevel,
+      modality: q.modality
+    })),
+    visualBriefs: quiz.visualBriefs || [],
+    visualAssets: quiz.visualAssets || [],
+    contentBlocks: quiz.contentBlocks || []
+  };
+};
+
 const mapLessonRow = (item, { lowerGrade, strandMap } = {}) => ({
   id: item.id,
   title: item.title,
@@ -98,7 +125,7 @@ const mapLessonRow = (item, { lowerGrade, strandMap } = {}) => ({
   keyConcepts: item.key_concepts || [],
   examples: item.examples || [],
   summary: item.summary,
-  quiz: item.quiz || null,
+  quiz: sanitizeQuizForLearner(item.quiz),
   isAIGenerated: item.is_ai_generated,
   status: item.status,
   approvedAt: item.approved_at,
@@ -238,7 +265,8 @@ export const getLearnerSubstrandById = async (req, res) => {
 /** Single approved lesson belonging to the learner's grade */
 export const getLearnerLesson = async (req, res) => {
   try {
-    if (!requireUserId(req, res)) return;
+    const userId = requireUserId(req, res);
+    if (!userId) return;
 
     const grade = await getUserGrade(req);
     const lesson = await Lesson.findById(req.params.id);
@@ -250,7 +278,21 @@ export const getLearnerLesson = async (req, res) => {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    res.json(lesson);
+    const db = getDbClient();
+    const { data: progress } = await db
+      .from('lesson_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('lesson_id', lesson.id)
+      .maybeSingle();
+
+    res.json({
+      ...lesson,
+      quiz: sanitizeQuizForLearner(lesson.quiz),
+      progress: progress?.progress ?? 0,
+      isCompleted: !!progress?.completed,
+      sessionReview: progress?.session_review || null
+    });
   } catch (error) {
     console.error('Error fetching learner lesson:', error);
     res.status(500).json({ error: 'Failed to fetch lesson' });
@@ -285,7 +327,77 @@ export const getLearnerSubstrands = async (req, res) => {
       substrands.map((substrand) => substrand.id)
     );
 
-    res.json(substrands.filter((substrand) => substrandIdsWithLessons.has(substrand.id)));
+    const visible = substrands.filter((substrand) =>
+      substrandIdsWithLessons.has(substrand.id)
+    );
+    if (visible.length === 0) {
+      return res.json([]);
+    }
+
+    const visibleIds = visible.map((s) => s.id);
+    const db = getDbClient();
+
+    // All approved lessons for these substrands (one query)
+    const { data: lessonRows, error: lessonError } = await db
+      .from('lessons')
+      .select('id, sub_strand_id, duration')
+      .in('sub_strand_id', visibleIds)
+      .eq('status', 'approved');
+
+    if (lessonError) {
+      console.error('Error fetching substrand lessons:', lessonError);
+    }
+
+    const lessonsBySub = new Map();
+    for (const row of lessonRows || []) {
+      if (!lessonsBySub.has(row.sub_strand_id)) lessonsBySub.set(row.sub_strand_id, []);
+      lessonsBySub.get(row.sub_strand_id).push(row);
+    }
+
+    const allLessonIds = (lessonRows || []).map((r) => r.id);
+    const progressMap = new Map();
+    if (allLessonIds.length > 0) {
+      const { data: progressData, error: progressError } = await db
+        .from('lesson_progress')
+        .select('lesson_id, progress, completed')
+        .eq('user_id', userId)
+        .in('lesson_id', allLessonIds);
+
+      if (progressError) {
+        console.error('Error fetching substrand progress:', progressError);
+      }
+      for (const p of progressData || []) {
+        progressMap.set(p.lesson_id, p);
+      }
+    }
+
+    res.json(
+      visible.map((substrand) => {
+        const lessons = lessonsBySub.get(substrand.id) || [];
+        const total = lessons.length;
+        let progressPercent = 0;
+        if (total > 0) {
+          const sum = lessons.reduce((acc, lesson) => {
+            const p = progressMap.get(lesson.id);
+            if (!p) return acc;
+            if (p.completed) return acc + 100;
+            return acc + Math.max(0, Math.min(100, Number(p.progress) || 0));
+          }, 0);
+          progressPercent = Math.round(sum / total);
+        }
+        const estimatedMinutes = lessons.reduce(
+          (acc, lesson) => acc + (Number(lesson.duration) || 10),
+          0
+        );
+
+        return {
+          ...substrand,
+          lessonCount: total,
+          progressPercent,
+          estimatedMinutes: estimatedMinutes || total * 10
+        };
+      })
+    );
   } catch (error) {
     console.error('Error fetching learner substrands:', error);
     res.status(500).json({ error: 'Failed to fetch substrands' });
@@ -355,6 +467,7 @@ export const getLearnerLessons = async (req, res) => {
 
       return {
         ...lesson,
+        quiz: sanitizeQuizForLearner(lesson.quiz),
         theme: theme, // Include theme from strand
         isUnlocked,
         isCompleted: progress.completed,
@@ -370,7 +483,10 @@ export const getLearnerLessons = async (req, res) => {
   }
 };
 
-// Mark lesson as completed
+/** Lessons with a quiz bank must be completed via the adaptive quiz endpoints. */
+const hasQuizBank = (lesson) => (lesson?.quiz?.questions || []).length > 0;
+
+// Mark lesson as completed (content-only lessons). Quiz lessons use adaptive-next.
 export const completeLesson = async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -380,6 +496,12 @@ export const completeLesson = async (req, res) => {
     const lesson = await Lesson.findById(lessonId);
     if (!lesson || lesson.status !== 'approved') {
       return res.status(404).json({ error: 'Lesson not found or not approved' });
+    }
+
+    if (hasQuizBank(lesson)) {
+      return res.status(403).json({
+        error: 'This lesson has a quiz — complete it through the adaptive quiz session'
+      });
     }
 
     const grade = await getUserGrade(req);
@@ -399,7 +521,7 @@ export const completeLesson = async (req, res) => {
   }
 };
 
-// Update lesson progress
+// Update lesson progress — never allow clients to mark quiz lessons complete.
 export const updateLessonProgress = async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -422,10 +544,17 @@ export const updateLessonProgress = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    if (hasQuizBank(lesson) && progress >= 60) {
+      return res.status(403).json({
+        error: 'Quiz progress is recorded only by the adaptive quiz session'
+      });
+    }
+
     const record = await upsertLessonProgress(userId, lessonId, {
       progress,
-      completed: progress >= 100,
-      completed_at: progress >= 100 ? new Date().toISOString() : null
+      completed: !hasQuizBank(lesson) && progress >= 100,
+      completed_at:
+        !hasQuizBank(lesson) && progress >= 100 ? new Date().toISOString() : null
     });
     res.json({ message: 'Progress updated', progress: record });
   } catch (error) {

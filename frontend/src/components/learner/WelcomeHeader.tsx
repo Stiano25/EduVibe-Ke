@@ -166,7 +166,7 @@ export const WelcomeHeader = () => {
           </span>!
         </h1>
       </div>
-      <p className="text-sm sm:text-base text-text-secondary" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+      <p className="text-sm sm:text-base text-text-secondary">
         Ready to learn something amazing today?
       </p>
     </div>

@@ -2,13 +2,14 @@ import { useState, useMemo, useEffect } from 'react'
 import { useSubjectStore } from '@/store/useSubjectStore'
 import { Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
-import { ArrowLeft, Plus, Edit, Trash2, FileText, Search, Sparkles, Loader2 } from 'lucide-react'
+import { Plus, Edit, Trash2, FileText, Search, Sparkles, Loader2, Library, BookOpen } from 'lucide-react'
 import { DeleteModal } from '@/components/modals/DeleteModal'
 import { Subject, Grade } from '@/types'
 import { Modal } from '@/components/modals/Modal'
 import { Save, X } from 'lucide-react'
 import { api } from '@/lib/api'
 import { AiProgressOverlay } from '@/components/ui/AiProgressOverlay'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
 const grades: Grade[] = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
@@ -138,38 +139,51 @@ export const AdminSubjects = () => {
         <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
           <StaggeredEntry>
             <div className="space-y-4">
-              {/* Header */}
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <Link
-                    to="/admin"
-                    className="p-1.5 sm:p-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all"
-                  >
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
-                  </Link>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
-                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                        Manage Subjects
-                      </h1>
-                      <p className="text-xs text-text-secondary hidden sm:block" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                        Create subjects from curriculum designs
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={handleAddClick}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-                  style={{ fontFamily: 'Manrope, sans-serif' }}
-                >
-                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Add Subject</span>
-                  <span className="sm:hidden">Add</span>
-                </button>
+              <AdminPageHeader
+                title="Subjects"
+                subtitle="Step 1 — add a subject, upload its CBC PDF, then Parse PDF to extract strands"
+                icon={FileText}
+                iconClassName="from-purple-500 to-pink-600"
+                actions={
+                  <>
+                    <Link
+                      to="/admin/knowledge"
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white border-2 border-teal-200 text-teal-800 font-semibold hover:bg-teal-50 transition-all flex items-center gap-1.5 text-xs sm:text-sm"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      <Library className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Exam bank</span>
+                    </Link>
+                    <Link
+                      to="/admin/lessons"
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white border-2 border-indigo-200 text-indigo-800 font-semibold hover:bg-indigo-50 transition-all flex items-center gap-1.5 text-xs sm:text-sm"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Lessons</span>
+                    </Link>
+                    <button
+                      onClick={handleAddClick}
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Add Subject</span>
+                      <span className="sm:hidden">Add</span>
+                    </button>
+                  </>
+                }
+              />
+
+              <div className="rounded-[16px] border-2 border-indigo-100 bg-indigo-50/70 px-4 py-3 text-xs sm:text-sm text-indigo-950">
+                <p style={{ fontFamily: 'Manrope, sans-serif' }}>
+                  <strong>Tip:</strong> After parsing, go to <strong>Lessons</strong> and choose
+                  Subject → Strand → Sub-strand to generate AI lessons. Upload past papers in{' '}
+                  <Link to="/admin/knowledge" className="underline font-semibold">
+                    Exam bank
+                  </Link>{' '}
+                  for better quiz quality.
+                </p>
               </div>
 
               {/* Search & Filters */}

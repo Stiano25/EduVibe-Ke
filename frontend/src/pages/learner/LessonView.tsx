@@ -1,12 +1,14 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
-import { ArrowLeft, Clock, BookOpen, Play, CheckCircle, XCircle, Sparkles, TrendingUp, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Clock, BookOpen, Play, CheckCircle, Sparkles, TrendingUp, AlertCircle } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/useAuthStore'
-import type { Lesson, QuizQuestion } from '@/types'
+import type { Lesson } from '@/types'
 import { LazyLottie } from '@/components/ui/LazyLottie'
-import { LessonContentRenderer } from '@/components/learner/LessonContentRenderer'
+import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlocks'
+import { AdaptiveQuizPanel } from '@/components/learner/AdaptiveQuizPanel'
+import { modalityLabel } from '@/lib/modalityQuiz'
 
 export const LessonView = () => {
   const { id } = useParams()
@@ -16,10 +18,9 @@ export const LessonView = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
-  // Quiz state
-  const [selectedAnswers, setSelectedAnswers] = useState<{ [questionId: string]: number }>({})
+  // Quiz / adaptive session follow-up
   const [showResults, setShowResults] = useState(false)
-  const [quizResults, setQuizResults] = useState<{ [questionId: string]: boolean }>({})
+  const [sessionPct, setSessionPct] = useState(0)
   const [similarLessons, setSimilarLessons] = useState<Lesson[]>([])
   const [loadingSimilar, setLoadingSimilar] = useState(false)
   const [nextLessons, setNextLessons] = useState<Lesson[]>([])
@@ -30,365 +31,35 @@ export const LessonView = () => {
   const [nextSubstrand, setNextSubstrand] = useState<{ id: string; name: string; subjectId?: string; strandId?: string } | null>(null)
   const [completedCount, setCompletedCount] = useState(0)
   const [canProceedToNextSubstrand, setCanProceedToNextSubstrand] = useState(false)
-  const [showUnansweredTooltip, setShowUnansweredTooltip] = useState(false)
+  const [missedSkills, setMissedSkills] = useState<
+    { skillFocus: string; learningOutcomeKey: string; misconception: string | null; consecutiveFails: number }[]
+  >([])
+  const [scaffoldOffer, setScaffoldOffer] = useState<{
+    needsScaffold: boolean
+    targetGrade?: string
+    lesson?: { id: string; title: string; grade: string; subjectId?: string; strandId?: string; subStrandId?: string } | null
+  } | null>(null)
+  const [preferredModality, setPreferredModality] = useState<string>('mixed')
 
-  // Helper function to get user-scoped localStorage keys
-  const getStorageKey = (key: string) => {
-    const userId = user?.id || 'anonymous'
-    return `${key}_${userId}_${id}`
-  }
-
-  // Helper function to get user-scoped failed lesson keys
   const getFailedLessonKey = (key: string) => {
     const userId = user?.id || 'anonymous'
     return `${key}_${userId}`
   }
 
-  // Restore quiz state from localStorage on mount, clear when lesson changes
-  useEffect(() => {
-    if (id && user?.id) {
-      // Check if this is a retake of a failed lesson - if so, clear all saved state
-      const failedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
-      const isRetaking = failedLessonId === id
-      
-      if (isRetaking) {
-        // Clear all saved quiz state for retake
-        localStorage.removeItem(getStorageKey('quiz_answers'))
-        localStorage.removeItem(getStorageKey('quiz_results'))
-        localStorage.removeItem(getStorageKey('quiz_show_results'))
-        setSelectedAnswers({})
-        setQuizResults({})
-        setShowResults(false)
-      } else {
-        // Normal restore - load saved state if available (scoped to current user)
-        const savedAnswers = localStorage.getItem(getStorageKey('quiz_answers'))
-        const savedResults = localStorage.getItem(getStorageKey('quiz_results'))
-        const savedShowResults = localStorage.getItem(getStorageKey('quiz_show_results'))
-        
-        if (savedAnswers) {
-          try {
-            setSelectedAnswers(JSON.parse(savedAnswers))
-          } catch (e) {
-            console.error('Error restoring quiz answers:', e)
-            setSelectedAnswers({})
-          }
-        } else {
-          setSelectedAnswers({})
-        }
-        
-        if (savedResults) {
-          try {
-            setQuizResults(JSON.parse(savedResults))
-          } catch (e) {
-            console.error('Error restoring quiz results:', e)
-            setQuizResults({})
-          }
-        } else {
-          setQuizResults({})
-        }
-        
-        if (savedShowResults === 'true') {
-          setShowResults(true)
-        } else {
-          setShowResults(false)
-        }
-      }
-    } else {
-      // Clear state if no lesson ID or user
-      setSelectedAnswers({})
-      setQuizResults({})
-      setShowResults(false)
-    }
-  }, [id, user?.id])
-
-  // Save quiz state to localStorage whenever it changes (scoped to current user)
-  useEffect(() => {
-    if (id && user?.id) {
-      if (Object.keys(selectedAnswers).length > 0) {
-        localStorage.setItem(getStorageKey('quiz_answers'), JSON.stringify(selectedAnswers))
-      }
-      if (Object.keys(quizResults).length > 0) {
-        localStorage.setItem(getStorageKey('quiz_results'), JSON.stringify(quizResults))
-      }
-      localStorage.setItem(getStorageKey('quiz_show_results'), showResults.toString())
-    }
-  }, [selectedAnswers, quizResults, showResults, id, user?.id])
-
-  useEffect(() => {
-    const fetchLesson = async () => {
-      if (!id) {
-        setError('Lesson ID is required')
-        setLoading(false)
-        return
-      }
-
-      try {
-        setLoading(true)
-        setError(null)
-        const lessonData = await api.learner.getLesson(id)
-        setLesson(lessonData)
-      } catch (err: any) {
-        console.error('Error fetching lesson:', err)
-        setError(err.message || 'Failed to load lesson')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLesson()
-    
-    // Check for failed lesson on mount (user-scoped)
-    if (user?.id) {
-      const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
-      const storedFailedLessonTitle = localStorage.getItem(getFailedLessonKey('failed_lesson_title'))
-      if (storedFailedLessonId && storedFailedLessonTitle) {
-        setFailedLessonId(storedFailedLessonId)
-        setFailedLessonTitle(storedFailedLessonTitle)
-      }
-    }
-  }, [id, user?.id])
-
-  const handleAnswerSelect = (questionId: string, answerIndex: number) => {
-    if (showResults) return // Don't allow changes after showing results
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionId]: answerIndex
-    }))
-  }
-
-  const handleSubmitQuiz = async () => {
-    if (!lesson?.quiz) return
-
-    const results: { [questionId: string]: boolean } = {}
-    lesson.quiz.questions.forEach((question, index) => {
-      // Use question.id if available, otherwise use index as fallback
-      const questionKey = question.id || `question-${index}`
-      const selectedAnswer = selectedAnswers[questionKey]
-      results[questionKey] = selectedAnswer === question.correctAnswerIndex
-    })
-
-    setQuizResults(results)
-    setShowResults(true)
-    
-    // Save to localStorage immediately (user-scoped)
-    if (id && user?.id) {
-      localStorage.setItem(getStorageKey('quiz_results'), JSON.stringify(results))
-      localStorage.setItem(getStorageKey('quiz_show_results'), 'true')
-    }
-
-    // Calculate score using the results directly
-    const score = calculateQuizScore(results)
-    
-    // Minimum passing score is 60%
-    const passingScore = Math.max(lesson.quiz.passingScore || 60, 60)
-    const passed = score.percentage >= passingScore
-    
-    // Auto-complete lesson if passed (60% or more)
-    if (passed && id) {
-      try {
-        await api.learner.completeLesson(id)
-        // Update progress to 100%
-        await api.learner.updateLessonProgress(id, 100)
-        
-        // Clear failed lesson if this was the failed lesson (user-scoped)
-        if (user?.id) {
-          const failedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
-          if (failedLessonId === id) {
-            localStorage.removeItem(getFailedLessonKey('failed_lesson_id'))
-            localStorage.removeItem(getFailedLessonKey('failed_lesson_title'))
-            localStorage.removeItem(getFailedLessonKey('failed_lesson_subject_id'))
-          }
-          
-          // Check if this is a lower grade lesson and user has a failed lesson in the SAME SUBJECT
-          const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
-          const storedFailedLessonSubjectId = localStorage.getItem(getFailedLessonKey('failed_lesson_subject_id'))
-          if (storedFailedLessonId && storedFailedLessonId !== id && lesson.subjectId === storedFailedLessonSubjectId) {
-            // User passed a lower grade lesson in the same subject, prompt to retake failed lesson
-            setShowRetakePrompt(true)
-          }
-        }
-      } catch (err) {
-        console.error('Error completing lesson:', err)
-      }
-    } else if (id) {
-      // Failed - score is less than 60%
-      // Store this as the failed lesson if it's from the user's current grade (user-scoped)
-      const userGrade = useAuthStore.getState().user?.grade
-      if (userGrade && lesson.grade === userGrade && user?.id) {
-        localStorage.setItem(getFailedLessonKey('failed_lesson_id'), id)
-        localStorage.setItem(getFailedLessonKey('failed_lesson_title'), lesson.title)
-        localStorage.setItem(getFailedLessonKey('failed_lesson_subject_id'), lesson.subjectId || '')
-      }
-      
-      // Update progress based on score
-      try {
-        await api.learner.updateLessonProgress(id, score.percentage)
-      } catch (err) {
-        console.error('Error updating progress:', err)
-      }
-    }
-
-    // Load recommendations based on performance
-    const performanceCategory = getPerformanceCategory(score.percentage)
-    
-    // Only allow progression if score is 60% or more
-    if (score.percentage < 60) {
-      // Failed - score is less than 60%
-      // Store this as the failed lesson if it's from the user's current grade (user-scoped)
-      const userGrade = useAuthStore.getState().user?.grade
-      if (userGrade && lesson.grade === userGrade && id && user?.id) {
-        localStorage.setItem(getFailedLessonKey('failed_lesson_id'), id)
-        localStorage.setItem(getFailedLessonKey('failed_lesson_title'), lesson.title)
-        localStorage.setItem(getFailedLessonKey('failed_lesson_subject_id'), lesson.subjectId || '')
-        setFailedLessonId(id)
-        setFailedLessonTitle(lesson.title)
-      }
-      
-      // Load similar lessons from lower grades for remediation
-      if (id) {
-        setLoadingSimilar(true)
-        try {
-          const similar = await api.learner.getSimilarLessons(id)
-          setSimilarLessons(similar)
-        } catch (err) {
-          console.error('Error loading similar lessons:', err)
-        } finally {
-          setLoadingSimilar(false)
-        }
-      }
-    } else if (performanceCategory === 'below' || performanceCategory === 'approaching') {
-      // Score is 60%+ but still below expectations - load similar lessons
-      if (id) {
-        setLoadingSimilar(true)
-        try {
-          const similar = await api.learner.getSimilarLessons(id)
-          setSimilarLessons(similar)
-        } catch (err) {
-          console.error('Error loading similar lessons:', err)
-        } finally {
-          setLoadingSimilar(false)
-        }
-      }
-    } else {
-      // Meeting or exceeding - check if this is a lower grade lesson and user has a failed lesson in the SAME SUBJECT (user-scoped)
-      if (user?.id) {
-        const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
-        const storedFailedLessonTitle = localStorage.getItem(getFailedLessonKey('failed_lesson_title'))
-        const storedFailedLessonSubjectId = localStorage.getItem(getFailedLessonKey('failed_lesson_subject_id'))
-        
-        if (storedFailedLessonId && storedFailedLessonTitle && storedFailedLessonId !== id && lesson.subjectId === storedFailedLessonSubjectId) {
-          // User passed a lower grade lesson in the same subject, prompt to retake failed lesson
-          setShowRetakePrompt(true)
-          setFailedLessonId(storedFailedLessonId)
-          setFailedLessonTitle(storedFailedLessonTitle)
-        } else {
-          // Load next lessons in same sub-strand
-          if (id) {
-            setLoadingNext(true)
-            try {
-              const nextData = await api.learner.getNextLessons(id)
-              setNextLessons(nextData.nextLessons || [])
-            // Store next sub-strand info if available
-            if (nextData.nextSubstrand) {
-              localStorage.setItem('next_substrand_id', nextData.nextSubstrand.id)
-              localStorage.setItem('next_substrand_name', nextData.nextSubstrand.name)
-              if (nextData.nextSubstrand.subjectId) {
-                localStorage.setItem('next_substrand_subject_id', nextData.nextSubstrand.subjectId)
-              }
-              if (nextData.nextSubstrand.strandId) {
-                localStorage.setItem('next_substrand_strand_id', nextData.nextSubstrand.strandId)
-              }
-              setNextSubstrand({ 
-                id: nextData.nextSubstrand.id, 
-                name: nextData.nextSubstrand.name,
-                subjectId: nextData.nextSubstrand.subjectId,
-                strandId: nextData.nextSubstrand.strandId
-              })
-            } else {
-              localStorage.removeItem('next_substrand_id')
-              localStorage.removeItem('next_substrand_name')
-              localStorage.removeItem('next_substrand_subject_id')
-              localStorage.removeItem('next_substrand_strand_id')
-              setNextSubstrand(null)
-            }
-            // Store completion count
-            const completedCount = nextData.completedCount || 0
-            const canProceed = nextData.canProceedToNextSubstrand || false
-            localStorage.setItem('substrand_completed_count', String(completedCount))
-            localStorage.setItem('can_proceed_to_next_substrand', String(canProceed))
-            setCompletedCount(completedCount)
-            setCanProceedToNextSubstrand(canProceed)
-          } catch (err) {
-            console.error('Error loading next lessons:', err)
-            setNextLessons([])
-          } finally {
-            setLoadingNext(false)
-          }
-        }
-      }
-      } else {
-        // No user ID - load next lessons anyway
-        if (id) {
-          setLoadingNext(true)
-          try {
-            const nextData = await api.learner.getNextLessons(id)
-            setNextLessons(nextData.nextLessons || [])
-            if (nextData.nextSubstrand) {
-              localStorage.setItem('next_substrand_id', nextData.nextSubstrand.id)
-              localStorage.setItem('next_substrand_name', nextData.nextSubstrand.name)
-              if (nextData.nextSubstrand.subjectId) {
-                localStorage.setItem('next_substrand_subject_id', nextData.nextSubstrand.subjectId)
-              }
-              if (nextData.nextSubstrand.strandId) {
-                localStorage.setItem('next_substrand_strand_id', nextData.nextSubstrand.strandId)
-              }
-              setNextSubstrand({ 
-                id: nextData.nextSubstrand.id, 
-                name: nextData.nextSubstrand.name,
-                subjectId: nextData.nextSubstrand.subjectId,
-                strandId: nextData.nextSubstrand.strandId
-              })
-            } else {
-              localStorage.removeItem('next_substrand_id')
-              localStorage.removeItem('next_substrand_name')
-              localStorage.removeItem('next_substrand_subject_id')
-              localStorage.removeItem('next_substrand_strand_id')
-              setNextSubstrand(null)
-            }
-            const completedCount = nextData.completedCount || 0
-            const canProceed = nextData.canProceedToNextSubstrand || false
-            localStorage.setItem('substrand_completed_count', String(completedCount))
-            localStorage.setItem('can_proceed_to_next_substrand', String(canProceed))
-            setCompletedCount(completedCount)
-            setCanProceedToNextSubstrand(canProceed)
-          } catch (err) {
-            console.error('Error loading next lessons:', err)
-            setNextLessons([])
-          } finally {
-            setLoadingNext(false)
-          }
-        }
-      }
-    }
-  }
-
-  const calculateQuizScore = (results?: { [questionId: string]: boolean }) => {
-    if (!lesson?.quiz) return { score: 0, total: 0, percentage: 0 }
-    
-    const resultsToUse = results || quizResults
-    let correct = 0
-    lesson.quiz.questions.forEach((question, index) => {
-      const questionKey = question.id || `question-${index}`
-      if (resultsToUse[questionKey]) {
-        correct++
-      }
-    })
-
-    const total = lesson.quiz.questions.length
-    const percentage = total > 0 ? Math.round((correct / total) * 100) : 0
-
-    return { score: correct, total, percentage }
-  }
+  const resolveDiagramUrl = useCallback(
+    (briefId?: string | null) => {
+      if (!lesson || !briefId) return null
+      const briefs = lesson.visualBriefs || []
+      const assets = lesson.visualAssets || []
+      const images = lesson.images || []
+      const byId = assets.find((a) => a.id === briefId)
+      if (byId?.url) return byId.url
+      const idx = briefs.findIndex((b) => b.id === briefId)
+      if (idx >= 0) return assets[idx]?.url || images[idx] || null
+      return null
+    },
+    [lesson]
+  )
 
   const getPerformanceCategory = (percentage: number): 'below' | 'approaching' | 'meeting' | 'exceeding' => {
     if (percentage < 25) return 'below'
@@ -406,7 +77,7 @@ export const LessonView = () => {
           color: 'from-red-50 to-orange-50',
           borderColor: 'border-red-200',
           textColor: 'text-red-700',
-          icon: <Sparkles className="w-6 h-6" />
+          icon: <Sparkles className="w-6 h-6" />,
         }
       case 'approaching':
         return {
@@ -415,16 +86,16 @@ export const LessonView = () => {
           color: 'from-yellow-50 to-amber-50',
           borderColor: 'border-yellow-200',
           textColor: 'text-yellow-700',
-          icon: <TrendingUp className="w-6 h-6" />
+          icon: <TrendingUp className="w-6 h-6" />,
         }
       case 'meeting':
         return {
           title: 'Meeting Expectations',
           message: `Awesome work! You got ${percentage}%. You understand this topic well! Ready for the next challenge?`,
-          color: 'from-blue-50 to-indigo-50',
+          color: 'from-primary-50 to-teal-50',
           borderColor: 'border-blue-200',
           textColor: 'text-blue-700',
-          icon: <CheckCircle className="w-6 h-6" />
+          icon: <CheckCircle className="w-6 h-6" />,
         }
       case 'exceeding':
         return {
@@ -433,19 +104,208 @@ export const LessonView = () => {
           color: 'from-emerald-50 to-teal-50',
           borderColor: 'border-emerald-200',
           textColor: 'text-emerald-700',
-          icon: <Sparkles className="w-6 h-6" />
+          icon: <Sparkles className="w-6 h-6" />,
         }
       default:
         return {
           title: 'Great Job!',
           message: `You got ${percentage}%!`,
-          color: 'from-indigo-50 to-purple-50',
-          borderColor: 'border-indigo-200',
-          textColor: 'text-indigo-700',
-          icon: <CheckCircle className="w-6 h-6" />
+          color: 'from-primary-50 to-primary-100',
+          borderColor: 'border-primary-200',
+          textColor: 'text-primary-700',
+          icon: <CheckCircle className="w-6 h-6" />,
         }
     }
   }
+
+  const loadNextLessons = async (lessonId: string) => {
+    setLoadingNext(true)
+    try {
+      const nextData = await api.learner.getNextLessons(lessonId)
+      setNextLessons(nextData.nextLessons || [])
+      if (nextData.nextSubstrand) {
+        localStorage.setItem('next_substrand_id', nextData.nextSubstrand.id)
+        localStorage.setItem('next_substrand_name', nextData.nextSubstrand.name)
+        if (nextData.nextSubstrand.subjectId) {
+          localStorage.setItem('next_substrand_subject_id', nextData.nextSubstrand.subjectId)
+        }
+        if (nextData.nextSubstrand.strandId) {
+          localStorage.setItem('next_substrand_strand_id', nextData.nextSubstrand.strandId)
+        }
+        setNextSubstrand({
+          id: nextData.nextSubstrand.id,
+          name: nextData.nextSubstrand.name,
+          subjectId: nextData.nextSubstrand.subjectId,
+          strandId: nextData.nextSubstrand.strandId,
+        })
+      } else {
+        localStorage.removeItem('next_substrand_id')
+        localStorage.removeItem('next_substrand_name')
+        localStorage.removeItem('next_substrand_subject_id')
+        localStorage.removeItem('next_substrand_strand_id')
+        setNextSubstrand(null)
+      }
+      const count = nextData.completedCount || 0
+      const canProceed = nextData.canProceedToNextSubstrand || false
+      localStorage.setItem('substrand_completed_count', String(count))
+      localStorage.setItem('can_proceed_to_next_substrand', String(canProceed))
+      setCompletedCount(count)
+      setCanProceedToNextSubstrand(canProceed)
+    } catch (err) {
+      console.error('Error loading next lessons:', err)
+      setNextLessons([])
+    } finally {
+      setLoadingNext(false)
+    }
+  }
+
+  const handleAdaptiveSessionComplete = async (pct: number, passed: boolean) => {
+    if (!lesson || !id) return
+    setSessionPct(pct)
+    setShowResults(true)
+
+    try {
+      const scaffold = (await api.learner.getScaffold(id)) as typeof scaffoldOffer
+      if (scaffold?.needsScaffold) setScaffoldOffer(scaffold)
+      else setScaffoldOffer(null)
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      const mastery = (await api.learner.getSkillMastery()) as Array<{
+        skillFocus?: string
+        learningOutcomeKey?: string
+        status?: string
+        consecutiveFailsAtLevel?: number
+      }>
+      // Only show skills that belong to THIS lesson's outcomes — the mastery
+      // endpoint returns every skill the learner has ever attempted.
+      const lessonOutcomeKeys = new Set(
+        (lesson.quiz?.questions || [])
+          .map((q) => q.learningOutcomeKey)
+          .filter(Boolean) as string[]
+      )
+      const lessonSkillFoci = new Set(
+        (lesson.quiz?.questions || [])
+          .map((q) => (q.skillFocus || '').toLowerCase().trim())
+          .filter(Boolean)
+      )
+      setMissedSkills(
+        (mastery || [])
+          .filter((m) => m.status === 'struggling' || m.status === 'scaffolding')
+          .filter(
+            (m) =>
+              (m.learningOutcomeKey && lessonOutcomeKeys.has(m.learningOutcomeKey)) ||
+              (m.skillFocus && lessonSkillFoci.has(m.skillFocus.toLowerCase().trim()))
+          )
+          .slice(0, 8)
+          .map((m) => ({
+            skillFocus: m.skillFocus || 'Skill',
+            learningOutcomeKey: m.learningOutcomeKey || '',
+            misconception: null,
+            consecutiveFails: m.consecutiveFailsAtLevel || 0,
+          }))
+      )
+    } catch {
+      /* ignore */
+    }
+
+    const performanceCategory = getPerformanceCategory(pct)
+
+    if (passed && user?.id) {
+      const storedFailed = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+      if (storedFailed === id) {
+        localStorage.removeItem(getFailedLessonKey('failed_lesson_id'))
+        localStorage.removeItem(getFailedLessonKey('failed_lesson_title'))
+        localStorage.removeItem(getFailedLessonKey('failed_lesson_subject_id'))
+      }
+      const otherFailed = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+      const otherSubject = localStorage.getItem(getFailedLessonKey('failed_lesson_subject_id'))
+      const otherTitle = localStorage.getItem(getFailedLessonKey('failed_lesson_title'))
+      if (otherFailed && otherFailed !== id && lesson.subjectId === otherSubject && otherTitle) {
+        setShowRetakePrompt(true)
+        setFailedLessonId(otherFailed)
+        setFailedLessonTitle(otherTitle)
+      } else if (performanceCategory === 'meeting' || performanceCategory === 'exceeding') {
+        await loadNextLessons(id)
+      } else {
+        setLoadingSimilar(true)
+        try {
+          setSimilarLessons(await api.learner.getSimilarLessons(id))
+        } catch (err) {
+          console.error('Error loading similar lessons:', err)
+        } finally {
+          setLoadingSimilar(false)
+        }
+      }
+    } else {
+      const userGrade = useAuthStore.getState().user?.grade
+      if (userGrade && lesson.grade === userGrade && user?.id) {
+        localStorage.setItem(getFailedLessonKey('failed_lesson_id'), id)
+        localStorage.setItem(getFailedLessonKey('failed_lesson_title'), lesson.title)
+        localStorage.setItem(getFailedLessonKey('failed_lesson_subject_id'), lesson.subjectId || '')
+        setFailedLessonId(id)
+        setFailedLessonTitle(lesson.title)
+      }
+      setLoadingSimilar(true)
+      try {
+        setSimilarLessons(await api.learner.getSimilarLessons(id))
+      } catch (err) {
+        console.error('Error loading similar lessons:', err)
+      } finally {
+        setLoadingSimilar(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const fetchLesson = async () => {
+      if (!id) {
+        setError('Lesson ID is required')
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+        setShowResults(false)
+        setSessionPct(0)
+        const lessonData = (await api.learner.getLesson(id)) as Lesson & {
+          isCompleted?: boolean
+          progress?: number
+        }
+        setLesson(lessonData)
+        if (lessonData.isCompleted || (lessonData.progress != null && lessonData.progress >= 60)) {
+          setShowResults(true)
+          setSessionPct(lessonData.progress || 100)
+        }
+        try {
+          const profile = (await api.learner.getProfile()) as { preferredModality?: string }
+          if (profile?.preferredModality) setPreferredModality(profile.preferredModality)
+        } catch {
+          /* ignore */
+        }
+      } catch (err: any) {
+        console.error('Error fetching lesson:', err)
+        setError(err.message || 'Failed to load lesson')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLesson()
+
+    if (user?.id) {
+      const storedFailedLessonId = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
+      const storedFailedLessonTitle = localStorage.getItem(getFailedLessonKey('failed_lesson_title'))
+      if (storedFailedLessonId && storedFailedLessonTitle) {
+        setFailedLessonId(storedFailedLessonId)
+        setFailedLessonTitle(storedFailedLessonTitle)
+      }
+    }
+  }, [id, user?.id])
 
   if (loading) {
     return (
@@ -463,16 +323,16 @@ export const LessonView = () => {
     return (
       <div className="min-h-screen premium-mesh flex items-center justify-center p-4">
         <div className="bg-white/80 backdrop-blur-md rounded-[32px] border-2 border-slate-200 p-8 text-center max-w-md">
-          <h1 className="text-3xl font-black text-[#0F172A] mb-4" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+          <h1 className="text-3xl font-black text-[#0F172A] mb-4">
             {error ? 'Error' : 'Lesson Not Found'}
           </h1>
-          <p className="text-text-secondary mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+          <p className="text-text-secondary mb-6"  >
             {error || 'The lesson you\'re looking for doesn\'t exist or has been removed.'}
           </p>
           <Link 
             to="/learner" 
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
-            style={{ fontFamily: 'Poppins, sans-serif' }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-all"
+             
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
@@ -482,12 +342,14 @@ export const LessonView = () => {
     )
   }
 
-  const quizScore = showResults ? calculateQuizScore() : null
+  const quizScore = showResults ? { percentage: sessionPct, score: 0, total: 0 } : null
   const performanceCategory = quizScore ? getPerformanceCategory(quizScore.percentage) : null
-  const performanceMessage = performanceCategory ? getPerformanceMessage(performanceCategory, quizScore!.percentage) : null
+  const performanceMessage = performanceCategory
+    ? getPerformanceMessage(performanceCategory, quizScore!.percentage)
+    : null
 
   return (
-    <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+    <div className="min-h-screen premium-mesh">
       <div className="p-[5px] pt-[5px]">
         <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
           <StaggeredEntry>
@@ -495,7 +357,7 @@ export const LessonView = () => {
               <button
                 onClick={() => navigate(-1)}
                 className="mb-6 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
-                style={{ fontFamily: 'Manrope, sans-serif' }}
+                 
                 onMouseDown={(e) => {
                   e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
                 }}
@@ -511,20 +373,20 @@ export const LessonView = () => {
               </button>
 
               <div className="mb-6">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A] mb-4" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A] mb-4">
                   {lesson.title}
                 </h1>
-                <p className="text-lg sm:text-xl text-text-secondary mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                <p className="text-lg sm:text-xl text-text-secondary mb-6"  >
                   {lesson.description}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary mb-6"  >
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
                     <span>Grade {lesson.grade}</span>
                   </div>
                   <span>•</span>
-                  <span className="capitalize px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-semibold">
+                  <span className="capitalize px-3 py-1 bg-primary-100 text-primary-700 rounded-full font-semibold">
                     {lesson.difficulty}
                   </span>
                   <span>•</span>
@@ -540,8 +402,8 @@ export const LessonView = () => {
                   {lesson.tags.map((tag) => (
                     <span 
                       key={tag} 
-                      className="px-3 py-1 text-xs bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full font-semibold"
-                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                      className="px-3 py-1 text-xs bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 rounded-full font-semibold"
+                       
                     >
                       {tag}
                     </span>
@@ -550,310 +412,164 @@ export const LessonView = () => {
               </div>
 
               <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-6 sm:p-8">
+                {preferredModality && preferredModality !== 'mixed' && (
+                  <p className="text-xs font-semibold text-primary-700 mb-4"  >
+                    Practice mode: {modalityLabel(preferredModality)} (mixed session ~60% your style)
+                  </p>
+                )}
+
                 {lesson.contentType === 'video' && lesson.videoUrl ? (
                   <div className="aspect-video bg-slate-100 rounded-[16px] flex items-center justify-center mb-6">
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-600 flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-600 flex items-center justify-center">
                         <Play className="w-8 h-8 text-white fill-current" />
                       </div>
-                      <p className="text-lg font-semibold text-slate-700 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      <p className="text-lg font-semibold text-slate-700 mb-2"  >
                         Video Lesson
                       </p>
-                      <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      <p className="text-sm text-text-secondary"  >
                         Video player will be integrated with backend
                       </p>
-                      <p className="text-xs text-text-secondary mt-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      <p className="text-xs text-text-secondary mt-2"  >
                         URL: {lesson.videoUrl}
                       </p>
                     </div>
                   </div>
-                ) : lesson.content ? (
-                  <div className="prose max-w-none">
-                    <LessonContentRenderer content={lesson.content} />
-                  </div>
+                ) : lesson.content || (lesson.contentBlocks && lesson.contentBlocks.length > 0) ? (
+                  <LessonTeachingFromLesson
+                    lesson={lesson}
+                    showDiagrams={
+                      preferredModality === 'visual' ||
+                      preferredModality === 'mixed' ||
+                      preferredModality === 'text_steps' ||
+                      Boolean(lesson.images?.length)
+                    }
+                  />
                 ) : (
-                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-[16px] p-8 sm:p-12 text-center">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-[16px] p-8 sm:p-12 text-center">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-600 flex items-center justify-center">
                       <BookOpen className="w-10 h-10 text-white" />
                     </div>
-                    <p className="text-lg font-semibold text-slate-700 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    <p className="text-lg font-semibold text-slate-700 mb-2"  >
                       Interactive Content
                     </p>
-                    <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    <p className="text-sm text-text-secondary"  >
                       Interactive content will be displayed here
                     </p>
                   </div>
                 )}
 
-                {/* Quiz Section */}
-                {lesson.quiz && lesson.quiz.questions.length > 0 && (
-                  <div className="mt-8 pt-8 border-t border-slate-200">
-                    <div className="mb-6">
-                      <h2 className="text-2xl sm:text-3xl font-black text-[#0F172A] mb-2" style={{ fontFamily: 'Fredoka, sans-serif' }}>
-                        Quiz: {lesson.quiz.title || 'Test Your Knowledge'}
-                      </h2>
-                      {lesson.quiz.description && (
-                        <p className="text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                          {lesson.quiz.description}
-                        </p>
-                      )}
-                    </div>
+                {/* Quiz Section — live one-by-one; review = all answers at once */}
+                {lesson.quiz &&
+                  ((lesson.quiz.questionCount ?? lesson.quiz.questions?.length) || 0) > 0 && (
+                  <div className="mt-8 pt-8 border-t border-slate-200 space-y-6">
+                    <AdaptiveQuizPanel
+                      lesson={lesson as Lesson & { isCompleted?: boolean; progress?: number }}
+                      lessonId={id!}
+                      preferredModality={preferredModality}
+                      resolveDiagramUrl={resolveDiagramUrl}
+                      onSessionComplete={handleAdaptiveSessionComplete}
+                    />
 
-                    <div className="space-y-6">
-                      {lesson.quiz.questions.map((question, qIndex) => {
-                        // Use question.id if available, otherwise use index as fallback
-                        const questionKey = question.id || `question-${qIndex}`
-                        const selectedAnswer = selectedAnswers[questionKey]
-                        const isCorrect = quizResults[questionKey]
-                        const showAnswer = showResults
-
-                        return (
-                          <div
-                            key={questionKey}
-                            className={`p-5 rounded-[16px] border-2 transition-all ${
-                              showAnswer
-                                ? isCorrect
-                                  ? 'bg-emerald-50 border-emerald-300'
-                                  : 'bg-red-50 border-red-300'
-                                : 'bg-white border-slate-200'
-                            }`}
-                          >
-                            <div className="flex items-start gap-3 mb-4">
-                              <span className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                {qIndex + 1}
-                              </span>
-                              <div className="flex-1">
-                                <h3 className="text-lg font-bold text-[#0F172A] mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                  {question.question}
-                                </h3>
-                                <div className="space-y-2">
-                                  {question.options.map((option, optIndex) => {
-                                    const isSelected = selectedAnswer === optIndex
-                                    const isCorrectAnswer = optIndex === question.correctAnswerIndex
-                                    const showFeedback = showAnswer && isSelected
-
-                                    return (
-                                      <button
-                                        key={optIndex}
-                                        onClick={() => handleAnswerSelect(questionKey, optIndex)}
-                                        disabled={showResults}
-                                        className={`w-full text-left p-4 rounded-[12px] border-2 transition-all ${
-                                          showAnswer
-                                            ? isCorrectAnswer
-                                              ? 'bg-emerald-100 border-emerald-400'
-                                              : isSelected
-                                              ? 'bg-red-100 border-red-400'
-                                              : 'bg-slate-50 border-slate-200'
-                                            : isSelected
-                                            ? 'bg-indigo-50 border-indigo-400'
-                                            : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50'
-                                        } ${showResults ? 'cursor-default' : 'cursor-pointer'}`}
-                                        style={{ fontFamily: 'Manrope, sans-serif' }}
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                                            showAnswer
-                                              ? isCorrectAnswer
-                                                ? 'bg-emerald-500 border-emerald-600'
-                                                : isSelected
-                                                ? 'bg-red-500 border-red-600'
-                                                : 'bg-slate-200 border-slate-300'
-                                              : isSelected
-                                              ? 'bg-indigo-500 border-indigo-600'
-                                              : 'bg-white border-slate-300'
-                                          }`}>
-                                            {showAnswer && isCorrectAnswer && (
-                                              <CheckCircle className="w-4 h-4 text-white" />
-                                            )}
-                                            {showAnswer && isSelected && !isCorrectAnswer && (
-                                              <XCircle className="w-4 h-4 text-white" />
-                                            )}
-                                            {!showAnswer && isSelected && (
-                                              <div className="w-2 h-2 rounded-full bg-white" />
-                                            )}
-                                          </div>
-                                          <span className={`flex-1 font-medium ${
-                                            showAnswer && isCorrectAnswer
-                                              ? 'text-emerald-900'
-                                              : showAnswer && isSelected && !isCorrectAnswer
-                                              ? 'text-red-900'
-                                              : 'text-slate-900'
-                                          }`}>
-                                            {String.fromCharCode(65 + optIndex)}. {option}
-                                          </span>
-                                        </div>
-                                        {showFeedback && question.optionExplanations?.[optIndex] && (
-                                          <p className={`mt-2 text-sm ml-9 ${
-                                            isCorrectAnswer ? 'text-emerald-700' : 'text-red-700'
-                                          }`}>
-                                            {question.optionExplanations[optIndex]}
-                                          </p>
-                                        )}
-                                      </button>
-                                    )
-                                  })}
-                                </div>
-                                {showAnswer && question.explanation && (
-                                  <div className={`mt-4 p-3 rounded-[8px] ${
-                                    isCorrect ? 'bg-emerald-100' : 'bg-red-100'
-                                  }`}>
-                                    <p className={`text-sm font-medium ${
-                                      isCorrect ? 'text-emerald-800' : 'text-red-800'
-                                    }`} style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                      {isCorrect ? '✓ ' : '✗ '}
-                                      {question.explanation}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {!showResults ? (() => {
-                      // Find unanswered questions
-                      const unansweredQuestions = lesson.quiz.questions
-                        .map((question, index) => {
-                          const questionKey = question.id || `question-${index}`
-                          return selectedAnswers[questionKey] === undefined ? { question, index: index + 1 } : null
-                        })
-                        .filter((q): q is { question: QuizQuestion; index: number } => q !== null)
-                      
-                      const hasUnanswered = unansweredQuestions.length > 0
-                      
-                      return (
-                        <div className="mt-6 relative">
-                          <button
-                            onClick={handleSubmitQuiz}
-                            disabled={hasUnanswered}
-                            onMouseEnter={() => hasUnanswered && setShowUnansweredTooltip(true)}
-                            onMouseLeave={() => setShowUnansweredTooltip(false)}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed relative"
-                            style={{ fontFamily: 'Poppins, sans-serif' }}
-                          >
-                            Submit Quiz
-                          </button>
-                          
-                          {/* Flirting Dog Tooltip on Hover */}
-                          {showUnansweredTooltip && hasUnanswered && (
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 z-50 w-80 sm:w-96">
-                              <div className="bg-white rounded-2xl shadow-2xl border-2 border-amber-200 p-4 relative">
-                                {/* Flirting Dog Animation */}
-                                <div className="w-32 h-32 mx-auto mb-3">
-                                  <LazyLottie animationKey="flirtingDog" style={{ width: '100%', height: '100%' }} />
-                                </div>
-                                
-                                {/* Message */}
-                                <div className="text-center">
-                                  <p className="text-sm font-semibold text-slate-800 mb-2" style={{ fontFamily: 'Fredoka, sans-serif' }}>
-                                    Oops! You missed some questions! 🐕
-                                  </p>
-                                  <p className="text-xs text-slate-600 mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                    Please answer the following questions before submitting:
-                                  </p>
-                                  
-                                  {/* List of unanswered questions */}
-                                  <div className="space-y-1">
-                                    {unansweredQuestions.map(({ question, index }) => (
-                                      <div 
-                                        key={question.id || `question-${index}`}
-                                        className="text-xs font-medium text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5 border border-amber-200"
-                                        style={{ fontFamily: 'Poppins, sans-serif' }}
-                                      >
-                                        Question {index}: {question.question.length > 40 ? `${question.question.substring(0, 40)}...` : question.question}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                {/* Arrow pointing to button */}
-                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                                  <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-amber-200"></div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <p className="text-xs text-text-secondary mt-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                            Please answer all questions before submitting
-                          </p>
-                        </div>
-                      )
-                    })() : quizScore && performanceMessage && (
-                      <div className="mt-6 space-y-6">
-                        {/* Performance Feedback */}
+                    {showResults && performanceMessage && (
+                      <div className="space-y-6">
                         <div className={`p-6 rounded-[16px] bg-gradient-to-br ${performanceMessage.color} border-2 ${performanceMessage.borderColor}`}>
                           <div className="flex items-start gap-4">
                             <div className={`flex-shrink-0 ${performanceMessage.textColor}`}>
                               {performanceMessage.icon}
                             </div>
                             <div className="flex-1">
-                              <h3 className={`text-2xl font-black ${performanceMessage.textColor} mb-2`} style={{ fontFamily: 'Fredoka, sans-serif' }}>
-                                {performanceMessage.title} {quizScore.percentage}%
+                              <h3 className={`text-2xl font-black ${performanceMessage.textColor} mb-2`}>
+                                {performanceMessage.title} {sessionPct}%
                               </h3>
-                              <p className="text-base mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              <p className="text-base mb-2"  >
                                 {performanceMessage.message}
                               </p>
-                              <p className="text-sm text-slate-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                You answered {quizScore.score} out of {quizScore.total} questions correctly.
+                              <p className="text-sm text-slate-600"  >
+                                Scroll up to see every question and your choices in review mode.
                               </p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Recommendations */}
-                        {(performanceCategory === 'below' || performanceCategory === 'approaching') && (
+                        {missedSkills.length > 0 && (
+                          <div className="p-5 rounded-[16px] bg-amber-50 border-2 border-amber-200">
+                            <h4 className="text-lg font-bold text-amber-900 mb-2"  >
+                              Skills to practice
+                            </h4>
+                            <ul className="space-y-2">
+                              {missedSkills.map((skill) => (
+                                <li
+                                  key={skill.learningOutcomeKey || skill.skillFocus}
+                                  className="text-sm text-amber-900"
+                                   
+                                >
+                                  <span className="font-semibold">{skill.skillFocus || 'Skill'}</span>
+                                  {skill.consecutiveFails >= 2 ? ' (we will scaffold this down a grade)' : ''}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {scaffoldOffer?.needsScaffold && scaffoldOffer.lesson && (
+                          <div className="p-5 rounded-[16px] bg-emerald-50 border-2 border-emerald-200">
+                            <h4 className="text-lg font-bold text-emerald-900 mb-2"  >
+                              Confidence builder (Grade {scaffoldOffer.lesson.grade})
+                            </h4>
+                            <p className="text-sm text-emerald-800 mb-3"  >
+                              You missed this skill twice at your grade. Try this lower-grade lesson next, then come back stronger.
+                            </p>
+                            <Link
+                              to={`/learner/lessons/${scaffoldOffer.lesson.id}`}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-sm"
+                               
+                            >
+                              <Play className="w-4 h-4" />
+                              Open: {scaffoldOffer.lesson.title}
+                            </Link>
+                          </div>
+                        )}
+
+                        {(performanceCategory === 'below' || performanceCategory === 'approaching' || (quizScore && quizScore.percentage < 60)) && (
                           <div className="space-y-4">
+                            <h4 className="text-lg font-bold text-[#0F172A]"  >
+                              Practice from a lower grade
+                            </h4>
                             {loadingSimilar ? (
                               <div className="text-center py-8">
                                 <div className="w-16 h-16 mx-auto">
                                   <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
                                 </div>
-                                <p className="text-sm text-text-secondary mt-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                  Finding practice exercises...
-                                </p>
                               </div>
                             ) : similarLessons.length > 0 ? (
-                              <>
-                                <div className="flex items-center justify-between mb-4">
-                                  <h4 className="text-lg font-bold text-[#0F172A]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                    Practice Exercises
-                                  </h4>
-                                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 font-semibold border-2 border-indigo-200" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                    <Sparkles className="w-4 h-4" />
-                                    Try these!
-                                  </span>
-                                </div>
-                                <div className="space-y-3">
-                                  {similarLessons.map((similarLesson) => (
-                                    <Link
-                                      key={similarLesson.id}
-                                      to={`/learner/lessons/${similarLesson.id}`}
-                                      className="block p-4 rounded-[12px] bg-white border-2 border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                                          <BookOpen className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                          <h5 className="font-bold text-[#0F172A] mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                            {similarLesson.title}
-                                          </h5>
-                                          <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                            Grade {similarLesson.grade} • {similarLesson.difficulty}
-                                          </p>
-                                        </div>
-                                        <Play className="w-5 h-5 text-indigo-600" />
+                              <div className="space-y-3">
+                                {similarLessons.map((similarLesson) => (
+                                  <Link
+                                    key={similarLesson.id}
+                                    to={`/learner/lessons/${similarLesson.id}`}
+                                    className="block p-4 rounded-[12px] bg-white border-2 border-slate-200 hover:border-primary-300 hover:shadow-md transition-all"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-full bg-gradient-to-br bg-primary-600 flex items-center justify-center flex-shrink-0">
+                                        <Play className="w-5 h-5 text-white" />
                                       </div>
-                                    </Link>
-                                  ))}
-                                </div>
-                              </>
+                                      <div className="flex-1">
+                                        <h5 className="font-bold text-[#0F172A] mb-1"  >
+                                          {similarLesson.title}
+                                        </h5>
+                                        <p className="text-sm text-text-secondary"  >
+                                          Grade {similarLesson.grade} • {similarLesson.difficulty}
+                                        </p>
+                                      </div>
+                                      <Play className="w-5 h-5 text-primary-700" />
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
                             ) : (
                               <div className="p-4 rounded-[12px] bg-slate-50 border-2 border-slate-200">
-                                <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                <p className="text-sm text-text-secondary"  >
                                   No practice exercises available at the moment. Keep practicing with what you have!
                                 </p>
                               </div>
@@ -861,7 +577,6 @@ export const LessonView = () => {
                           </div>
                         )}
 
-                        {/* Retake Failed Lesson Prompt */}
                         {showRetakePrompt && failedLessonId && failedLessonTitle && (
                           <div className="p-6 rounded-[16px] bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
                             <div className="flex items-start gap-4">
@@ -869,25 +584,17 @@ export const LessonView = () => {
                                 <AlertCircle className="w-6 h-6" />
                               </div>
                               <div className="flex-1">
-                                <h4 className="text-lg font-bold text-amber-800 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                  Great Progress! 🎉
+                                <h4 className="text-lg font-bold text-amber-800 mb-2"  >
+                                  Great Progress!
                                 </h4>
-                                <p className="text-base mb-4" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                  You've completed the practice exercise! Now it's time to retake the lesson you struggled with earlier. 
-                                  You need to score at least 60% to proceed to the next lesson.
+                                <p className="text-base mb-4"  >
+                                  You've completed the practice exercise! Now retake the lesson you struggled with earlier.
+                                  You need to score at least 60% to proceed.
                                 </p>
                                 <Link
                                   to={`/learner/lessons/${failedLessonId}`}
-                                  onClick={() => {
-                                    // Clear quiz state for the failed lesson (user-scoped)
-                                    if (user?.id && failedLessonId) {
-                                      localStorage.removeItem(`quiz_answers_${user.id}_${failedLessonId}`)
-                                      localStorage.removeItem(`quiz_results_${user.id}_${failedLessonId}`)
-                                      localStorage.removeItem(`quiz_show_results_${user.id}_${failedLessonId}`)
-                                    }
-                                  }}
                                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-amber-600 text-white font-semibold hover:bg-amber-700 transition-all"
-                                  style={{ fontFamily: 'Poppins, sans-serif' }}
+                                   
                                 >
                                   <BookOpen className="w-5 h-5" />
                                   Retake: {failedLessonTitle}
@@ -899,7 +606,7 @@ export const LessonView = () => {
 
                         {(performanceCategory === 'meeting' || performanceCategory === 'exceeding') && !showRetakePrompt && (
                           <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-[#0F172A]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                            <h4 className="text-lg font-bold text-[#0F172A]"  >
                               What's Next?
                             </h4>
                             {loadingNext ? (
@@ -907,13 +614,10 @@ export const LessonView = () => {
                                 <div className="w-16 h-16 mx-auto">
                                   <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
                                 </div>
-                                <p className="text-sm text-text-secondary mt-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                                  Loading next lessons...
-                                </p>
                               </div>
                             ) : nextLessons.length > 0 ? (
                               <>
-                                <p className="text-sm text-text-secondary mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                <p className="text-sm text-text-secondary mb-3"  >
                                   Continue with more lessons in this topic:
                                 </p>
                                 <div className="space-y-3">
@@ -921,17 +625,17 @@ export const LessonView = () => {
                                     <Link
                                       key={nextLesson.id}
                                       to={`/learner/lessons/${nextLesson.id}`}
-                                      className="block p-4 rounded-[12px] bg-white border-2 border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all"
+                                      className="block p-4 rounded-[12px] bg-white border-2 border-slate-200 hover:border-primary-300 hover:shadow-md transition-all"
                                     >
                                       <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
                                           <Play className="w-5 h-5 text-white" />
                                         </div>
                                         <div className="flex-1">
-                                          <h5 className="font-bold text-[#0F172A] mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                          <h5 className="font-bold text-[#0F172A] mb-1"  >
                                             {nextLesson.title}
                                           </h5>
-                                          <p className="text-sm text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                          <p className="text-sm text-text-secondary"  >
                                             {nextLesson.description || 'Continue learning'}
                                           </p>
                                         </div>
@@ -942,18 +646,20 @@ export const LessonView = () => {
                                 </div>
                                 {canProceedToNextSubstrand && nextSubstrand && (
                                   <div className="mt-4 p-4 rounded-[12px] bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
-                                    <p className="text-sm font-semibold text-amber-800 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                      🎉 Great progress! You've completed {completedCount} lessons in this topic.
+                                    <p className="text-sm font-semibold text-amber-800 mb-2"  >
+                                      Great progress! You've completed {completedCount} lessons in this topic.
                                     </p>
-                                    <p className="text-sm text-amber-700 mb-3" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                    <p className="text-sm text-amber-700 mb-3"  >
                                       You can now move on to the next topic: <strong>{nextSubstrand.name}</strong>
                                     </p>
                                     <Link
-                                      to={nextSubstrand.subjectId && nextSubstrand.strandId 
-                                        ? `/learner/lessons?subject=${nextSubstrand.subjectId}&strand=${nextSubstrand.strandId}&substrand=${nextSubstrand.id}`
-                                        : `/learner/lessons?substrand=${nextSubstrand.id}`}
+                                      to={
+                                        nextSubstrand.subjectId && nextSubstrand.strandId
+                                          ? `/learner/lessons?subject=${nextSubstrand.subjectId}&strand=${nextSubstrand.strandId}&substrand=${nextSubstrand.id}`
+                                          : `/learner/lessons?substrand=${nextSubstrand.id}`
+                                      }
                                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-600 text-white font-semibold hover:bg-amber-700 transition-all"
-                                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                                       
                                     >
                                       <ArrowLeft className="w-4 h-4 rotate-180" />
                                       Go to Next Topic
@@ -962,26 +668,28 @@ export const LessonView = () => {
                                 )}
                               </>
                             ) : (
-                              <div className="p-6 rounded-[12px] bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200">
-                                <p className="text-base mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              <div className="p-6 rounded-[12px] bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200">
+                                <p className="text-base mb-2"  >
                                   {canProceedToNextSubstrand && nextSubstrand ? (
                                     <>
-                                      🎉 Amazing work! You've completed all available lessons in this topic. 
+                                      Amazing work! You've completed all available lessons in this topic.
                                       {completedCount >= 3 && (
                                         <> You can now move on to the next topic: <strong>{nextSubstrand.name}</strong></>
                                       )}
                                     </>
                                   ) : (
-                                    "✨ Great job! You've completed all available lessons in this topic. Take a break, relax, and explore other subjects!"
+                                    "Great job! You've completed all available lessons in this topic. Take a break and explore other subjects!"
                                   )}
                                 </p>
                                 {canProceedToNextSubstrand && nextSubstrand ? (
                                   <Link
-                                    to={nextSubstrand.subjectId && nextSubstrand.strandId 
-                                      ? `/learner/lessons?subject=${nextSubstrand.subjectId}&strand=${nextSubstrand.strandId}&substrand=${nextSubstrand.id}`
-                                      : `/learner/lessons?substrand=${nextSubstrand.id}`}
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all mt-3"
-                                    style={{ fontFamily: 'Poppins, sans-serif' }}
+                                    to={
+                                      nextSubstrand.subjectId && nextSubstrand.strandId
+                                        ? `/learner/lessons?subject=${nextSubstrand.subjectId}&strand=${nextSubstrand.strandId}&substrand=${nextSubstrand.id}`
+                                        : `/learner/lessons?substrand=${nextSubstrand.id}`
+                                    }
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-all mt-3"
+                                     
                                   >
                                     <ArrowLeft className="w-4 h-4 rotate-180" />
                                     Go to Next Topic: {nextSubstrand.name}
@@ -989,8 +697,8 @@ export const LessonView = () => {
                                 ) : (
                                   <Link
                                     to="/learner"
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all mt-3"
-                                    style={{ fontFamily: 'Poppins, sans-serif' }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-all mt-3"
+                                     
                                   >
                                     <BookOpen className="w-4 h-4" />
                                     Explore Other Subjects

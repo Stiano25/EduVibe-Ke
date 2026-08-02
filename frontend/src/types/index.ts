@@ -43,6 +43,8 @@ export interface QuizQuestion {
   modality?: Exclude<LearnerModality, 'mixed'> | 'practice' | 'visual' | 'text_steps'
   diagramBriefId?: string | null
   steps?: string[]
+  /** Set when AI output is too close to a past-paper exemplar — admin should review */
+  flagged_near_duplicate?: boolean
 }
 
 export interface QuizBankStats {

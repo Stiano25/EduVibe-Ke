@@ -6,9 +6,15 @@ import { outcomeKey, normalizeOutcomeText } from '../../utils/outcomeKey.js';
 import { DIAGRAM_TYPES } from './diagramTemplates.js';
 import { inferDiagramType } from './diagramService.js';
 import {
-  retrieveKnowledgeChunks,
-  formatExemplarsForPrompt
+  retrieveLessonExemplars,
+  retrieveQuizExemplars,
+  formatExemplarsForPrompt,
+  formatQuizExemplarsForPrompt
 } from './knowledgeRetrieveService.js';
+import {
+  tokenOverlapRatio,
+  QUIZ_EXEMPLAR_NEAR_DUP_THRESHOLD
+} from '../utils/textSimilarity.js';
 import { getSubjectProfile } from './subjectProfiles.js';
 
 const BLOOM_LEVELS = new Set(['recall', 'understand', 'apply', 'reason']);
@@ -285,7 +291,8 @@ const normalizeQuiz = (quiz, outcomes, profile) => {
       distractors,
       modality,
       diagramBriefId: modality === 'visual' ? diagramBriefId : null,
-      steps: modality === 'text_steps' ? steps || [] : undefined
+      steps: modality === 'text_steps' ? steps || [] : undefined,
+      ...(q.flagged_near_duplicate ? { flagged_near_duplicate: true } : {})
     };
   });
 
@@ -674,9 +681,10 @@ const loadGenerationContext = async (subStrandId) => {
 
   const queryText = [subject.name, strand.name, subStrand.name, ...outcomes.slice(0, 4)].join(' ');
 
-  const exemplarChunks = await retrieveKnowledgeChunks({
+  const exemplarChunks = await retrieveLessonExemplars({
     grade,
     subjectName: subject.name,
+    topic: subStrand.name,
     queryText,
     topK: 3
   });
@@ -694,6 +702,7 @@ const loadGenerationContext = async (subStrandId) => {
     ageGroup,
     outcomesBlock,
     exemplarsBlock,
+    queryText,
     profile,
     sourceOutcomes:
       outcomes.length > 0 ? outcomes : ['Understand the core ideas of this sub-strand']
@@ -745,7 +754,15 @@ Return ONLY one JSON object (no quiz questions):
 }`;
 };
 
-const buildQuizChunkPrompt = (ctx, shell, lessonIndex, totalLessons, chunk, avoidStems = []) => {
+const buildQuizChunkPrompt = (
+  ctx,
+  shell,
+  lessonIndex,
+  totalLessons,
+  chunk,
+  avoidStems = [],
+  quizExemplarsBlock = ''
+) => {
   const title = shell?.title || `Lesson ${lessonIndex}`;
   const objectives = (shell?.learningObjectives || ctx.sourceOutcomes.slice(0, 2))
     .map((o, i) => `${i + 1}. ${o}`)
@@ -770,7 +787,7 @@ ${profile.quizStyle}
 
 THIS PART: ${chunk.bloomFocus}
 ${chunk.matrixRule}
-${avoidBlock}
+${avoidBlock}${quizExemplarsBlock ? `\n${quizExemplarsBlock}\n` : ''}
 Return ONLY one JSON object:
 {
   "quiz": {
@@ -786,6 +803,29 @@ NEVER reuse vb-1/vb-2 for quiz diagrams.
 Match diagram type to topic. Diagram content must match the question exactly (same numbers, words, steps).
 ${profile.mathRule}
 Return complete valid JSON only — do not truncate. No markdown fences.`;
+};
+
+/** Flag generated questions that are near-verbatim copies of injected exemplars. */
+const flagNearDuplicateQuestions = (questions, exemplars, contextLabel = '') => {
+  if (!Array.isArray(questions) || questions.length === 0) return questions || [];
+  if (!Array.isArray(exemplars) || exemplars.length === 0) return questions;
+
+  const exemplarTexts = exemplars.map((e) => String(e.question_text || e.content || ''));
+  return questions.map((q) => {
+    const stem = String(q?.question || '');
+    let maxRatio = 0;
+    for (const ex of exemplarTexts) {
+      const ratio = tokenOverlapRatio(stem, ex);
+      if (ratio > maxRatio) maxRatio = ratio;
+    }
+    if (maxRatio >= QUIZ_EXEMPLAR_NEAR_DUP_THRESHOLD) {
+      console.warn(
+        `Near-duplicate quiz stem flagged${contextLabel ? ` (${contextLabel})` : ''}: ratio=${maxRatio.toFixed(3)} — "${stem.slice(0, 80)}"`
+      );
+      return { ...q, flagged_near_duplicate: true };
+    }
+    return q;
+  });
 };
 
 /** Extract questions[] from a parsed chunk payload (tolerates both shapes). */
@@ -940,6 +980,24 @@ export const generateLessonsFromSubStrand = async (
           `Lesson ${i + 1}/${total}: quiz bank part ${c + 1}/${QUIZ_CHUNKS.length} (${chunk.label})…`
         );
 
+        let quizExemplars = [];
+        try {
+          quizExemplars = await retrieveQuizExemplars({
+            subjectName: ctx.subject.name,
+            grade: ctx.grade,
+            topic: ctx.subStrand.name,
+            bloomBand: chunk.label,
+            queryText: ctx.queryText
+          });
+        } catch (retErr) {
+          console.warn(
+            `Lesson ${i + 1}: quiz exemplar retrieve failed (${chunk.label}):`,
+            retErr.message || retErr
+          );
+          quizExemplars = [];
+        }
+        const quizExemplarsBlock = formatQuizExemplarsForPrompt(quizExemplars);
+
         const avoidStems = bankQuestions.map((q) => String(q.question || ''));
         let chunkAdded = 0;
         for (let attempt = 0; attempt < 2; attempt++) {
@@ -948,7 +1006,15 @@ export const generateLessonsFromSubStrand = async (
           try {
             chunkText = await generateWithBackoff(
               model,
-              buildQuizChunkPrompt(ctx, shell, i + 1, total, chunk, avoidStems),
+              buildQuizChunkPrompt(
+                ctx,
+                shell,
+                i + 1,
+                total,
+                chunk,
+                avoidStems,
+                quizExemplarsBlock
+              ),
               {
                 label: `lesson ${i + 1} quiz ${chunk.label}`,
                 onWait: (msg) =>
@@ -964,7 +1030,12 @@ export const generateLessonsFromSubStrand = async (
           }
           const parsed = parseOneLessonJson(chunkText, ctx, i);
           if (!parsed.parseFailed) {
-            chunkAdded += appendChunkQuestions(chunkQuestions(parsed.data), c);
+            const flagged = flagNearDuplicateQuestions(
+              chunkQuestions(parsed.data),
+              quizExemplars,
+              `lesson ${i + 1} ${chunk.label}`
+            );
+            chunkAdded += appendChunkQuestions(flagged, c);
           }
           if (chunkAdded >= MIN_CHUNK_QUESTIONS) break;
           if (attempt === 0) {
@@ -1061,12 +1132,31 @@ export const topUpLessonQuizBank = async (lessonId) => {
       ...existing.map((q) => String(q.question || '')),
       ...newRaw.map((q) => String(q.question || ''))
     ];
+
+    let quizExemplars = [];
+    try {
+      quizExemplars = await retrieveQuizExemplars({
+        subjectName: ctx.subject.name,
+        grade: ctx.grade,
+        topic: ctx.subStrand.name,
+        bloomBand: chunk.label,
+        queryText: ctx.queryText
+      });
+    } catch (retErr) {
+      console.warn(
+        `Top-up quiz exemplar retrieve failed (${chunk.label}):`,
+        retErr.message || retErr
+      );
+      quizExemplars = [];
+    }
+    const quizExemplarsBlock = formatQuizExemplarsForPrompt(quizExemplars);
+
     await sleep(AI_CALL_GAP_MS);
     let chunkText;
     try {
       chunkText = await generateWithBackoff(
         model,
-        buildQuizChunkPrompt(ctx, shellLike, 1, 1, chunk, avoidStems),
+        buildQuizChunkPrompt(ctx, shellLike, 1, 1, chunk, avoidStems, quizExemplarsBlock),
         { label: `top-up ${chunk.label}` }
       );
     } catch (error) {
@@ -1075,7 +1165,12 @@ export const topUpLessonQuizBank = async (lessonId) => {
     }
     const parsed = parseOneLessonJson(chunkText, ctx, 0);
     if (parsed.parseFailed) continue;
-    for (const q of chunkQuestions(parsed.data)) {
+    const flagged = flagNearDuplicateQuestions(
+      chunkQuestions(parsed.data),
+      quizExemplars,
+      `top-up ${chunk.label}`
+    );
+    for (const q of flagged) {
       const stemKey = normalizeStemKey(q?.question);
       if (!stemKey || seenStems.has(stemKey)) continue;
       seenStems.add(stemKey);

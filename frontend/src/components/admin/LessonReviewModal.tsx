@@ -888,15 +888,21 @@ export const LessonReviewModal = ({
                           key={qq.id || idx}
                           type="button"
                           onClick={() => setCurrentQuestionIndex(idx)}
-                          title={modalityLabel(qq.modality)}
+                          title={
+                            qq.flagged_near_duplicate
+                              ? 'Near duplicate — review'
+                              : modalityLabel(qq.modality)
+                          }
                           className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
                             idx === safeIndex
                               ? 'bg-indigo-600 text-white'
-                              : qq.modality === 'visual'
-                                ? 'bg-violet-100 text-violet-800'
-                                : qq.modality === 'text_steps'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-slate-100 text-slate-700'
+                              : qq.flagged_near_duplicate
+                                ? 'bg-amber-200 text-amber-900 ring-2 ring-amber-400'
+                                : qq.modality === 'visual'
+                                  ? 'bg-violet-100 text-violet-800'
+                                  : qq.modality === 'text_steps'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-slate-100 text-slate-700'
                           }`}
                           style={{ fontFamily: 'Manrope, sans-serif' }}
                         >
@@ -950,6 +956,15 @@ export const LessonReviewModal = ({
                           style={{ fontFamily: 'Manrope, sans-serif' }}
                         >
                           {q.bloomLevel}
+                        </span>
+                      )}
+                      {q.flagged_near_duplicate && (
+                        <span
+                          className="px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-900 rounded-full border border-amber-300"
+                          style={{ fontFamily: 'Manrope, sans-serif' }}
+                          title="Generated stem is very similar to a past-paper exemplar"
+                        >
+                          Near duplicate — review
                         </span>
                       )}
                     </div>

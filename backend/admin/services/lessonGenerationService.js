@@ -154,7 +154,7 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
  * Build a dedicated brief per visual question (never reuse teaching vb-1/vb-2).
  * Returns { questions, questionBriefs, title, passingScore, timeLimit }.
  */
-const normalizeQuiz = (quiz, outcomes, profile) => {
+export const normalizeQuiz = (quiz, outcomes, profile) => {
   if (!quiz || !Array.isArray(quiz.questions)) {
     return {
       title: 'Quiz Challenge',
@@ -292,7 +292,9 @@ const normalizeQuiz = (quiz, outcomes, profile) => {
       modality,
       diagramBriefId: modality === 'visual' ? diagramBriefId : null,
       steps: modality === 'text_steps' ? steps || [] : undefined,
-      ...(q.flagged_near_duplicate ? { flagged_near_duplicate: true } : {})
+      ...(q.flagged_near_duplicate ? { flagged_near_duplicate: true } : {}),
+      ...(q.coverage_remapped ? { coverage_remapped: true } : {}),
+      ...(q.qa_flagged ? { qa_flagged: true, qa_issue: q.qa_issue || null } : {})
     };
   });
 
@@ -305,6 +307,7 @@ const normalizeQuiz = (quiz, outcomes, profile) => {
         slot.learningOutcomeIndex = idx;
         slot.learningOutcomeKey = outcomeKey(outcomes[i]);
         slot.skillFocus = outcomes[i].slice(0, 120);
+        slot.coverage_remapped = true;
         covered.add(idx);
       }
     });
@@ -835,6 +838,175 @@ const chunkQuestions = (payload) => {
   return [];
 };
 
+/** 1-based learningOutcomeIndex coverage against target outcome list. */
+export const checkOutcomeCoverage = (questions, targetOutcomes = []) => {
+  const coveredOutcomeIndices = new Set(
+    (questions || [])
+      .map((q) => Number(q.learningOutcomeIndex))
+      .filter((idx) => Number.isFinite(idx) && idx >= 1)
+  );
+  const uncovered = (targetOutcomes || [])
+    .map((_, i) => i + 1)
+    .filter((idx) => !coveredOutcomeIndices.has(idx));
+  return { coveredOutcomeIndices, uncovered };
+};
+
+const resolveTargetOutcomes = (shell, ctx) => {
+  let target = Array.isArray(shell?.learningObjectives)
+    ? shell.learningObjectives
+        .map((obj) => {
+          const idx = matchObjectiveToOutcomes(obj, ctx.sourceOutcomes);
+          return idx >= 0 ? ctx.sourceOutcomes[idx] : null;
+        })
+        .filter(Boolean)
+    : [];
+  if (target.length === 0) {
+    target = ctx.sourceOutcomes.slice(0, Math.min(2, ctx.sourceOutcomes.length));
+  }
+  return target;
+};
+
+const buildCoverageGapPrompt = (ctx, shell, targetOutcomes, uncoveredIndices, avoidStems = []) => {
+  const title = shell?.title || 'Lesson';
+  const uncoveredBlock = uncoveredIndices
+    .map((idx) => `${idx}. ${targetOutcomes[idx - 1] || ''}`)
+    .filter((line) => line.length > 3)
+    .join('\n');
+  const allOutcomes = targetOutcomes.map((o, i) => `${i + 1}. ${o}`).join('\n');
+  const avoidBlock =
+    avoidStems.length > 0
+      ? `\nDo NOT repeat or lightly reword any of these existing questions:\n${avoidStems
+          .slice(0, 30)
+          .map((s) => `- ${String(s).slice(0, 80)}`)
+          .join('\n')}\n`
+      : '';
+  const count = Math.min(3, Math.max(2, uncoveredIndices.length));
+  return `Create ${count} multiple-choice quiz questions for Kenyan CBC lesson "${title}" (Grade ${ctx.grade}).
+
+These learning outcomes currently have NO questions — you MUST cover them (use the exact learningOutcomeIndex shown):
+${uncoveredBlock}
+
+All lesson outcomes (for index reference):
+${allOutcomes}
+Topic: ${ctx.subject.name} · ${ctx.strand.name} · ${ctx.subStrand.name}
+${avoidBlock}
+Use bloomLevel "understand" or "apply" (mix). Each question MUST have: question, type:"multiple-choice", options(3-4), correctAnswerIndex, explanation, optionExplanations, distractors[{optionIndex,misconception}], learningOutcomeIndex (from the uncovered list), skillFocus, bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced), points.
+Keep explanations SHORT. Return ONLY one JSON object:
+{ "quiz": { "questions": [ /* exactly ${count} items */ ] } }
+No markdown fences.`;
+};
+
+/** Make room so coverage questions are not sliced off when bank is already at BANK_SIZE. */
+const makeRoomForCoverageQuestions = (bankQuestions, addCount) => {
+  const need = Math.max(0, bankQuestions.length + addCount - BANK_SIZE);
+  if (need <= 0) return;
+  let removed = 0;
+  while (removed < need && bankQuestions.length > 0) {
+    const redundantIdx = bankQuestions.findIndex((q) => {
+      const oi = Number(q.learningOutcomeIndex);
+      if (!Number.isFinite(oi)) return true;
+      return bankQuestions.filter((x) => Number(x.learningOutcomeIndex) === oi).length > 1;
+    });
+    const dropAt = redundantIdx >= 0 ? redundantIdx : 0;
+    bankQuestions.splice(dropAt, 1);
+    removed++;
+  }
+};
+
+export const buildCoverageReport = (questions = [], outcomes = []) => {
+  const realCovered = [];
+  const remapped = [];
+  const stillMissing = [];
+  for (let i = 0; i < outcomes.length; i++) {
+    const idx = i + 1;
+    const forOutcome = questions.filter((q) => Number(q.learningOutcomeIndex) === idx);
+    if (forOutcome.length === 0) {
+      stillMissing.push(idx);
+    } else if (forOutcome.some((q) => !q.coverage_remapped)) {
+      realCovered.push(idx);
+    } else {
+      remapped.push(idx);
+    }
+  }
+  return {
+    realCovered,
+    remapped,
+    stillMissing,
+    outcomes: [...outcomes]
+  };
+};
+
+/**
+ * Batched QA over the full bank. Env-gated via QUIZ_QA_ENABLED (default on).
+ * Fail soft: returns questions unchanged on error / unparseable JSON.
+ */
+export const isQuizQaEnabled = () =>
+  process.env.QUIZ_QA_ENABLED !== 'false' && process.env.QUIZ_QA_ENABLED !== '0';
+
+export const runQuizQAPass = async (questions, model, { label = '' } = {}) => {
+  if (!Array.isArray(questions) || questions.length === 0) return questions;
+  if (!isQuizQaEnabled()) return questions;
+
+  const qaPrompt = `
+You are QA-checking a set of multiple-choice questions for a children's CBC learning app.
+For each question below, check:
+1. Does it have EXACTLY ONE unambiguously correct answer given the options provided?
+2. Are the distractors (wrong options) plausible but clearly incorrect — not accidentally also defensible as correct?
+3. Is the question text clear and age-appropriate, with no ambiguous wording?
+4. Is there any factual error in the question or the marked correct answer?
+
+Return ONLY a JSON array, one entry per question in the same order, with:
+{ "question_index": number, "passes_qa": boolean, "issue": string | null }
+
+Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording).
+Do not fail a question just for being easy or simple — that's expected for some Bloom levels.
+
+QUESTIONS:
+${JSON.stringify(
+  questions.map((q, i) => ({
+    index: i,
+    question: q.question,
+    options: q.options,
+    correctAnswerIndex: q.correctAnswerIndex,
+    explanation: q.explanation,
+    bloomLevel: q.bloomLevel,
+    skillFocus: q.skillFocus
+  }))
+)}
+`;
+
+  try {
+    await sleep(AI_CALL_GAP_MS);
+    const text = await generateWithBackoff(model, qaPrompt, {
+      label: label ? `${label} quiz QA` : 'quiz QA'
+    });
+    const jsonText = extractJsonText(text);
+    const parsed = JSON.parse(jsonText);
+    if (!Array.isArray(parsed)) {
+      console.warn('Quiz QA pass: expected JSON array — skipping flags');
+      return questions;
+    }
+    for (const entry of parsed) {
+      const idx = Number(entry?.question_index ?? entry?.index);
+      if (!Number.isFinite(idx) || idx < 0 || idx >= questions.length) continue;
+      if (entry.passes_qa === false) {
+        questions[idx].qa_flagged = true;
+        questions[idx].qa_issue = String(entry.issue || 'Flagged by automated QA').slice(0, 280);
+      }
+    }
+    const flaggedCount = questions.filter((q) => q.qa_flagged).length;
+    console.log(
+      `Quiz QA pass${label ? ` (${label})` : ''}: ${flaggedCount}/${questions.length} flagged`
+    );
+  } catch (err) {
+    console.warn(
+      `Quiz QA pass failed${label ? ` (${label})` : ''} — continuing without flags:`,
+      err?.message || err
+    );
+  }
+  return questions;
+};
+
 const mapGeneratedLesson = (lesson, index, ctx) => {
   const { subStrand, subject, sourceOutcomes } = ctx;
 
@@ -857,6 +1029,7 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     learningObjectives.length ? learningObjectives : sourceOutcomes,
     ctx.profile
   );
+  const outcomesForQuiz = learningObjectives.length ? learningObjectives : sourceOutcomes;
   const { questionBriefs, ...quizNormalized } = quizResult;
   const visualBriefs = [...teachingBriefs, ...questionBriefs];
   const contentBlocks = normalizeContentBlocks(
@@ -865,6 +1038,7 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     sanitizeContent(lesson.content || '')
   );
   const content = contentFromBlocks(contentBlocks) || sanitizeContent(lesson.content || '');
+  const coverageReport = buildCoverageReport(quizNormalized.questions, outcomesForQuiz);
 
   return {
     title: lesson.title || `Lesson ${index + 1}: ${subStrand.name}`,
@@ -888,6 +1062,7 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     quiz: {
       ...quizNormalized,
       bankStats: computeBankStats(quizNormalized.questions),
+      coverageReport,
       visualBriefs,
       contentBlocks,
       visualAssets: []
@@ -1060,6 +1235,51 @@ export const generateLessonsFromSubStrand = async (
         );
       }
 
+      // ——— Outcome coverage enforcement (targeted regen before normalize remap) ———
+      const targetOutcomes = resolveTargetOutcomes(shell, ctx);
+      let { uncovered } = checkOutcomeCoverage(bankQuestions, targetOutcomes);
+      if (uncovered.length > 0) {
+        reportProgress(
+          onProgress,
+          start + span * 0.9,
+          `Lesson ${i + 1}: filling uncovered outcomes…`
+        );
+        try {
+          await sleep(AI_CALL_GAP_MS);
+          const avoidStems = bankQuestions.map((q) => String(q.question || ''));
+          const gapText = await generateWithBackoff(
+            model,
+            buildCoverageGapPrompt(ctx, shell, targetOutcomes, uncovered, avoidStems),
+            {
+              label: `lesson ${i + 1} coverage gap`,
+              onWait: (msg) => reportProgress(onProgress, start + span * 0.9, msg)
+            }
+          );
+          const gapParsed = parseOneLessonJson(gapText, ctx, i);
+          if (!gapParsed.parseFailed) {
+            const gapQs = chunkQuestions(gapParsed.data);
+            makeRoomForCoverageQuestions(bankQuestions, gapQs.length);
+            const added = appendChunkQuestions(gapQs, 'coverage');
+            console.log(
+              `Lesson ${i + 1}: coverage gap fill added ${added} questions for outcomes [${uncovered.join(', ')}]`
+            );
+          } else {
+            console.warn(`Lesson ${i + 1}: coverage gap fill parse failed — will remap in normalizeQuiz`);
+          }
+        } catch (gapErr) {
+          console.warn(
+            `Lesson ${i + 1}: coverage gap fill failed — will remap in normalizeQuiz:`,
+            gapErr?.message || gapErr
+          );
+        }
+        ({ uncovered } = checkOutcomeCoverage(bankQuestions, targetOutcomes));
+        if (uncovered.length > 0) {
+          console.warn(
+            `Lesson ${i + 1}: still uncovered after targeted regen: [${uncovered.join(', ')}] — normalizeQuiz may remap`
+          );
+        }
+      }
+
       const merged = mergeShellAndQuiz(shell, {
         quiz: {
           title: 'Quiz Challenge',
@@ -1070,6 +1290,12 @@ export const generateLessonsFromSubStrand = async (
       });
 
       const mapped = mapGeneratedLesson(merged, i, ctx);
+      const report = mapped.quiz?.coverageReport;
+      if (report) {
+        console.log(
+          `Lesson ${i + 1} coverage: real=[${report.realCovered.join(',')}] remapped=[${report.remapped.join(',')}] missing=[${report.stillMissing.join(',')}]`
+        );
+      }
       if ((mapped.quiz?.questions || []).length === 0) {
         console.error(`Lesson ${i + 1} still has empty quiz after split+retry`);
       } else {
@@ -1077,6 +1303,13 @@ export const generateLessonsFromSubStrand = async (
           `Lesson ${i + 1} ready: ${(mapped.quiz?.questions || []).length} questions`
         );
       }
+
+      // ——— Batched QA pass (QUIZ_QA_ENABLED, default on) ———
+      if (isQuizQaEnabled() && (mapped.quiz?.questions || []).length > 0) {
+        reportProgress(onProgress, start + span * 0.93, `Lesson ${i + 1}: running quiz QA…`);
+        await runQuizQAPass(mapped.quiz.questions, model, { label: `lesson ${i + 1}` });
+      }
+
       lessons.push(mapped);
 
       reportProgress(onProgress, start + span * 0.95, `Lesson ${i + 1} of ${total} ready`);

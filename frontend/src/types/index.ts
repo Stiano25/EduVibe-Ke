@@ -45,6 +45,11 @@ export interface QuizQuestion {
   steps?: string[]
   /** Set when AI output is too close to a past-paper exemplar — admin should review */
   flagged_near_duplicate?: boolean
+  /** Outcome label was assigned via remap fallback (no dedicated generated question) */
+  coverage_remapped?: boolean
+  /** Automated QA flagged a quality issue — admin should review */
+  qa_flagged?: boolean
+  qa_issue?: string | null
 }
 
 export interface QuizBankStats {
@@ -52,6 +57,14 @@ export interface QuizBankStats {
   byBloom: Record<string, number>
   byModality: Record<string, number>
   byOutcome: Record<string, { total: number; visual: number; text_steps: number; practice: number }>
+}
+
+/** Post-generation outcome coverage summary (1-based learningOutcomeIndex) */
+export interface QuizCoverageReport {
+  realCovered: number[]
+  remapped: number[]
+  stillMissing: number[]
+  outcomes: string[]
 }
 
 // Standalone Quiz / lesson quiz envelope
@@ -65,6 +78,7 @@ export interface Quiz {
   /** Present on learner-sanitized payloads (stems stripped) */
   questionCount?: number
   bankStats?: QuizBankStats
+  coverageReport?: QuizCoverageReport
   passingScore: number
   timeLimit?: number
   linkedTo?: {

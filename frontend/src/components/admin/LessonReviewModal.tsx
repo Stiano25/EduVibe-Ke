@@ -57,6 +57,7 @@ export const LessonReviewModal = ({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [modalityFilter, setModalityFilter] = useState<'all' | 'visual' | 'text_steps' | 'practice'>('all')
   const [bloomFilter, setBloomFilter] = useState<'all' | 'recall' | 'understand' | 'apply' | 'reason'>('all')
+  const [qaFilter, setQaFilter] = useState<'all' | 'flagged'>('all')
   const [toppingUp, setToppingUp] = useState(false)
   const [topUpMessage, setTopUpMessage] = useState<string | null>(null)
 
@@ -72,10 +73,12 @@ export const LessonReviewModal = ({
     setVisualError(null)
     setModalityFilter('all')
     setBloomFilter('all')
+    setQaFilter('all')
     setTopUpMessage(null)
   }, [initialLesson.id, isOpen])
 
   const questions = lesson.quiz?.questions || []
+  const coverageReport = lesson.quiz?.coverageReport
   const bankCoverage = useMemo(() => {
     const modality: Record<string, number> = { visual: 0, text_steps: 0, practice: 0, other: 0 }
     const bloom: Record<string, number> = {
@@ -86,6 +89,8 @@ export const LessonReviewModal = ({
       other: 0,
     }
     const outcomes = new Set<number>()
+    let qaFlagged = 0
+    let coverageRemapped = 0
     for (const qq of questions) {
       const m = qq.modality || 'other'
       if (modality[m] != null) modality[m] += 1
@@ -94,8 +99,17 @@ export const LessonReviewModal = ({
       if (bloom[b] != null) bloom[b] += 1
       else bloom.other += 1
       if (qq.learningOutcomeIndex) outcomes.add(qq.learningOutcomeIndex)
+      if (qq.qa_flagged) qaFlagged += 1
+      if (qq.coverage_remapped) coverageRemapped += 1
     }
-    return { modality, bloom, outcomesCovered: outcomes.size, total: questions.length }
+    return {
+      modality,
+      bloom,
+      outcomesCovered: outcomes.size,
+      total: questions.length,
+      qaFlagged,
+      coverageRemapped,
+    }
   }, [questions])
 
   const filteredIndices = useMemo(() => {
@@ -104,10 +118,11 @@ export const LessonReviewModal = ({
       .filter(({ qq }) => {
         if (modalityFilter !== 'all' && (qq.modality || 'practice') !== modalityFilter) return false
         if (bloomFilter !== 'all' && (qq.bloomLevel || '') !== bloomFilter) return false
+        if (qaFilter === 'flagged' && !qq.qa_flagged) return false
         return true
       })
       .map(({ idx }) => idx)
-  }, [questions, modalityFilter, bloomFilter])
+  }, [questions, modalityFilter, bloomFilter, qaFilter])
 
   const qCount = questions.length
   const safeIndex = Math.min(Math.max(currentQuestionIndex, 0), Math.max(qCount - 1, 0))
@@ -835,6 +850,48 @@ export const LessonReviewModal = ({
                       reason {bankCoverage.bloom.reason}
                     </span>
                   </div>
+                  {((coverageReport?.remapped?.length ?? 0) > 0 ||
+                    (coverageReport?.stillMissing?.length ?? 0) > 0 ||
+                    bankCoverage.coverageRemapped > 0) && (
+                    <p
+                      className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-[10px] px-3 py-2"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      {(coverageReport?.remapped?.length ?? bankCoverage.coverageRemapped) > 0 && (
+                        <>
+                          {coverageReport?.remapped?.length ?? bankCoverage.coverageRemapped} outcome
+                          {(coverageReport?.remapped?.length ?? bankCoverage.coverageRemapped) === 1
+                            ? ''
+                            : 's'}{' '}
+                          lack a dedicated question (remapped onto existing items)
+                          {coverageReport?.remapped?.length
+                            ? `: ${coverageReport.remapped
+                                .map((idx) => coverageReport.outcomes?.[idx - 1] || `#${idx}`)
+                                .join('; ')}`
+                            : ''}
+                          .{' '}
+                        </>
+                      )}
+                      {(coverageReport?.stillMissing?.length ?? 0) > 0 && (
+                        <>
+                          Still missing coverage for:{' '}
+                          {coverageReport!.stillMissing
+                            .map((idx) => coverageReport!.outcomes?.[idx - 1] || `#${idx}`)
+                            .join('; ')}
+                          .
+                        </>
+                      )}
+                    </p>
+                  )}
+                  {bankCoverage.qaFlagged > 0 && (
+                    <p
+                      className="text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-[10px] px-3 py-2"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
+                    >
+                      {bankCoverage.qaFlagged} question{bankCoverage.qaFlagged === 1 ? '' : 's'} flagged
+                      for review (automated QA)
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2 pt-1">
                     <select
                       value={modalityFilter}
@@ -861,6 +918,17 @@ export const LessonReviewModal = ({
                       <option value="apply">Apply</option>
                       <option value="reason">Reason</option>
                     </select>
+                    {bankCoverage.qaFlagged > 0 && (
+                      <select
+                        value={qaFilter}
+                        onChange={(e) => setQaFilter(e.target.value as typeof qaFilter)}
+                        className="text-xs rounded-full border border-slate-200 px-3 py-1.5 bg-white"
+                        style={{ fontFamily: 'Manrope, sans-serif' }}
+                      >
+                        <option value="all">All QA status</option>
+                        <option value="flagged">QA flagged only</option>
+                      </select>
+                    )}
                     <span className="text-[10px] text-slate-500 self-center" style={{ fontFamily: 'Manrope, sans-serif' }}>
                       Showing {filteredIndices.length} of {qCount}
                     </span>
@@ -889,20 +957,26 @@ export const LessonReviewModal = ({
                           type="button"
                           onClick={() => setCurrentQuestionIndex(idx)}
                           title={
-                            qq.flagged_near_duplicate
-                              ? 'Near duplicate — review'
-                              : modalityLabel(qq.modality)
+                            qq.qa_flagged
+                              ? qq.qa_issue || 'QA flagged — review'
+                              : qq.coverage_remapped
+                                ? 'Outcome remapped — no dedicated question'
+                                : qq.flagged_near_duplicate
+                                  ? 'Near duplicate — review'
+                                  : modalityLabel(qq.modality)
                           }
                           className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
                             idx === safeIndex
                               ? 'bg-indigo-600 text-white'
-                              : qq.flagged_near_duplicate
-                                ? 'bg-amber-200 text-amber-900 ring-2 ring-amber-400'
-                                : qq.modality === 'visual'
-                                  ? 'bg-violet-100 text-violet-800'
-                                  : qq.modality === 'text_steps'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-slate-100 text-slate-700'
+                              : qq.qa_flagged
+                                ? 'bg-rose-200 text-rose-900 ring-2 ring-rose-400'
+                                : qq.flagged_near_duplicate || qq.coverage_remapped
+                                  ? 'bg-amber-200 text-amber-900 ring-2 ring-amber-400'
+                                  : qq.modality === 'visual'
+                                    ? 'bg-violet-100 text-violet-800'
+                                    : qq.modality === 'text_steps'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-slate-100 text-slate-700'
                           }`}
                           style={{ fontFamily: 'Manrope, sans-serif' }}
                         >
@@ -967,6 +1041,24 @@ export const LessonReviewModal = ({
                           Near duplicate — review
                         </span>
                       )}
+                      {q.coverage_remapped && (
+                        <span
+                          className="px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-900 rounded-full border border-amber-300"
+                          style={{ fontFamily: 'Manrope, sans-serif' }}
+                          title="This question was reassigned to cover an outcome that had no dedicated question"
+                        >
+                          Coverage remapped
+                        </span>
+                      )}
+                      {q.qa_flagged && (
+                        <span
+                          className="px-2 py-0.5 text-[10px] font-semibold bg-rose-100 text-rose-900 rounded-full border border-rose-300"
+                          style={{ fontFamily: 'Manrope, sans-serif' }}
+                          title={q.qa_issue || 'Automated QA flagged this question'}
+                        >
+                          QA flagged{q.qa_issue ? `: ${q.qa_issue}` : ''}
+                        </span>
+                      )}
                     </div>
 
                     {q.modality === 'text_steps' && q.steps && q.steps.length > 0 && (
@@ -1003,7 +1095,7 @@ export const LessonReviewModal = ({
 
                     <MathText
                       as="p"
-                      text={q.question}
+                      text={q.question || ''}
                       className="text-base sm:text-lg font-semibold text-[#0F172A]"
                     />
 

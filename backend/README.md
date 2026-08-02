@@ -46,6 +46,7 @@ cp .env.example .env
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (optional, for admin operations)
 - `GEMINI_API_KEY`: Your Google Gemini API key
+- `QUIZ_QA_ENABLED`: Optional. Batched quiz QA after lesson generation (default on). Set to `false` or `0` to skip the extra Gemini call per lesson.
 - `FRONTEND_URL`: Your frontend URL (for CORS)
 
 4. Start the server:

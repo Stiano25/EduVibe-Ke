@@ -8,6 +8,8 @@
 
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
+/** Modest nudge toward easier/harder items by mastery — keep low vs outcome/bloom bonuses. */
+const DIFFICULTY_MATCH_BONUS = 5;
 
 const qid = (q, i) => q.id || `q-${i + 1}` || `question-${i}`;
 
@@ -132,6 +134,13 @@ const pickNextMain = (session, lesson, masteryMap, preferredModality) => {
 
     if (preferredModality && preferredModality !== 'mixed' && mod === preferredModality) {
       s += 5;
+    }
+
+    const diff = c.q.difficulty || 'easy';
+    if (mastery?.status === 'scaffolding' || mastery?.status === 'struggling') {
+      if (diff === 'easy') s += DIFFICULTY_MATCH_BONUS;
+    } else if (mastery?.status === 'mastered' || mastery?.status === 'developing') {
+      if (diff === 'advanced') s += DIFFICULTY_MATCH_BONUS;
     }
 
     s += Math.random() * 3;

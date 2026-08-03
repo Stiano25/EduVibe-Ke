@@ -62,19 +62,23 @@ This is the **canonical** quiz system for CBC adaptive learning (bloom, modality
 
 ---
 
-## 3. Recommendation (needs founder sign-off)
+## 3. Founder decision
 
-Choose one before any consolidation work:
+**Decision (2026-08-02): (a) — deprecate the standalone `quizzes` table.**
 
-**(a) Deprecate standalone `quizzes`**  
-Migrate any real linked/note usage into lesson banks (or a clearer “practice pack” product), remove admin CRUD, and keep a single adaptive path via `lessons.quiz`. Requires a separate migration plan (data, call sites, tests).
+Keep a single adaptive path via `lessons.quiz`. Do **not** start deprecation/migration in this workstream.
 
-**(b) Keep both, document roles**  
-- `lessons.quiz` = adaptive CBC lesson banks (generation + learner mastery).  
-- `quizzes` = optional ad-hoc / note-linked practice outside the adaptive lesson flow.  
-Clarify nav/copy so admins do not edit the wrong system.
+### Follow-up task (not started)
 
-**(c) Something else**  
-e.g. rename standalone to “Practice packs” and hide until productized.
+Deprecate/remove the standalone `quizzes` table and admin CRUD, after a dedicated plan covering data migration, call-site updates, and tests.
 
-**This workstream stops here.** Do not delete, merge, or migrate the `quizzes` table until one of the above is chosen.
+**Prerequisite before that follow-up begins:** audit exactly what admin analytics currently reads from the `quizzes` table, and define the `lessons.quiz` replacement metrics so nothing is removed until those are replicated.
+
+Known analytics touchpoint today (starter list — deepen in the follow-up audit):
+
+| Consumer | File | What it reads from `quizzes` |
+|----------|------|------------------------------|
+| `getAnalytics` | `backend/admin/services/analyticsService.js` | `Quiz.findAll()` → `quizzes.total` (count only) |
+| Dashboard / Analytics UI | `Dashboard.tsx`, `Analytics.tsx` | Displays `analytics.quizzes.total` |
+
+Likely replacement: count of lessons with a non-empty `quiz.questions` bank (and/or question totals), not a separate table count. Confirm all other readers before deletion.

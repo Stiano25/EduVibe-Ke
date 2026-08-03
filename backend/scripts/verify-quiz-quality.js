@@ -7,6 +7,7 @@ import {
   checkOutcomeCoverage,
   buildCoverageReport,
   normalizeQuiz,
+  normalizeDifficulty,
   isQuizQaEnabled,
   runQuizQAPass
 } from '../admin/services/lessonGenerationService.js';
@@ -15,6 +16,29 @@ import { createAdaptiveSession } from '../learner/services/adaptiveQuizService.j
 const assert = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
+
+assert(normalizeDifficulty('medium') === 'intermediate', 'medium→intermediate');
+assert(normalizeDifficulty('hard') === 'advanced', 'hard→advanced');
+assert(normalizeDifficulty('easy') === 'easy', 'easy stays');
+assert(normalizeDifficulty('weird') === 'intermediate', 'unrecognized→intermediate');
+assert(
+  normalizeQuiz(
+    {
+      questions: [
+        {
+          question: 'Diff map',
+          options: ['a', 'b'],
+          correctAnswerIndex: 0,
+          learningOutcomeIndex: 1,
+          difficulty: 'hard'
+        }
+      ]
+    },
+    ['Outcome A'],
+    { modalityCycle: ['practice'], allowedDiagramTypes: ['number_line'], fallbackDiagramType: 'number_line' }
+  ).questions[0].difficulty === 'advanced',
+  'normalizeQuiz maps hard→advanced'
+);
 
 const profile = {
   modalityCycle: ['practice', 'visual', 'text_steps'],

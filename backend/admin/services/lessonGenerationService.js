@@ -19,6 +19,34 @@ import { getSubjectProfile } from './subjectProfiles.js';
 
 const BLOOM_LEVELS = new Set(['recall', 'understand', 'apply', 'reason']);
 const QUESTION_MODALITIES = new Set(['visual', 'text_steps', 'practice']);
+const CANONICAL_DIFFICULTIES = new Set(['easy', 'intermediate', 'advanced']);
+
+/**
+ * Map Gemini difficulty drift onto easy | intermediate | advanced before storage.
+ * Logs whenever a non-canonical value is corrected.
+ */
+export const normalizeDifficulty = (raw, { questionId = '', context = '' } = {}) => {
+  const s = String(raw ?? '')
+    .trim()
+    .toLowerCase();
+  if (CANONICAL_DIFFICULTIES.has(s)) return s;
+
+  let mapped = 'intermediate';
+  if (s === 'medium' || s === 'mid' || s === 'moderate' || s === 'normal') {
+    mapped = 'intermediate';
+  } else if (s === 'hard' || s === 'difficult' || s === 'challenging') {
+    mapped = 'advanced';
+  } else if (s === 'beginner' || s === 'simple' || s === 'basic' || s === 'easy') {
+    mapped = 'easy';
+  }
+
+  const label = context ? ` (${context})` : '';
+  const qLabel = questionId ? ` [${questionId}]` : '';
+  console.warn(
+    `Difficulty normalized${label}${qLabel}: "${raw === undefined || raw === null || raw === '' ? '(empty)' : raw}" → "${mapped}"`
+  );
+  return mapped;
+};
 
 const matchObjectiveToOutcomes = (objective, outcomes) => {
   const norm = normalizeOutcomeText(objective).toLowerCase();
@@ -193,11 +221,17 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
       })
       .filter(Boolean);
 
+    const qid = q.id || `q-${qi + 1}`;
+    const difficulty = normalizeDifficulty(q.difficulty, {
+      questionId: qid,
+      context: 'normalizeQuiz'
+    });
+
     const bloom = BLOOM_LEVELS.has(q.bloomLevel)
       ? q.bloomLevel
-      : q.difficulty === 'advanced'
+      : difficulty === 'advanced'
         ? 'reason'
-        : q.difficulty === 'intermediate'
+        : difficulty === 'intermediate'
           ? 'apply'
           : 'recall';
 
@@ -206,7 +240,6 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
       modality = assignDefaultModality(qi, profile);
     }
 
-    const qid = q.id || `q-${qi + 1}`;
     let diagramBriefId = null;
 
     if (modality === 'visual') {
@@ -282,7 +315,7 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
       optionExplanations: q.optionExplanations || options.map(() => ''),
       feedbackCorrect: q.feedbackCorrect || 'Well done!',
       feedbackIncorrect: q.feedbackIncorrect || 'Review this skill and try again.',
-      difficulty: q.difficulty || 'easy',
+      difficulty,
       points: Number(q.points) || 15,
       learningOutcomeIndex: outcomeIndex,
       learningOutcomeKey: outcomeKey(outcomeText),
@@ -1431,17 +1464,34 @@ export const topUpLessonQuizBank = async (lessonId) => {
   });
 
   const normalized = normalizeQuiz({ questions: rawWithIds }, outcomes, ctx.profile);
-  const mergedQuestions = [...existing, ...normalized.questions];
+
+  // QA only the newly added batch (existing questions already reviewed / flagged)
+  if (isQuizQaEnabled() && normalized.questions.length > 0) {
+    await runQuizQAPass(normalized.questions, model, {
+      label: `top-up ${lessonId.slice(0, 8)}`
+    });
+  }
+
+  // Canonicalize difficulty on the full bank at save (fixes older medium/hard drift too)
+  const mergedQuestions = [...existing, ...normalized.questions].map((q) => ({
+    ...q,
+    difficulty: normalizeDifficulty(q.difficulty, {
+      questionId: q.id,
+      context: 'top-up-save'
+    })
+  }));
   const mergedBriefs = [
     ...(lesson.quiz?.visualBriefs || []),
     ...normalized.questionBriefs
   ];
+  const coverageReport = buildCoverageReport(mergedQuestions, outcomes);
 
   const quiz = {
     ...(lesson.quiz || {}),
     questions: mergedQuestions,
     visualBriefs: mergedBriefs,
-    bankStats: computeBankStats(mergedQuestions)
+    bankStats: computeBankStats(mergedQuestions),
+    coverageReport
   };
 
   let updated = await Lesson.update(lessonId, { quiz });

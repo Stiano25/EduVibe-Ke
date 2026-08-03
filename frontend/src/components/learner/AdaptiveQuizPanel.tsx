@@ -37,7 +37,12 @@ type ReviewItem = {
 
 type ReviewPayload = {
   items: ReviewItem[]
-  score?: { correct: number; total: number; percentage: number } | null
+  score?: {
+    correct: number
+    total: number
+    percentage: number
+    retryCount?: number
+  } | null
   completedAt?: string | null
 }
 
@@ -45,7 +50,7 @@ interface AdaptiveQuizPanelProps {
   lesson: Lesson & { isCompleted?: boolean; sessionReview?: unknown; progress?: number }
   lessonId: string
   preferredModality: string
-  onSessionComplete?: (pct: number, passed: boolean) => void
+  onSessionComplete?: (pct: number, passed: boolean, topicMastered?: boolean) => void
   resolveDiagramUrl?: (briefId?: string | null) => string | null
 }
 
@@ -66,7 +71,8 @@ export const AdaptiveQuizPanel = ({
     mainAnswered?: number
     mainTarget?: number
     done?: boolean
-    score?: { correct: number; total: number; percentage: number }
+    score?: { correct: number; total: number; percentage: number; retryCount?: number }
+    modalitySignal?: { source?: string; modality?: string | null }
   } | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const [flash, setFlash] = useState<{
@@ -146,6 +152,7 @@ export const AdaptiveQuizPanel = ({
         }
         review?: ReviewPayload
         completed?: boolean
+        topicMastered?: boolean
       }
 
       if (res.lastAnswer) {
@@ -165,7 +172,7 @@ export const AdaptiveQuizPanel = ({
         setQuestion(null)
         const pct = res.review.score?.percentage ?? 0
         const passing = Math.max(lesson.quiz?.passingScore || 60, 60)
-        onSessionComplete?.(pct, pct >= passing)
+        onSessionComplete?.(pct, pct >= passing, !!res.topicMastered)
       } else {
         await new Promise((r) => setTimeout(r, 650))
         setQuestion(res.question)
@@ -215,6 +222,9 @@ export const AdaptiveQuizPanel = ({
                  
               >
                 Score: {review.score.correct}/{review.score.total} ({review.score.percentage}%)
+                {typeof review.score.retryCount === 'number' && review.score.retryCount > 0
+                  ? ` · ${review.score.retryCount} ${review.score.retryCount === 1 ? 'retry' : 'retries'}`
+                  : ''}
               </span>
             )}
           </div>

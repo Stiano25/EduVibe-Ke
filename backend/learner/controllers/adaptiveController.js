@@ -269,6 +269,33 @@ const recordOneAttempt = async ({
   modalityShown,
   profile
 }) => {
+  const shown = modalityShown || profile.preferredModality || 'mixed';
+
+  // Natural experiment: fail then same outcome with a different modality
+  try {
+    const prior = await SkillAttempt.listByUserOutcome(userId, learningOutcomeKey, {
+      limit: 1
+    });
+    const last = prior[0];
+    if (
+      last &&
+      !last.correct &&
+      last.modalityShown &&
+      last.modalityShown !== 'mixed' &&
+      shown !== 'mixed' &&
+      shown !== last.modalityShown
+    ) {
+      console.debug(
+        '[modality-switch]',
+        learningOutcomeKey,
+        `${last.modalityShown}→${shown}`,
+        correct ? 'success' : 'fail'
+      );
+    }
+  } catch {
+    /* ignore */
+  }
+
   const priorFails = await SkillAttempt.countRecentFails(
     userId,
     learningOutcomeKey,
@@ -290,7 +317,7 @@ const recordOneAttempt = async ({
     correct,
     selectedOptionIndex: selected,
     misconceptionKey: correct ? null : distractor?.misconception || null,
-    modalityShown: modalityShown || profile.preferredModality || 'mixed',
+    modalityShown: shown,
     attemptInSkillStreak
   });
 
@@ -301,10 +328,16 @@ const recordOneAttempt = async ({
     gradeLevel: lesson.grade,
     correct,
     consecutiveFails: correct ? 0 : attemptInSkillStreak,
-    modalityShown: modalityShown || profile.preferredModality
+    modalityShown: shown
   });
 
   return { attemptInSkillStreak, distractor };
+};
+
+const loadModalitySuccessMap = async (userId, lesson) => {
+  const { lessonOutcomeKeys } = await import('../services/adaptiveQuizService.js');
+  const keys = lessonOutcomeKeys(lesson);
+  return SkillAttempt.getSuccessfulModalitiesForOutcomes(userId, keys);
 };
 
 /** Start adaptive one-by-one quiz session */
@@ -342,10 +375,12 @@ export const startAdaptiveQuiz = async (req, res) => {
     }
 
     const { createAdaptiveSession } = await import('../services/adaptiveQuizService.js');
+    const modalitySuccessMap = await loadModalitySuccessMap(userId, lesson);
     const result = createAdaptiveSession({
       lesson,
       preferredModality: profile.preferredModality || 'mixed',
-      masteryRows
+      masteryRows,
+      modalitySuccessMap
     });
 
     res.json({
@@ -387,7 +422,8 @@ export const nextAdaptiveQuiz = async (req, res) => {
 
     const profile = await LearnerProfile.getOrCreate(userId);
     const masteryRows = await SkillMastery.findByUser(userId);
-    const { advanceAdaptiveSession, buildReviewView } = await import(
+    const modalitySuccessMap = await loadModalitySuccessMap(userId, lesson);
+    const { advanceAdaptiveSession, buildReviewView, lessonOutcomeKeys } = await import(
       '../services/adaptiveQuizService.js'
     );
 
@@ -395,7 +431,8 @@ export const nextAdaptiveQuiz = async (req, res) => {
       session: stripSignature(session),
       lesson,
       selectedOptionIndex,
-      masteryRows
+      masteryRows,
+      modalitySuccessMap
     });
 
     const { attemptContext } = result;
@@ -446,6 +483,39 @@ export const nextAdaptiveQuiz = async (req, res) => {
         await db.from('lesson_progress').insert(payload);
       }
 
+      // Persist modality selection signals for later aggregation (+8 vs +18)
+      const signalRows = (result.session.modalitySignalLog || []).map((entry) => ({
+        user_id: userId,
+        lesson_id: lessonId,
+        question_id: entry.questionId || null,
+        learning_outcome_key: entry.learningOutcomeKey || null,
+        source: entry.source || 'none',
+        modality: entry.modality || null,
+        created_at: entry.at || new Date().toISOString()
+      }));
+      if (signalRows.length > 0) {
+        const { error: signalErr } = await db
+          .from('adaptive_modality_signal_log')
+          .insert(signalRows);
+        if (signalErr) {
+          // Table may not be migrated yet — session_review.modalitySignals still holds a copy
+          console.warn(
+            '[modality-signal-log] insert skipped:',
+            signalErr.message || signalErr
+          );
+        }
+      }
+
+      // Fresh mastery after last attempt — for celebration copy
+      const freshMastery = await SkillMastery.findByUser(userId);
+      const outcomeKeys = lessonOutcomeKeys(lesson);
+      const byKey = new Map(
+        freshMastery.map((m) => [m.learningOutcomeKey, m.status])
+      );
+      const topicMastered =
+        outcomeKeys.length > 0 &&
+        outcomeKeys.every((k) => byKey.get(k) === 'mastered');
+
       return res.json({
         mode: 'adaptive',
         session: signSession(result.session),
@@ -453,7 +523,8 @@ export const nextAdaptiveQuiz = async (req, res) => {
         meta: result.meta,
         lastAnswer: result.lastAnswer,
         review: buildReviewView(lesson, result.review),
-        completed
+        completed,
+        topicMastered
       });
     }
 

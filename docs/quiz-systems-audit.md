@@ -82,3 +82,52 @@ Known analytics touchpoint today (starter list — deepen in the follow-up audit
 | Dashboard / Analytics UI | `Dashboard.tsx`, `Analytics.tsx` | Displays `analytics.quizzes.total` |
 
 Likely replacement: count of lessons with a non-empty `quiz.questions` bank (and/or question totals), not a separate table count. Confirm all other readers before deletion.
+
+---
+
+## 4. Founder decision — adaptive session score (retries)
+
+**Decision (2026-08-03): Option C — retries excluded from session percentage.**
+
+- `score.percentage` / `lesson_progress.progress` use **main-phase (first-try) answers only**.
+- Retries are reported separately as `score.retryCount` (e.g. UI: `80% · 3 retries`).
+- Pass/unlock still compares that first-try `%` to `max(lesson.quiz.passingScore || 60, 60)` — **floor not recalibrated in this change**.
+- Mastered status uses a separate rule (≥3 of last 4 attempts correct); celebration “mastered” copy keys off `skill_mastery.status`, not session %.
+
+### OPEN DECISION — 60% pass / unlock floor (do not close until revisited)
+
+**Status: open — revisit after more real first-try session data.**
+
+Because Option C dropped retries from the %, the same raw performance now yields a **systematically lower** `progress` / pass check for retry-heavy learners than under the old blended score. The floor is still hard-coded at `max(passingScore || 60, 60)` in:
+
+- `adaptiveController.js` (complete / `lesson_progress.completed`)
+- `learnerController.js` (next-lesson unlock via `progress >= 60`)
+- `Lessons.tsx` / `LessonView.tsx` (UI gates on `progress >= 60`)
+
+No recalibration in this change. Decide later whether to lower the floor, keep 60, or use separate first-try vs retry metrics for unlock.
+
+### Fast-follow (not started)
+
+Recalibrate the 60% pass / unlock floor using aggregated first-try session data once available.
+
+---
+
+## 5. Modality selection signal persistence
+
+Each main-path `pickNextMain` records `{ source, modality, questionId, learningOutcomeKey, at }` where `source` is `per_outcome` | `global_fallback` | `none`.
+
+**Stored in two places (both queryable):**
+
+1. `lesson_progress.session_review.modalitySignals` — per completed session (JSONB array)
+2. `adaptive_modality_signal_log` table — one row per selection (`migration_modality_signal_log.sql`)
+
+Example aggregation (share of rich signal vs fallback):
+
+```sql
+SELECT source, COUNT(*) AS n,
+       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM adaptive_modality_signal_log
+GROUP BY source;
+```
+
+Use this to decide whether the combined modality bonus should move from **+8 → +18**.

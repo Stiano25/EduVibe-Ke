@@ -4,12 +4,21 @@
  * Failed items get one retry at the end — preferring a SIBLING question
  * (same outcome, same-or-lower bloom, unseen) over verbatim replay.
  * Selection uses mastery + bloom + modality (scaffold-then-ease).
+ *
+ * Session score % (Founder decision 2026-08-03, Option C): first-try (main
+ * phase) answers only. Retries are counted separately via retryCount and
+ * excluded from percentage / pass threshold inputs. See docs/quiz-systems-audit.md.
  */
 
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
 /** Modest nudge toward easier/harder items by mastery — keep low vs outcome/bloom bonuses. */
 const DIFFICULTY_MATCH_BONUS = 5;
+/**
+ * Combined modality signal: per-outcome evidence, else global preferred (cold-start).
+ * Modest by design — UI does not claim a majority “learning style” mix.
+ */
+const MODALITY_MATCH_BONUS = 8;
 
 const qid = (q, i) => q.id || `q-${i + 1}` || `question-${i}`;
 
@@ -21,15 +30,6 @@ const bloomIndex = (b) => {
 const dropBloom = (b) => BLOOM_ORDER[Math.max(0, bloomIndex(b) - 1)];
 
 const asModality = (m) => (MODALITIES.includes(m) ? m : 'practice');
-
-const shuffle = (arr) => {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
 
 const targetMainLength = (bankSize) => {
   if (bankSize <= 0) return 0;
@@ -55,6 +55,35 @@ const outcomeKeyOf = (q, lesson) => {
   return text || 'general';
 };
 
+/** Distinct learningOutcomeKeys in a lesson bank (for modality map load). */
+export const lessonOutcomeKeys = (lesson) => {
+  const bank = lesson.quiz?.questions || [];
+  return [...new Set(bank.map((q) => outcomeKeyOf(q, lesson)).filter(Boolean))];
+};
+
+const modalityBonusFor = (mod, outcomeKey, preferredModality, modalitySuccessMap) => {
+  const perOutcome =
+    modalitySuccessMap instanceof Map
+      ? modalitySuccessMap.get(outcomeKey)
+      : modalitySuccessMap?.[outcomeKey];
+  if (perOutcome && mod === perOutcome) {
+    return { bonus: MODALITY_MATCH_BONUS, source: 'per_outcome', modality: perOutcome };
+  }
+  if (
+    !perOutcome &&
+    preferredModality &&
+    preferredModality !== 'mixed' &&
+    mod === preferredModality
+  ) {
+    return {
+      bonus: MODALITY_MATCH_BONUS,
+      source: 'global_fallback',
+      modality: preferredModality
+    };
+  }
+  return { bonus: 0, source: 'none', modality: null };
+};
+
 const publicQuestion = (q, indexInBank) => {
   if (!q) return null;
   return {
@@ -69,7 +98,7 @@ const publicQuestion = (q, indexInBank) => {
     diagramBriefId: q.diagramBriefId || null,
     steps: q.steps || undefined,
     learningOutcomeIndex: q.learningOutcomeIndex,
-    learningOutcomeKey: q.learningOutcomeKey,
+    learningOutcomeKey: q.learningOutcomeKey
     // Never send correctAnswerIndex during live attempt
   };
 };
@@ -79,8 +108,15 @@ const findBankIndex = (bank, questionId) =>
 
 /**
  * Score candidates for next main-path item.
+ * Returns candidate plus modalitySignal for the winner.
  */
-const pickNextMain = (session, lesson, masteryMap, preferredModality) => {
+const pickNextMain = (
+  session,
+  lesson,
+  masteryMap,
+  preferredModality,
+  modalitySuccessMap = new Map()
+) => {
   const bank = lesson.quiz?.questions || [];
   const used = new Set(session.usedIds);
   const last = session.lastAttempt;
@@ -132,9 +168,8 @@ const pickNextMain = (session, lesson, masteryMap, preferredModality) => {
       if (bloomIndex(bloom) >= 2) s += 10;
     }
 
-    if (preferredModality && preferredModality !== 'mixed' && mod === preferredModality) {
-      s += 5;
-    }
+    const modHit = modalityBonusFor(mod, ok, preferredModality, modalitySuccessMap);
+    s += modHit.bonus;
 
     const diff = c.q.difficulty || 'easy';
     if (mastery?.status === 'scaffolding' || mastery?.status === 'struggling') {
@@ -144,11 +179,23 @@ const pickNextMain = (session, lesson, masteryMap, preferredModality) => {
     }
 
     s += Math.random() * 3;
-    return s;
+    return { score: s, modalitySignal: { source: modHit.source, modality: modHit.modality } };
   };
 
-  candidates.sort((a, b) => score(b) - score(a));
-  return candidates[0];
+  let best = null;
+  let bestMeta = null;
+  for (const c of candidates) {
+    const { score: s, modalitySignal } = score(c);
+    if (!best || s > bestMeta.score) {
+      best = c;
+      bestMeta = { score: s, modalitySignal };
+    }
+  }
+
+  return {
+    ...best,
+    modalitySignal: bestMeta?.modalitySignal || { source: 'none', modality: null }
+  };
 };
 
 /**
@@ -203,10 +250,32 @@ const serveRetry = (bank, lesson, session) => {
   return next;
 };
 
+/** First-try (main phase) score only — retries excluded from percentage (Option C). */
+const firstTryScore = (session) => {
+  const total = session.mainScoreTotal || 0;
+  const correct = session.mainScoreCorrect || 0;
+  const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const retryCount = session.retryDoneIds?.length || 0;
+  return { correct, total, percentage, retryCount };
+};
+
+const pushModalitySignalLog = (session, pick, lesson) => {
+  if (!pick?.modalitySignal) return;
+  const entry = {
+    source: pick.modalitySignal.source || 'none',
+    modality: pick.modalitySignal.modality || null,
+    questionId: pick.id || null,
+    learningOutcomeKey: pick.q ? outcomeKeyOf(pick.q, lesson) : null,
+    at: new Date().toISOString()
+  };
+  session.modalitySignalLog = [...(session.modalitySignalLog || []), entry];
+};
+
 export const createAdaptiveSession = ({
   lesson,
   preferredModality = 'mixed',
-  masteryRows = []
+  masteryRows = [],
+  modalitySuccessMap = new Map()
 }) => {
   const bank = lesson.quiz?.questions || [];
   const mainTarget = targetMainLength(bank.length);
@@ -225,12 +294,21 @@ export const createAdaptiveSession = ({
     outcomeFailStreak: {},
     lastAttempt: null,
     preferredModality,
-    scoreCorrect: 0,
-    scoreTotal: 0
+    // First-try scoring only (Option C) — retries tracked via retryDoneIds
+    mainScoreCorrect: 0,
+    mainScoreTotal: 0,
+    // Persisted into session_review + adaptive_modality_signal_log on complete
+    modalitySignalLog: []
   };
 
   const masteryMap = masteryByKey(masteryRows);
-  const first = pickNextMain(session, lesson, masteryMap, preferredModality);
+  const first = pickNextMain(
+    session,
+    lesson,
+    masteryMap,
+    preferredModality,
+    modalitySuccessMap
+  );
   if (!first) {
     return {
       session: { ...session, phase: 'done' },
@@ -239,6 +317,7 @@ export const createAdaptiveSession = ({
     };
   }
 
+  pushModalitySignalLog(session, first, lesson);
   session.currentQuestionId = first.id;
   return {
     session,
@@ -249,19 +328,22 @@ export const createAdaptiveSession = ({
       mainTarget,
       failQueued: 0,
       progressLabel: `Question 1 of ${mainTarget}`,
-      done: false
+      done: false,
+      modalitySignal: first.modalitySignal || { source: 'none', modality: null }
     }
   };
 };
 
 /**
  * Apply an answer and return next question (or done + review payload).
+ * Score percentage uses main-phase answers only (Option C).
  */
 export const advanceAdaptiveSession = ({
   session: rawSession,
   lesson,
   selectedOptionIndex,
-  masteryRows = []
+  masteryRows = [],
+  modalitySuccessMap = new Map()
 }) => {
   const bank = lesson.quiz?.questions || [];
   const session = {
@@ -272,7 +354,10 @@ export const advanceAdaptiveSession = ({
     retryServedIds: [...(rawSession.retryServedIds || [])],
     coveredOutcomes: [...(rawSession.coveredOutcomes || [])],
     answered: [...(rawSession.answered || [])],
-    outcomeFailStreak: { ...(rawSession.outcomeFailStreak || {}) }
+    outcomeFailStreak: { ...(rawSession.outcomeFailStreak || {}) },
+    mainScoreCorrect: rawSession.mainScoreCorrect ?? 0,
+    mainScoreTotal: rawSession.mainScoreTotal ?? 0,
+    modalitySignalLog: [...(rawSession.modalitySignalLog || [])]
   };
 
   const currentId = session.currentQuestionId;
@@ -299,8 +384,11 @@ export const advanceAdaptiveSession = ({
   };
 
   session.answered.push(answerRecord);
-  session.scoreTotal += 1;
-  if (correct) session.scoreCorrect += 1;
+
+  if (phase === 'main') {
+    session.mainScoreTotal += 1;
+    if (correct) session.mainScoreCorrect += 1;
+  }
 
   session.lastAttempt = answerRecord;
 
@@ -333,14 +421,9 @@ export const advanceAdaptiveSession = ({
   }
 
   const masteryMap = masteryByKey(masteryRows);
-  const percentage =
-    session.scoreTotal > 0
-      ? Math.round((session.scoreCorrect / session.scoreTotal) * 100)
-      : 0;
-
-  // Decide next
   let next = null;
   let nextPhase = session.phase;
+  let modalitySignal = { source: 'none', modality: null };
 
   if (session.phase === 'main') {
     const mainDone = session.mainAnswered >= session.mainTarget;
@@ -355,7 +438,15 @@ export const advanceAdaptiveSession = ({
         session.phase = 'done';
       }
     } else {
-      next = pickNextMain(session, lesson, masteryMap, session.preferredModality);
+      next = pickNextMain(
+        session,
+        lesson,
+        masteryMap,
+        session.preferredModality,
+        modalitySuccessMap
+      );
+      if (next?.modalitySignal) modalitySignal = next.modalitySignal;
+      if (next) pushModalitySignalLog(session, next, lesson);
       if (!next) {
         if (session.failQueue.length > 0) {
           nextPhase = 'retry';
@@ -405,14 +496,14 @@ export const advanceAdaptiveSession = ({
     progressLabel = `Question ${session.mainAnswered + 1} of ${session.mainTarget}`;
   }
 
+  const finalScore = firstTryScore(session);
+
   const reviewPayload = done
     ? {
         answered: session.answered,
-        score: {
-          correct: session.scoreCorrect,
-          total: session.scoreTotal,
-          percentage
-        },
+        score: finalScore,
+        // Queryable copy of selection signals (also written to adaptive_modality_signal_log)
+        modalitySignals: session.modalitySignalLog || [],
         completedAt: new Date().toISOString()
       }
     : null;
@@ -433,14 +524,10 @@ export const advanceAdaptiveSession = ({
       failQueued: session.failQueue.length,
       progressLabel,
       done,
-      score: {
-        correct: session.scoreCorrect,
-        total: session.scoreTotal,
-        percentage
-      }
+      score: finalScore,
+      modalitySignal
     },
     review: reviewPayload,
-    // For skill attempt recording
     attemptContext: {
       question,
       questionId: currentId,
@@ -490,6 +577,7 @@ export const buildReviewView = (lesson, sessionReview) => {
   return {
     items,
     score: sessionReview?.score || null,
+    modalitySignals: sessionReview?.modalitySignals || [],
     completedAt: sessionReview?.completedAt || null
   };
 };

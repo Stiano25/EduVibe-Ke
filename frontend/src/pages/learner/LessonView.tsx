@@ -40,6 +40,7 @@ export const LessonView = () => {
     lesson?: { id: string; title: string; grade: string; subjectId?: string; strandId?: string; subStrandId?: string } | null
   } | null>(null)
   const [preferredModality, setPreferredModality] = useState<string>('mixed')
+  const [topicMastered, setTopicMastered] = useState(false)
 
   const getFailedLessonKey = (key: string) => {
     const userId = user?.id || 'anonymous'
@@ -68,7 +69,11 @@ export const LessonView = () => {
     return 'exceeding'
   }
 
-  const getPerformanceMessage = (category: string, percentage: number) => {
+  const getPerformanceMessage = (
+    category: string,
+    percentage: number,
+    masteredTopic = false
+  ) => {
     switch (category) {
       case 'below':
         return {
@@ -100,7 +105,9 @@ export const LessonView = () => {
       case 'exceeding':
         return {
           title: 'Exceeding Expectations',
-          message: `Wow! You got ${percentage}%! You're doing amazing! You've mastered this topic. Let's move on to something new!`,
+          message: masteredTopic
+            ? `Wow! You got ${percentage}%! You're doing amazing! You've mastered this topic. Let's move on to something new!`
+            : `Wow! You got ${percentage}%! You're doing amazing! Keep practicing to lock in mastery. Let's move on to something new!`,
           color: 'from-emerald-50 to-teal-50',
           borderColor: 'border-emerald-200',
           textColor: 'text-emerald-700',
@@ -159,10 +166,15 @@ export const LessonView = () => {
     }
   }
 
-  const handleAdaptiveSessionComplete = async (pct: number, passed: boolean) => {
+  const handleAdaptiveSessionComplete = async (
+    pct: number,
+    passed: boolean,
+    masteredFromSession = false
+  ) => {
     if (!lesson || !id) return
     setSessionPct(pct)
     setShowResults(true)
+    setTopicMastered(!!masteredFromSession)
 
     try {
       const scaffold = (await api.learner.getScaffold(id)) as typeof scaffoldOffer
@@ -191,6 +203,14 @@ export const LessonView = () => {
           .map((q) => (q.skillFocus || '').toLowerCase().trim())
           .filter(Boolean)
       )
+
+      if (!masteredFromSession && lessonOutcomeKeys.size > 0) {
+        const allMastered = [...lessonOutcomeKeys].every((k) =>
+          (mastery || []).some((m) => m.learningOutcomeKey === k && m.status === 'mastered')
+        )
+        setTopicMastered(allMastered)
+      }
+
       setMissedSkills(
         (mastery || [])
           .filter((m) => m.status === 'struggling' || m.status === 'scaffolding')
@@ -272,6 +292,7 @@ export const LessonView = () => {
         setError(null)
         setShowResults(false)
         setSessionPct(0)
+        setTopicMastered(false)
         const lessonData = (await api.learner.getLesson(id)) as Lesson & {
           isCompleted?: boolean
           progress?: number
@@ -280,6 +301,26 @@ export const LessonView = () => {
         if (lessonData.isCompleted || (lessonData.progress != null && lessonData.progress >= 60)) {
           setShowResults(true)
           setSessionPct(lessonData.progress || 100)
+          try {
+            const mastery = (await api.learner.getSkillMastery()) as Array<{
+              learningOutcomeKey?: string
+              status?: string
+            }>
+            const keys = new Set(
+              (lessonData.quiz?.questions || [])
+                .map((q) => q.learningOutcomeKey)
+                .filter(Boolean) as string[]
+            )
+            if (keys.size > 0) {
+              setTopicMastered(
+                [...keys].every((k) =>
+                  (mastery || []).some((m) => m.learningOutcomeKey === k && m.status === 'mastered')
+                )
+              )
+            }
+          } catch {
+            /* ignore */
+          }
         }
         try {
           const profile = (await api.learner.getProfile()) as { preferredModality?: string }
@@ -345,7 +386,7 @@ export const LessonView = () => {
   const quizScore = showResults ? { percentage: sessionPct, score: 0, total: 0 } : null
   const performanceCategory = quizScore ? getPerformanceCategory(quizScore.percentage) : null
   const performanceMessage = performanceCategory
-    ? getPerformanceMessage(performanceCategory, quizScore!.percentage)
+    ? getPerformanceMessage(performanceCategory, quizScore!.percentage, topicMastered)
     : null
 
   return (
@@ -414,7 +455,8 @@ export const LessonView = () => {
               <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-6 sm:p-8">
                 {preferredModality && preferredModality !== 'mixed' && (
                   <p className="text-xs font-semibold text-primary-700 mb-4"  >
-                    Practice mode: {modalityLabel(preferredModality)} (mixed session ~60% your style)
+                    Practice mode: {modalityLabel(preferredModality)}. Questions mix styles; we lean
+                    toward what has worked for you on this topic
                   </p>
                 )}
 

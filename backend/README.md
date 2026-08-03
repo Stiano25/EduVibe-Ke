@@ -49,6 +49,8 @@ cp .env.example .env
 - `QUIZ_QA_ENABLED`: Optional. Batched quiz QA after lesson generation (default on). Set to `false` or `0` to skip the extra Gemini call per lesson.
 - `FRONTEND_URL`: Your frontend URL (for CORS)
 
+Adaptive session scoring (first-try % vs retries) is documented under **Founder decision — adaptive session score** in `docs/quiz-systems-audit.md`. **Open decision:** the 60% pass/unlock floor now compares against first-try-only scores (systematically lower for retry-heavy learners) — revisit after real session data; see that doc section. To recompute `skill_mastery` under the 3-of-4 mastered rule (one-shot, dry-run by default): `node scripts/recompute-skill-mastery.js` then `--apply` after confirming test-only data. Modality selection signals (`per_outcome` / `global_fallback` / `none`) are logged to `adaptive_modality_signal_log` (run `database/migration_modality_signal_log.sql`) and mirrored on `session_review.modalitySignals`.
+
 4. Start the server:
 ```bash
 npm start

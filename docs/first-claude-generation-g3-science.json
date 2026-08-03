@@ -1,0 +1,1467 @@
+{
+  "metrics": {
+    "lessonId": "8082c805-8006-457a-b2c8-8f9e4ef0fb0d",
+    "title": "Parts of a Plant and Their Jobs",
+    "status": "pending",
+    "bankSize": "22/30",
+    "questionCount": 22,
+    "coverageReport": {
+      "outcomes": [
+        "Explain the function of roots, stem, leaves and flowers"
+      ],
+      "remapped": [],
+      "realCovered": [
+        1
+      ],
+      "stillMissing": []
+    },
+    "qaFlaggedCount": 1,
+    "qaFlags": [
+      {
+        "id": "q-22",
+        "question": "A farmer notices that the underground part of his potato plant swells to store food, while the green part above ground carries water upward and holds the leaves up to the light. Which two parts are being described?",
+        "qa_issue": "Factually inaccurate: a potato tuber is a modified underground stem, not a root, so labeling the swelling storage part as 'root' is botanically incorrect and could mislead pupils."
+      }
+    ],
+    "difficulties": {
+      "easy": 7,
+      "intermediate": 14,
+      "advanced": 1
+    },
+    "usage": {
+      "calls": 7,
+      "inputTokens": 10390,
+      "outputTokens": 34030,
+      "byLabel": [
+        {
+          "provider": "claude",
+          "label": "lesson 1 shell",
+          "inputTokens": 847,
+          "outputTokens": 1205
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz foundation",
+          "inputTokens": 807,
+          "outputTokens": 5457
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz application",
+          "inputTokens": 1088,
+          "outputTokens": 8192
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz application",
+          "inputTokens": 1088,
+          "outputTokens": 8192
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz reasoning",
+          "inputTokens": 1103,
+          "outputTokens": 7591
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 coverage gap",
+          "inputTokens": 956,
+          "outputTokens": 1618
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz QA",
+          "inputTokens": 4501,
+          "outputTokens": 1775
+        }
+      ]
+    },
+    "cost": {
+      "inputUsdPerM": 2,
+      "outputUsdPerM": 10,
+      "inputTokens": 10390,
+      "outputTokens": 34030,
+      "usd": 0.36108
+    },
+    "provider": "claude",
+    "model": "claude-sonnet-5",
+    "errors": [],
+    "generatedAt": "2026-08-03T08:20:53.741Z"
+  },
+  "lesson": {
+    "id": "8082c805-8006-457a-b2c8-8f9e4ef0fb0d",
+    "title": "Parts of a Plant and Their Jobs",
+    "description": "Learners explore the main parts of a flowering plant and what each part does to help it survive.",
+    "grade": "3",
+    "learningObjectives": [
+      "Explain the function of roots, stem, leaves and flowers"
+    ],
+    "content": "Look at a bean plant growing in the school garden. It has roots, a stem, leaves and flowers, and each part has its own special job that helps the plant survive.\n\nRoots grow down into the soil, holding the plant firmly and soaking up water and minerals like a straw. The stem carries this water up to the leaves and flowers, leaves use sunlight to make food, and flowers make seeds for new plants.\n\nTry this: place a celery stalk in a cup of water mixed with food colouring. After a day, cut the stalk and see coloured lines, showing how the stem carries water upward to the leaves.",
+    "contentBlocks": [
+      {
+        "id": "cb-1",
+        "text": "Look at a bean plant growing in the school garden. It has roots, a stem, leaves and flowers, and each part has its own special job that helps the plant survive.",
+        "type": "text"
+      },
+      {
+        "id": "cb-2",
+        "type": "diagram",
+        "briefId": "vb-1"
+      },
+      {
+        "id": "cb-3",
+        "text": "Roots grow down into the soil, holding the plant firmly and soaking up water and minerals like a straw. The stem carries this water up to the leaves and flowers, leaves use sunlight to make food, and flowers make seeds for new plants.",
+        "type": "text"
+      },
+      {
+        "id": "cb-4",
+        "type": "diagram",
+        "briefId": "vb-2"
+      },
+      {
+        "id": "cb-5",
+        "text": "Try this: place a celery stalk in a cup of water mixed with food colouring. After a day, cut the stalk and see coloured lines, showing how the stem carries water upward to the leaves.",
+        "type": "text"
+      }
+    ],
+    "visualBriefs": [
+      {
+        "id": "vb-1",
+        "brief": "Draw a simple flowering plant with roots, stem, leaves and a flower labelled, each box showing its part and its function in short words.",
+        "scope": "teaching",
+        "params": {
+          "boxes": [
+            {
+              "label": "Roots",
+              "detail": "Absorb water and hold plant in soil"
+            },
+            {
+              "label": "Stem",
+              "detail": "Carries water and holds plant upright"
+            },
+            {
+              "label": "Leaves",
+              "detail": "Make food using sunlight"
+            },
+            {
+              "label": "Flowers",
+              "detail": "Make seeds for new plants"
+            }
+          ],
+          "items": [
+            {
+              "text": "",
+              "label": "Idea"
+            }
+          ],
+          "title": "Parts of a Flowering Plant"
+        },
+        "outcomeKey": "8f6a8291797e4185",
+        "skillFocus": "Identify plant parts and their functions",
+        "diagramType": "labeled_boxes"
+      },
+      {
+        "id": "vb-2",
+        "brief": "Show a simple left-to-right process flow of the celery experiment, from placing celery in coloured water to colour appearing in the leaves, matching the described steps.",
+        "scope": "teaching",
+        "params": {
+          "steps": [
+            "Place celery stalk in coloured water",
+            "Water is absorbed at the cut end",
+            "Coloured water travels up the stem",
+            "Colour appears in the leaves"
+          ],
+          "title": "Celery Experiment: Water Moving Up the Stem"
+        },
+        "outcomeKey": "1aef3c7d2a4de338",
+        "skillFocus": "Observe how water moves through a plant stem",
+        "diagramType": "process_flow"
+      },
+      {
+        "id": "qvb-q-1",
+        "brief": "Figure for: A bean plant in the school garden stays firmly in the ground even during strong wind. Which part of ",
+        "scope": "question",
+        "params": {
+          "items": [
+            {
+              "text": "",
+              "label": "Idea"
+            }
+          ],
+          "title": "Key ideas"
+        },
+        "outcomeKey": "3475c97bd040feb5",
+        "questionId": "q-1",
+        "skillFocus": "Root function - anchoring",
+        "diagramType": "labeled_boxes"
+      },
+      {
+        "id": "qvb-q-3",
+        "brief": "A bean plant with four labeled parts: roots, stem, leaves, flowers, each connected to its job.",
+        "scope": "question",
+        "params": {
+          "boxes": [
+            "Roots",
+            "Stem",
+            "Leaves",
+            "Flowers"
+          ],
+          "items": [
+            {
+              "text": "",
+              "label": "Idea"
+            }
+          ],
+          "title": "Key ideas",
+          "labels": [
+            "Hold plant & absorb water",
+            "Carry water up",
+            "Make food",
+            "Make seeds"
+          ]
+        },
+        "outcomeKey": "4259930f41d88625",
+        "questionId": "q-3",
+        "skillFocus": "Overall plant part functions",
+        "diagramType": "labeled_boxes"
+      },
+      {
+        "id": "qvb-q-5",
+        "brief": "Figure for: What is the main job of the stem in a bean plant?",
+        "scope": "question",
+        "params": {
+          "items": [
+            {
+              "text": "",
+              "label": "Idea"
+            }
+          ],
+          "title": "Key ideas"
+        },
+        "outcomeKey": "f51589f430d5d0a6",
+        "questionId": "q-5",
+        "skillFocus": "Stem function",
+        "diagramType": "labeled_boxes"
+      },
+      {
+        "id": "qvb-q-9",
+        "brief": "Figure for: What is the main job of the flowers on a bean plant?",
+        "scope": "question",
+        "params": {
+          "steps": [
+            "Step 1",
+            "Step 2",
+            "Step 3"
+          ],
+          "title": "Process"
+        },
+        "outcomeKey": "61ea6ec598161630",
+        "questionId": "q-9",
+        "skillFocus": "Flower function",
+        "diagramType": "process_flow"
+      },
+      {
+        "id": "qvb-q-10",
+        "brief": "A flow diagram showing the sequence of water and food processes in a bean plant from roots to flowers.",
+        "scope": "question",
+        "params": {
+          "steps": [
+            "Roots absorb water",
+            "Stem carries water up",
+            "Leaves make food using sunlight",
+            "Flowers make seeds"
+          ],
+          "title": "Process"
+        },
+        "outcomeKey": "bd91a6b903d921b6",
+        "questionId": "q-10",
+        "skillFocus": "Overall plant process sequence",
+        "diagramType": "process_flow"
+      }
+    ],
+    "quiz": {
+      "title": "Quiz Challenge",
+      "bankStats": {
+        "total": 22,
+        "byBloom": {
+          "apply": 1,
+          "reason": 10,
+          "recall": 5,
+          "understand": 6
+        },
+        "byOutcome": {
+          "1": {
+            "total": 22,
+            "visual": 5,
+            "practice": 12,
+            "text_steps": 5
+          }
+        },
+        "byModality": {
+          "visual": 5,
+          "practice": 12,
+          "text_steps": 5
+        }
+      },
+      "questions": [
+        {
+          "id": "q-1",
+          "type": "multiple-choice",
+          "points": 5,
+          "options": [
+            "Roots",
+            "Leaves",
+            "Flowers",
+            "Stem tip"
+          ],
+          "modality": "visual",
+          "question": "A bean plant in the school garden stays firmly in the ground even during strong wind. Which part of the plant makes this possible?",
+          "bloomLevel": "recall",
+          "difficulty": "easy",
+          "skillFocus": "Root function - anchoring",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks leaves hold the plant down"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses flower job with root job"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks stem tip anchors the plant"
+            }
+          ],
+          "explanation": "Roots grow into the soil and hold the plant firmly in place.",
+          "diagramBriefId": "qvb-q-1",
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, roots anchor the plant in soil.",
+            "Leaves make food, they do not anchor the plant.",
+            "Flowers make seeds, not anchoring.",
+            "Stem tip only grows upward, not into soil."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-2",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Roots soak up water from the soil",
+            "Flowers store extra water",
+            "Stem blocks the sun",
+            "Leaves push water into soil"
+          ],
+          "modality": "practice",
+          "question": "Why can a bean plant survive dry weeks in the garden without wilting quickly?",
+          "bloomLevel": "understand",
+          "difficulty": "intermediate",
+          "skillFocus": "Root function - water absorption",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Believes flowers store water"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses stem role with sun blocking"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Reverses direction of water movement"
+            }
+          ],
+          "explanation": "Roots absorb water and minerals from the soil like a straw.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, roots absorb water for the plant.",
+            "Flowers do not store water for the plant.",
+            "Stems do not block sunlight.",
+            "Leaves do not push water into soil."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-3",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Roots-hold plant & absorb water, Stem-carries water up, Leaves-make food, Flowers-make seeds",
+            "Roots-make food, Stem-absorb water, Leaves-hold plant, Flowers-carry water",
+            "Roots-make seeds, Stem-make food, Leaves-absorb water, Flowers-hold plant",
+            "Roots-carry water, Stem-make seeds, Leaves-hold plant, Flowers-absorb water"
+          ],
+          "modality": "visual",
+          "question": "Look at the diagram of the bean plant. Match each labeled part to its correct job.",
+          "bloomLevel": "recall",
+          "difficulty": "intermediate",
+          "skillFocus": "Overall plant part functions",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Swaps root and leaf functions"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Swaps root and flower functions"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Swaps stem and flower functions"
+            }
+          ],
+          "explanation": "Each plant part has its own special job as shown in the diagram.",
+          "diagramBriefId": "qvb-q-3",
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct matching of parts to jobs.",
+            "Jobs are mixed up incorrectly.",
+            "Jobs are mixed up incorrectly.",
+            "Jobs are mixed up incorrectly."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-4",
+          "type": "multiple-choice",
+          "steps": [
+            "Roots absorb water from the soil",
+            "Water travels up through the stem",
+            "Water reaches the leaves and flowers"
+          ],
+          "points": 10,
+          "options": [
+            "Roots absorb water, water moves up the stem, water reaches the leaves",
+            "Leaves absorb water, water moves down the stem, water reaches the roots",
+            "Stem absorbs water, water moves to flowers, water reaches roots",
+            "Flowers absorb water, water moves to leaves, water reaches stem"
+          ],
+          "modality": "text_steps",
+          "question": "Put the steps in the correct order to show how water travels through a bean plant.",
+          "bloomLevel": "understand",
+          "difficulty": "intermediate",
+          "skillFocus": "Water movement pathway",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks leaves absorb water first"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks stem absorbs water directly from air"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks flowers absorb water from soil"
+            }
+          ],
+          "explanation": "Water enters through roots, travels up the stem, and reaches the leaves.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct order of water movement in a plant.",
+            "Reverses the direction of water flow.",
+            "Wrong starting point for water absorption.",
+            "Wrong starting point for water absorption."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-5",
+          "type": "multiple-choice",
+          "points": 5,
+          "options": [
+            "Carry water from roots to leaves and flowers",
+            "Absorb water from soil",
+            "Catch sunlight to make food",
+            "Produce seeds"
+          ],
+          "modality": "visual",
+          "question": "What is the main job of the stem in a bean plant?",
+          "bloomLevel": "recall",
+          "difficulty": "easy",
+          "skillFocus": "Stem function",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses stem function with root function"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses stem function with leaf function"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses stem function with flower function"
+            }
+          ],
+          "explanation": "The stem carries water from the roots up to the leaves and flowers.",
+          "diagramBriefId": "qvb-q-5",
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, stems transport water upward.",
+            "This is the root's job, not the stem's.",
+            "This is the leaf's job, not the stem's.",
+            "This is the flower's job, not the stem's."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-6",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "They will wilt because water cannot reach them",
+            "They will grow bigger",
+            "They will turn into flowers",
+            "Nothing will change"
+          ],
+          "modality": "practice",
+          "question": "A pupil accidentally cuts the stem of a bean plant in half. What is most likely to happen to the leaves above the cut?",
+          "bloomLevel": "understand",
+          "difficulty": "intermediate",
+          "skillFocus": "Stem function - predicting outcome",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks leaves can grow without water supply"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses plant parts changing form"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Does not understand stem's role in water transport"
+            }
+          ],
+          "explanation": "Without the stem, water cannot travel from roots to leaves, so leaves wilt.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, cutting the stem stops water flow to leaves.",
+            "Leaves need water to grow, not to wilt.",
+            "Cutting a stem does not turn leaves into flowers.",
+            "Leaves depend on water carried by the stem."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-7",
+          "type": "multiple-choice",
+          "steps": [],
+          "points": 10,
+          "options": [
+            "To catch sunlight and make food for the plant",
+            "To absorb water from the soil",
+            "To hold the plant firmly",
+            "To produce seeds"
+          ],
+          "modality": "text_steps",
+          "question": "Why do the leaves of a bean plant spread out wide in the sunlight?",
+          "bloomLevel": "understand",
+          "difficulty": "intermediate",
+          "skillFocus": "Leaf function - sunlight use",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses leaf function with root function"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses leaf function with root anchoring"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses leaf function with flower function"
+            }
+          ],
+          "explanation": "Leaves spread out to catch sunlight, which they use to make food.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, leaves catch sunlight to make food.",
+            "Roots absorb water, not leaves.",
+            "Roots hold the plant, not leaves.",
+            "Flowers produce seeds, not leaves."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-8",
+          "type": "multiple-choice",
+          "points": 5,
+          "options": [
+            "Catch sunlight to make food",
+            "Absorb water from soil",
+            "Hold the plant firmly",
+            "Make seeds for new plants"
+          ],
+          "modality": "practice",
+          "question": "What is the main job of leaves on a bean plant?",
+          "bloomLevel": "recall",
+          "difficulty": "easy",
+          "skillFocus": "Leaf function",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses leaf function with root function"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses leaf function with root anchoring"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses leaf function with flower function"
+            }
+          ],
+          "explanation": "Leaves catch sunlight and use it to make food for the plant.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, this is the leaf's main job.",
+            "This is the root's job.",
+            "This is the root's job.",
+            "This is the flower's job."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-9",
+          "type": "multiple-choice",
+          "points": 5,
+          "options": [
+            "To make seeds for new plants",
+            "To absorb water from soil",
+            "To carry water up the stem",
+            "To hold the plant firmly"
+          ],
+          "modality": "visual",
+          "question": "What is the main job of the flowers on a bean plant?",
+          "bloomLevel": "recall",
+          "difficulty": "easy",
+          "skillFocus": "Flower function",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses flower function with root function"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses flower function with stem function"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses flower function with root anchoring"
+            }
+          ],
+          "explanation": "Flowers make seeds that can grow into new bean plants.",
+          "diagramBriefId": "qvb-q-9",
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct, flowers make seeds for new plants.",
+            "This is the root's job.",
+            "This is the stem's job.",
+            "This is the root's job."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-10",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Roots absorb water, stem carries it up, leaves make food using sunlight, flowers make seeds",
+            "Flowers make seeds, leaves absorb water, stem makes food, roots carry water",
+            "Leaves make seeds, roots make food, stem absorbs water, flowers carry water",
+            "Stem makes seeds, flowers absorb water, roots make food, leaves carry water"
+          ],
+          "modality": "visual",
+          "question": "Look at the flow diagram showing how a bean plant grows food and seeds. Which order correctly shows the steps?",
+          "bloomLevel": "understand",
+          "difficulty": "intermediate",
+          "skillFocus": "Overall plant process sequence",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses order and function of parts"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses order and function of parts"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses order and function of parts"
+            }
+          ],
+          "explanation": "This shows the correct order: roots, stem, leaves, then flowers doing their jobs.",
+          "diagramBriefId": "qvb-q-10",
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct sequence of plant part functions.",
+            "Functions are mismatched with wrong parts.",
+            "Functions are mismatched with wrong parts.",
+            "Functions are mismatched with wrong parts."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-11",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "The exposed roots can no longer hold the plant firmly in the soil",
+            "The leaves have stopped making food",
+            "The flowers have dropped off",
+            "The stem has grown too tall"
+          ],
+          "modality": "practice",
+          "question": "Heavy rain washes away the soil around a sunflower plant, leaving its roots exposed. Why does the plant now fall over easily in the wind?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Reasoning about root anchorage",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses leaf function with root anchoring function"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks flower loss affects plant stability"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks stem height causes falling instead of root damage"
+            }
+          ],
+          "explanation": "Roots anchor a plant; without soil around them they cannot hold it steady.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: roots need soil grip to anchor the plant firmly.",
+            "Leaves making food does not affect how firmly the plant stands.",
+            "Losing flowers does not make a plant fall over.",
+            "Stem height is not the reason the plant is unstable here."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-12",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "The stem carries water up from the base to the flower",
+            "The stem makes food for the flower",
+            "The stem absorbs minerals directly from the air",
+            "The stem holds the flower firmly in the soil"
+          ],
+          "modality": "practice",
+          "question": "A pupil places a cut flower's stem into coloured water. After a day, the petals turn slightly coloured. What does this show about the stem's job?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Reasoning from a simple experiment about stem transport",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses stem transport with leaf food-making"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks minerals come from air not soil water"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses stem support with root anchoring"
+            }
+          ],
+          "explanation": "The coloured water travelling up shows the stem transports water to other parts.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: coloured water rising proves the stem carries water upward.",
+            "Making food is the leaves' job, not the stem's.",
+            "Stems do not absorb minerals from air.",
+            "There is no soil in this experiment, so this is not shown."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-13",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Its ability to make food using sunlight",
+            "Its ability to stand upright",
+            "Its ability to soak up water from soil",
+            "Its ability to hold onto the soil"
+          ],
+          "modality": "practice",
+          "question": "Strong wind tears most of the leaves off a banana plant. What is most likely to be affected first in the plant?",
+          "bloomLevel": "reason",
+          "difficulty": "easy",
+          "skillFocus": "Predicting effects of leaf damage",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses leaf function with stem support"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses leaf function with root water absorption"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses leaf function with root anchoring"
+            }
+          ],
+          "explanation": "Leaves catch sunlight to make food, so torn leaves reduce food-making.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: fewer leaves means less sunlight caught to make food.",
+            "Standing upright depends on the stem, not the leaves.",
+            "Water absorption is the roots' job.",
+            "Holding soil is the roots' job, not the leaves'."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-14",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "The plant becomes weak and pale because leaves cannot make food",
+            "The plant grows faster because it saves water",
+            "The roots stop growing downward",
+            "The flowers bloom earlier than usual"
+          ],
+          "modality": "practice",
+          "question": "A gardener wraps foil around all the leaves of a bean plant for one whole week, blocking sunlight from reaching them. What will most likely happen to the plant?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Predicting outcome of blocked sunlight",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Believes darkness helps growth by saving water"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses leaf covering with root behaviour"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks lack of light speeds up flowering"
+            }
+          ],
+          "explanation": "Without sunlight, leaves cannot make food, so the plant weakens.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: blocked sunlight stops leaves from making food, weakening the plant.",
+            "Blocking light does not save water or speed growth.",
+            "Root direction is not affected by covering leaves.",
+            "Flowering is not sped up by blocking sunlight."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-15",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "The roots",
+            "The flowers",
+            "The topmost leaf",
+            "The tip of the stem"
+          ],
+          "modality": "practice",
+          "question": "A farmer is about to move a young tomato seedling to a new bed. Which part must he handle most carefully to keep the plant healthy afterwards?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Best-choice decision on protecting plant parts",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Overestimates importance of flowers at seedling stage"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks single leaf is as vital as roots"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses stem tip importance with root importance"
+            }
+          ],
+          "explanation": "Roots absorb water and anchor the plant, so damaging them harms the whole plant.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: damaged roots stop water uptake and firm anchoring.",
+            "A young seedling usually has no flowers yet to worry about.",
+            "One leaf is less critical than the whole root system.",
+            "The stem tip is less critical than the roots for survival."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-16",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Strong roots are needed to hold the plant firmly against greater wind force",
+            "Strong roots help the plant make more flowers",
+            "Strong roots help the leaves catch more sunlight",
+            "Strong roots make the stem grow taller"
+          ],
+          "modality": "practice",
+          "question": "Why does a bean plant growing in a very windy field need stronger roots than one growing in a calm, sheltered greenhouse?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Real-life reasoning about root strength and wind",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses root strength with flower production"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses root job with leaf function"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses root strength with stem growth"
+            }
+          ],
+          "explanation": "More wind force means roots must grip harder to keep the plant standing.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: stronger wind needs stronger anchoring roots.",
+            "Flower number is not linked to wind strength.",
+            "Sunlight catching is a leaf job, not related to wind.",
+            "Stem height is not caused by root strength."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-17",
+          "type": "multiple-choice",
+          "steps": [
+            "The stem normally carries water from the roots up to the leaves and flowers.",
+            "Wax on the stem blocks this water pathway completely.",
+            "Without water, the leaves and flowers cannot stay firm, so the plant wilts."
+          ],
+          "points": 15,
+          "options": [
+            "The stem normally carries water from roots to leaves and flowers, wax blocks this, so those parts get no water and wilt",
+            "The wax makes the roots stop absorbing water completely",
+            "The wax stops the flowers from making seeds",
+            "The wax blocks sunlight from reaching the leaves"
+          ],
+          "modality": "text_steps",
+          "question": "A pupil coats the middle of a bean plant's stem with thick wax so no water can pass through it. Within hours the plant wilts. Break down why this happens.",
+          "bloomLevel": "reason",
+          "difficulty": "advanced",
+          "skillFocus": "Step-by-step reasoning on stem water transport",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses stem blockage with root absorption failure"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses wilting cause with flower seed function"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses water blockage with sunlight blockage"
+            }
+          ],
+          "explanation": "Blocking the stem stops water transport, so leaves and flowers wilt from lack of water.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: wax blocks the water pathway through the stem to upper parts.",
+            "Wax on the stem does not directly stop root absorption.",
+            "Wilting is about water loss, not seed-making.",
+            "Wax on the stem does not block sunlight to leaves."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-18",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Bean pods and seeds",
+            "Green leaves",
+            "A tall stem",
+            "Roots in the soil"
+          ],
+          "modality": "practice",
+          "question": "A farmer removes all the flowers from his bean plants before they can be visited by bees. What will he most likely NOT find on the plants later?",
+          "bloomLevel": "reason",
+          "difficulty": "easy",
+          "skillFocus": "Predicting outcome of flower removal",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks flower removal affects leaf growth"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks flower removal affects stem growth"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks flower removal affects root growth"
+            }
+          ],
+          "explanation": "Flowers make seeds after pollination, so removing them means no pods or seeds form.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: without flowers, no pods or seeds can form.",
+            "Leaves are unaffected by flower removal.",
+            "Stem growth continues regardless of flower removal.",
+            "Roots continue growing even without flowers."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-19",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "Plant A, because its wide healthy leaves can catch more sunlight",
+            "Plant B, because small leaves need less water",
+            "Both plants will grow the same, leaves don't matter",
+            "Plant B, because yellow leaves absorb more sunlight"
+          ],
+          "modality": "practice",
+          "question": "Look at the two bean plants below. Plant A has wide, healthy green leaves. Plant B has small, yellow, curled leaves. Which plant will most likely make more food and grow faster?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Comparing leaf health and food-making",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks smaller leaves are better for growth"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Believes leaf condition has no effect on growth"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks yellow colour improves sunlight absorption"
+            }
+          ],
+          "explanation": "Wider, healthy leaves catch more sunlight and make more food for growth.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: bigger healthy leaves catch more sunlight to make food.",
+            "Needing less water does not mean faster growth.",
+            "Leaf health strongly affects growth, so this is wrong.",
+            "Yellow leaves are unhealthy and catch less sunlight, not more."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-20",
+          "type": "multiple-choice",
+          "points": 10,
+          "options": [
+            "The stem is the pathway that carries water and nutrients up to the flower",
+            "The stem is food storage for ants",
+            "The stem makes the nectar for the flower",
+            "The stem absorbs sunlight for the flower"
+          ],
+          "modality": "practice",
+          "question": "A pupil sees ants climbing up a flower's stem to reach nectar. Why is the stem important for the plant itself in this situation, not just for the ants?",
+          "bloomLevel": "reason",
+          "difficulty": "intermediate",
+          "skillFocus": "Reasoning about true plant part function versus surface observation",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses incidental ant use with the stem's real function"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses stem function with flower nectar production"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses stem function with leaf sunlight-catching"
+            }
+          ],
+          "explanation": "The stem's real job is transporting water and nutrients, not feeding ants.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct: the stem transports water and nutrients to the flower.",
+            "The stem is not food storage for ants; that is incidental.",
+            "Nectar is made in the flower, not the stem.",
+            "Leaves, not stems, mainly catch sunlight."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-21",
+          "type": "multiple-choice",
+          "steps": [],
+          "points": 10,
+          "options": [
+            "Roots - absorb water and minerals; Stem - support and transport; Leaves - make food; Flowers - produce seeds",
+            "Roots - make food; Stem - absorb water; Leaves - support the plant; Flowers - anchor the plant",
+            "Roots - produce seeds; Stem - make food; Leaves - absorb water; Flowers - support the plant",
+            "Roots - support the plant; Stem - produce seeds; Leaves - anchor the plant; Flowers - absorb water"
+          ],
+          "modality": "text_steps",
+          "question": "A pupil is asked to label a maize plant. Which row correctly matches the plant part with its main function?",
+          "bloomLevel": "understand",
+          "difficulty": "easy",
+          "skillFocus": "Identifying plant part functions",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses food-making with water absorption."
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Believes seed production happens in roots."
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks flowers absorb water instead of roots."
+            }
+          ],
+          "explanation": "Each part of a maize plant has a special job that helps it grow and survive.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct - this matches each part to its true function.",
+            "Incorrect - swaps roots and leaves' functions.",
+            "Incorrect - mixes up all the functions randomly.",
+            "Incorrect - reverses roots and flowers' jobs."
+          ],
+          "learningOutcomeIndex": 1
+        },
+        {
+          "id": "q-22",
+          "type": "multiple-choice",
+          "steps": [],
+          "points": 15,
+          "options": [
+            "Root and stem",
+            "Leaf and flower",
+            "Flower and root",
+            "Stem and leaf"
+          ],
+          "modality": "text_steps",
+          "qa_issue": "Factually inaccurate: a potato tuber is a modified underground stem, not a root, so labeling the swelling storage part as 'root' is botanically incorrect and could mislead pupils.",
+          "question": "A farmer notices that the underground part of his potato plant swells to store food, while the green part above ground carries water upward and holds the leaves up to the light. Which two parts are being described?",
+          "bloomLevel": "apply",
+          "difficulty": "intermediate",
+          "qa_flagged": true,
+          "skillFocus": "Applying knowledge of root and stem functions",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confuses food storage with food-making leaves."
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks flowers are involved in underground storage."
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Mixes up the water-transport role between stem and leaf."
+            }
+          ],
+          "explanation": "Roots can store food and absorb water, while the stem transports water and supports the plant.",
+          "diagramBriefId": null,
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "correctAnswerIndex": 0,
+          "learningOutcomeKey": "2d9c677a7f3e029b",
+          "optionExplanations": [
+            "Correct - roots store food and stems transport water and support leaves.",
+            "Incorrect - leaves make food but do not store it underground, and flowers do not carry water.",
+            "Incorrect - flowers do not store food underground.",
+            "Incorrect - stems do not swell to store food; leaves do not transport water upward."
+          ],
+          "learningOutcomeIndex": 1
+        }
+      ],
+      "timeLimit": 12,
+      "passingScore": 65,
+      "visualAssets": [],
+      "visualBriefs": [
+        {
+          "id": "vb-1",
+          "brief": "Draw a simple flowering plant with roots, stem, leaves and a flower labelled, each box showing its part and its function in short words.",
+          "scope": "teaching",
+          "params": {
+            "boxes": [
+              {
+                "label": "Roots",
+                "detail": "Absorb water and hold plant in soil"
+              },
+              {
+                "label": "Stem",
+                "detail": "Carries water and holds plant upright"
+              },
+              {
+                "label": "Leaves",
+                "detail": "Make food using sunlight"
+              },
+              {
+                "label": "Flowers",
+                "detail": "Make seeds for new plants"
+              }
+            ],
+            "items": [
+              {
+                "text": "",
+                "label": "Idea"
+              }
+            ],
+            "title": "Parts of a Flowering Plant"
+          },
+          "outcomeKey": "8f6a8291797e4185",
+          "skillFocus": "Identify plant parts and their functions",
+          "diagramType": "labeled_boxes"
+        },
+        {
+          "id": "vb-2",
+          "brief": "Show a simple left-to-right process flow of the celery experiment, from placing celery in coloured water to colour appearing in the leaves, matching the described steps.",
+          "scope": "teaching",
+          "params": {
+            "steps": [
+              "Place celery stalk in coloured water",
+              "Water is absorbed at the cut end",
+              "Coloured water travels up the stem",
+              "Colour appears in the leaves"
+            ],
+            "title": "Celery Experiment: Water Moving Up the Stem"
+          },
+          "outcomeKey": "1aef3c7d2a4de338",
+          "skillFocus": "Observe how water moves through a plant stem",
+          "diagramType": "process_flow"
+        },
+        {
+          "id": "qvb-q-1",
+          "brief": "Figure for: A bean plant in the school garden stays firmly in the ground even during strong wind. Which part of ",
+          "scope": "question",
+          "params": {
+            "items": [
+              {
+                "text": "",
+                "label": "Idea"
+              }
+            ],
+            "title": "Key ideas"
+          },
+          "outcomeKey": "3475c97bd040feb5",
+          "questionId": "q-1",
+          "skillFocus": "Root function - anchoring",
+          "diagramType": "labeled_boxes"
+        },
+        {
+          "id": "qvb-q-3",
+          "brief": "A bean plant with four labeled parts: roots, stem, leaves, flowers, each connected to its job.",
+          "scope": "question",
+          "params": {
+            "boxes": [
+              "Roots",
+              "Stem",
+              "Leaves",
+              "Flowers"
+            ],
+            "items": [
+              {
+                "text": "",
+                "label": "Idea"
+              }
+            ],
+            "title": "Key ideas",
+            "labels": [
+              "Hold plant & absorb water",
+              "Carry water up",
+              "Make food",
+              "Make seeds"
+            ]
+          },
+          "outcomeKey": "4259930f41d88625",
+          "questionId": "q-3",
+          "skillFocus": "Overall plant part functions",
+          "diagramType": "labeled_boxes"
+        },
+        {
+          "id": "qvb-q-5",
+          "brief": "Figure for: What is the main job of the stem in a bean plant?",
+          "scope": "question",
+          "params": {
+            "items": [
+              {
+                "text": "",
+                "label": "Idea"
+              }
+            ],
+            "title": "Key ideas"
+          },
+          "outcomeKey": "f51589f430d5d0a6",
+          "questionId": "q-5",
+          "skillFocus": "Stem function",
+          "diagramType": "labeled_boxes"
+        },
+        {
+          "id": "qvb-q-9",
+          "brief": "Figure for: What is the main job of the flowers on a bean plant?",
+          "scope": "question",
+          "params": {
+            "steps": [
+              "Step 1",
+              "Step 2",
+              "Step 3"
+            ],
+            "title": "Process"
+          },
+          "outcomeKey": "61ea6ec598161630",
+          "questionId": "q-9",
+          "skillFocus": "Flower function",
+          "diagramType": "process_flow"
+        },
+        {
+          "id": "qvb-q-10",
+          "brief": "A flow diagram showing the sequence of water and food processes in a bean plant from roots to flowers.",
+          "scope": "question",
+          "params": {
+            "steps": [
+              "Roots absorb water",
+              "Stem carries water up",
+              "Leaves make food using sunlight",
+              "Flowers make seeds"
+            ],
+            "title": "Process"
+          },
+          "outcomeKey": "bd91a6b903d921b6",
+          "questionId": "q-10",
+          "skillFocus": "Overall plant process sequence",
+          "diagramType": "process_flow"
+        }
+      ],
+      "contentBlocks": [
+        {
+          "id": "cb-1",
+          "text": "Look at a bean plant growing in the school garden. It has roots, a stem, leaves and flowers, and each part has its own special job that helps the plant survive.",
+          "type": "text"
+        },
+        {
+          "id": "cb-2",
+          "type": "diagram",
+          "briefId": "vb-1"
+        },
+        {
+          "id": "cb-3",
+          "text": "Roots grow down into the soil, holding the plant firmly and soaking up water and minerals like a straw. The stem carries this water up to the leaves and flowers, leaves use sunlight to make food, and flowers make seeds for new plants.",
+          "type": "text"
+        },
+        {
+          "id": "cb-4",
+          "type": "diagram",
+          "briefId": "vb-2"
+        },
+        {
+          "id": "cb-5",
+          "text": "Try this: place a celery stalk in a cup of water mixed with food colouring. After a day, cut the stalk and see coloured lines, showing how the stem carries water upward to the leaves.",
+          "type": "text"
+        }
+      ],
+      "coverageReport": {
+        "outcomes": [
+          "Explain the function of roots, stem, leaves and flowers"
+        ],
+        "remapped": [],
+        "realCovered": [
+          1
+        ],
+        "stillMissing": []
+      }
+    }
+  }
+}

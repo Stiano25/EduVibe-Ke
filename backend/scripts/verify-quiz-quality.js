@@ -103,7 +103,7 @@ assert(oldReport.remapped.length === 0 && oldReport.stillMissing.length === 0, '
 // --- QA fail-soft on bad model ---
 const qs = oldShape.questions.map((q) => ({ ...q }));
 await runQuizQAPass(qs, {
-  generateContent: async () => {
+  generateContentFn: async () => {
     throw new Error('simulated QA failure');
   }
 });
@@ -112,14 +112,13 @@ assert(qs.every((q) => !q.qa_flagged), 'QA failure must not flag');
 // --- QA success flags ---
 const qs2 = oldShape.questions.map((q) => ({ ...q }));
 await runQuizQAPass(qs2, {
-  generateContent: async () => ({
-    response: {
-      text: async () =>
-        JSON.stringify([
-          { question_index: 0, passes_qa: false, issue: 'Two answers could work' },
-          { question_index: 1, passes_qa: true, issue: null }
-        ])
-    }
+  generateContentFn: async () => ({
+    text: JSON.stringify([
+      { question_index: 0, passes_qa: false, issue: 'Two answers could work' },
+      { question_index: 1, passes_qa: true, issue: null }
+    ]),
+    inputTokens: 0,
+    outputTokens: 0
   })
 });
 if (isQuizQaEnabled()) {

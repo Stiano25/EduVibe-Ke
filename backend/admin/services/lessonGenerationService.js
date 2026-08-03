@@ -1,4 +1,4 @@
-import { getModel } from '../../config/gemini.js';
+import { generateContent } from '../../providers/contentProvider.js';
 import { SubStrand } from '../../models/SubStrand.js';
 import { Strand } from '../../models/Strand.js';
 import { Subject } from '../../models/Subject.js';
@@ -536,35 +536,6 @@ const AI_CALL_GAP_MS = 1200;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const isQuotaError = (error) => {
-  const msg = String(error?.message || error || '');
-  return /429|too many requests|quota|rate limit|resource.?exhausted/i.test(msg);
-};
-
-/**
- * Call Gemini and return response text, backing off and retrying on 429/quota
- * errors instead of failing the whole lesson. Non-quota errors rethrow.
- */
-const generateWithBackoff = async (model, prompt, { label = '', onWait = null } = {}) => {
-  const waits = [15000, 30000];
-  for (let attempt = 0; ; attempt++) {
-    try {
-      const result = await model.generateContent(prompt);
-      return (await result.response).text();
-    } catch (error) {
-      if (!isQuotaError(error) || attempt >= waits.length) throw error;
-      const wait = waits[attempt];
-      console.warn(
-        `Gemini quota hit${label ? ` (${label})` : ''} — waiting ${wait / 1000}s before retry ${attempt + 1}/${waits.length}…`
-      );
-      if (typeof onWait === 'function') {
-        onWait(`Rate limited — waiting ${wait / 1000}s before retrying…`);
-      }
-      await sleep(wait);
-    }
-  }
-};
-
 /**
  * Bank composition summary stored on quiz.bankStats — lets admins see at a
  * glance whether the outcome × bloom × modality matrix was actually satisfied.
@@ -976,7 +947,10 @@ export const buildCoverageReport = (questions = [], outcomes = []) => {
 export const isQuizQaEnabled = () =>
   process.env.QUIZ_QA_ENABLED !== 'false' && process.env.QUIZ_QA_ENABLED !== '0';
 
-export const runQuizQAPass = async (questions, model, { label = '' } = {}) => {
+export const runQuizQAPass = async (
+  questions,
+  { label = '', generateContentFn = null } = {}
+) => {
   if (!Array.isArray(questions) || questions.length === 0) return questions;
   if (!isQuizQaEnabled()) return questions;
 
@@ -1008,9 +982,13 @@ ${JSON.stringify(
 )}
 `;
 
+  const runGenerate = generateContentFn || generateContent;
+
   try {
     await sleep(AI_CALL_GAP_MS);
-    const text = await generateWithBackoff(model, qaPrompt, {
+    const { text } = await runGenerate({
+      prompt: qaPrompt,
+      maxTokens: 8192,
       label: label ? `${label} quiz QA` : 'quiz QA'
     });
     const jsonText = extractJsonText(text);
@@ -1126,7 +1104,6 @@ export const generateLessonsFromSubStrand = async (
 
     reportProgress(onProgress, 12, 'Retrieving exam exemplars…');
 
-    const model = getModel({ maxOutputTokens: 8192 });
     const lessons = [];
     const MIN_TOTAL_QUESTIONS = 20;
 
@@ -1140,24 +1117,22 @@ export const generateLessonsFromSubStrand = async (
         start,
         `Lesson ${i + 1}/${total}: writing content…`
       );
-      const shellText = await generateWithBackoff(
-        model,
-        buildLessonShellPrompt(ctx, i + 1, total),
-        {
-          label: `lesson ${i + 1} shell`,
-          onWait: (msg) => reportProgress(onProgress, start, msg)
-        }
-      );
+      const { text: shellText } = await generateContent({
+        prompt: buildLessonShellPrompt(ctx, i + 1, total),
+        maxTokens: 8192,
+        label: `lesson ${i + 1} shell`,
+        onWait: (msg) => reportProgress(onProgress, start, msg)
+      });
       let { data: shell, parseFailed: shellFailed } = parseOneLessonJson(shellText, ctx, i);
       if (shellFailed) {
         console.warn(`Lesson ${i + 1}: shell parse failed — retrying shell…`);
         reportProgress(onProgress, start + span * 0.2, `Lesson ${i + 1}: retrying content…`);
         await sleep(AI_CALL_GAP_MS);
-        const retryText = await generateWithBackoff(
-          model,
-          buildLessonShellPrompt(ctx, i + 1, total),
-          { label: `lesson ${i + 1} shell retry` }
-        );
+        const { text: retryText } = await generateContent({
+          prompt: buildLessonShellPrompt(ctx, i + 1, total),
+          maxTokens: 8192,
+          label: `lesson ${i + 1} shell retry`
+        });
         const retryParsed = parseOneLessonJson(retryText, ctx, i);
         if (!retryParsed.parseFailed) shell = retryParsed.data;
       }
@@ -1212,9 +1187,8 @@ export const generateLessonsFromSubStrand = async (
           await sleep(AI_CALL_GAP_MS);
           let chunkText;
           try {
-            chunkText = await generateWithBackoff(
-              model,
-              buildQuizChunkPrompt(
+            const chunkResult = await generateContent({
+              prompt: buildQuizChunkPrompt(
                 ctx,
                 shell,
                 i + 1,
@@ -1223,12 +1197,12 @@ export const generateLessonsFromSubStrand = async (
                 avoidStems,
                 quizExemplarsBlock
               ),
-              {
-                label: `lesson ${i + 1} quiz ${chunk.label}`,
-                onWait: (msg) =>
-                  reportProgress(onProgress, start + span * (0.4 + 0.18 * c), msg)
-              }
-            );
+              maxTokens: 8192,
+              label: `lesson ${i + 1} quiz ${chunk.label}`,
+              onWait: (msg) =>
+                reportProgress(onProgress, start + span * (0.4 + 0.18 * c), msg)
+            });
+            chunkText = chunkResult.text;
           } catch (chunkError) {
             // Quota fully exhausted or hard failure — keep what we have
             console.error(
@@ -1280,14 +1254,12 @@ export const generateLessonsFromSubStrand = async (
         try {
           await sleep(AI_CALL_GAP_MS);
           const avoidStems = bankQuestions.map((q) => String(q.question || ''));
-          const gapText = await generateWithBackoff(
-            model,
-            buildCoverageGapPrompt(ctx, shell, targetOutcomes, uncovered, avoidStems),
-            {
-              label: `lesson ${i + 1} coverage gap`,
-              onWait: (msg) => reportProgress(onProgress, start + span * 0.9, msg)
-            }
-          );
+          const { text: gapText } = await generateContent({
+            prompt: buildCoverageGapPrompt(ctx, shell, targetOutcomes, uncovered, avoidStems),
+            maxTokens: 8192,
+            label: `lesson ${i + 1} coverage gap`,
+            onWait: (msg) => reportProgress(onProgress, start + span * 0.9, msg)
+          });
           const gapParsed = parseOneLessonJson(gapText, ctx, i);
           if (!gapParsed.parseFailed) {
             const gapQs = chunkQuestions(gapParsed.data);
@@ -1340,7 +1312,7 @@ export const generateLessonsFromSubStrand = async (
       // ——— Batched QA pass (QUIZ_QA_ENABLED, default on) ———
       if (isQuizQaEnabled() && (mapped.quiz?.questions || []).length > 0) {
         reportProgress(onProgress, start + span * 0.93, `Lesson ${i + 1}: running quiz QA…`);
-        await runQuizQAPass(mapped.quiz.questions, model, { label: `lesson ${i + 1}` });
+        await runQuizQAPass(mapped.quiz.questions, { label: `lesson ${i + 1}` });
       }
 
       lessons.push(mapped);
@@ -1385,7 +1357,6 @@ export const topUpLessonQuizBank = async (lessonId) => {
     learningObjectives: outcomes,
     content: lesson.content
   };
-  const model = getModel({ maxOutputTokens: 8192 });
 
   const seenStems = new Set(existing.map((q) => normalizeStemKey(q.question)));
   const existingIds = new Set(existing.map((q) => q.id).filter(Boolean));
@@ -1420,11 +1391,12 @@ export const topUpLessonQuizBank = async (lessonId) => {
     await sleep(AI_CALL_GAP_MS);
     let chunkText;
     try {
-      chunkText = await generateWithBackoff(
-        model,
-        buildQuizChunkPrompt(ctx, shellLike, 1, 1, chunk, avoidStems, quizExemplarsBlock),
-        { label: `top-up ${chunk.label}` }
-      );
+      const chunkResult = await generateContent({
+        prompt: buildQuizChunkPrompt(ctx, shellLike, 1, 1, chunk, avoidStems, quizExemplarsBlock),
+        maxTokens: 8192,
+        label: `top-up ${chunk.label}`
+      });
+      chunkText = chunkResult.text;
     } catch (error) {
       console.error(`Top-up chunk "${chunk.label}" failed: ${error.message || error}`);
       continue;
@@ -1467,7 +1439,7 @@ export const topUpLessonQuizBank = async (lessonId) => {
 
   // QA only the newly added batch (existing questions already reviewed / flagged)
   if (isQuizQaEnabled() && normalized.questions.length > 0) {
-    await runQuizQAPass(normalized.questions, model, {
+    await runQuizQAPass(normalized.questions, {
       label: `top-up ${lessonId.slice(0, 8)}`
     });
   }

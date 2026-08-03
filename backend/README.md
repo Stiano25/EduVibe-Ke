@@ -46,7 +46,10 @@ cp .env.example .env
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (optional, for admin operations)
 - `GEMINI_API_KEY`: Your Google Gemini API key
-- `QUIZ_QA_ENABLED`: Optional. Batched quiz QA after lesson generation (default on). Set to `false` or `0` to skip the extra Gemini call per lesson.
+- `GENERATION_PROVIDER`: Optional. Lesson generation provider — `claude` (default) or `gemini`. Embeddings and OCR stay on Gemini regardless.
+- `ANTHROPIC_API_KEY`: Required for Claude generation (default provider)
+- `CLAUDE_MODEL`: Optional. Claude model id (default `claude-sonnet-5`)
+- `QUIZ_QA_ENABLED`: Optional. Batched quiz QA after lesson generation (default on). Set to `false` or `0` to skip the extra generation call per lesson.
 - `FRONTEND_URL`: Your frontend URL (for CORS)
 
 Adaptive session scoring (first-try % vs retries) is documented under **Founder decision — adaptive session score** in `docs/quiz-systems-audit.md`. **Open decision:** the 60% pass/unlock floor now compares against first-try-only scores (systematically lower for retry-heavy learners) — revisit after real session data; see that doc section. To recompute `skill_mastery` under the 3-of-4 mastered rule (one-shot, dry-run by default): `node scripts/recompute-skill-mastery.js` then `--apply` after confirming test-only data. Modality selection signals (`per_outcome` / `global_fallback` / `none`) are logged to `adaptive_modality_signal_log` (run `database/migration_modality_signal_log.sql`) and mirrored on `session_review.modalitySignals`.

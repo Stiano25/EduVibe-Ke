@@ -148,23 +148,23 @@ console.log(
   normalized.questions.map((q) => ({ id: q.id, difficulty: q.difficulty }))
 );
 
-const mockModel = {
-  generateContent: async () => ({
-    response: {
-      text: async () =>
-        JSON.stringify(
-          normalized.questions.map((_, i) => ({
-            question_index: i,
-            passes_qa: i !== 2,
-            issue: i === 2 ? 'Stem is ambiguous; multiple options could be defended.' : null
-          }))
-        )
-    }
-  })
-};
+const mockGenerate = async () => ({
+  text: JSON.stringify(
+    normalized.questions.map((_, i) => ({
+      question_index: i,
+      passes_qa: i !== 2,
+      issue: i === 2 ? 'Stem is ambiguous; multiple options could be defended.' : null
+    }))
+  ),
+  inputTokens: 0,
+  outputTokens: 0
+});
 
 if (isQuizQaEnabled()) {
-  await runQuizQAPass(normalized.questions, mockModel, { label: 'simulate-top-up' });
+  await runQuizQAPass(normalized.questions, {
+    label: 'simulate-top-up',
+    generateContentFn: mockGenerate
+  });
 }
 
 // Match topUpLessonQuizBank save path: canonicalize difficulty on the full bank

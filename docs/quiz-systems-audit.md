@@ -131,3 +131,24 @@ GROUP BY source;
 ```
 
 Use this to decide whether the combined modality bonus should move from **+8 → +18**.
+
+---
+
+## 6. Generation provider — Claude primary (2026-08-03)
+
+**Decision:** `GENERATION_PROVIDER` defaults to **`claude`**. Lesson shell, Bloom-band quiz chunks, coverage gap-fill, QA pass, and top-up all go through the Claude adapter (`claude-sonnet-5` via `CLAUDE_MODEL`).
+
+**Gemini retained only for:**
+- Embeddings (`gemini-embedding-001`) — RAG knowledge bank
+- OCR fallback for scanned PDF ingest
+
+The Gemini content adapter and provider abstraction remain available (`GENERATION_PROVIDER=gemini`) but are not the default.
+
+### Closed — superseded Gemini verification items
+
+| Item | Prior status | Now |
+|------|--------------|-----|
+| Live-UI top-up click-through on **Gemini** | Pending (awaiting free-tier quota / verification) | **Closed — superseded** by switch to Claude as primary generation provider |
+| Grade 3 Science generation run on **Gemini** (Plant parts seed `82861888-…`) | Reserved for Gemini comparison / verification | **Closed — superseded** — same seed used for the Claude-primary generation instead |
+
+**Why closed (not still pending):** Gemini is no longer used for lesson/quiz generation, so further verifying its generation path (including waiting on free-tier quota resets) is not needed. Record kept here so the drop is explicit rather than silent.

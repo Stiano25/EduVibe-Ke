@@ -39,7 +39,7 @@ Guidance:
 - indices / powers → indices (base, exponent)
 - counting objects → counting_circles (count)
 - fractions → fraction_bars
-If nothing fits, use labeled_boxes with clear labels.
+If nothing fits, use labeled_boxes with params items:[{label,text}] (never boxes/detail).
 
 Return ONLY JSON:
 {

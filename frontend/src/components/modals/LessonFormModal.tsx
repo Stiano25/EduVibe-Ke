@@ -320,7 +320,7 @@ export const LessonFormModal = ({
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-indigo-600" />
               <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                Content (Markdown)
+                Content
               </h3>
             </div>
             <div>
@@ -331,7 +331,7 @@ export const LessonFormModal = ({
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 rows={10}
-                placeholder="Write your lesson content in Markdown format..."
+                placeholder="Plain text with {{term:word}} and {{example:word}} for emphasis..."
                 className="w-full px-4 py-2.5 rounded-[16px] bg-white border-2 border-slate-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-sm font-mono resize-none"
                 style={{ fontFamily: 'Manrope, sans-serif' }}
               />

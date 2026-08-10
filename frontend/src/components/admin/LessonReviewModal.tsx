@@ -4,6 +4,7 @@ import { Modal } from '@/components/modals/Modal'
 import { api } from '@/lib/api'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { MathText } from '@/components/ui/MathText'
+import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlocks'
 import type { Lesson, LessonVisualBrief, QuizQuestion } from '@/types'
 
 const DIAGRAM_TYPES = [
@@ -502,39 +503,16 @@ export const LessonReviewModal = ({
                 </ul>
               </div>
             )}
-            {(lesson.contentBlocks || lesson.quiz?.contentBlocks || []).length > 0 ? (
-              <div className="space-y-3">
-                {(lesson.contentBlocks || lesson.quiz?.contentBlocks || []).map((block, i) =>
-                  block.type === 'diagram' ? (
-                    <div
-                      key={block.id || i}
-                      className="rounded-[12px] border-2 border-dashed border-indigo-200 bg-indigo-50/40 px-3 py-2 text-sm text-indigo-800"
-                      style={{ fontFamily: 'Manrope, sans-serif' }}
-                    >
-                      Diagram slot → {block.briefId}
-                      {briefs.find((b) => b.id === block.briefId)?.brief
-                        ? ` (${briefs.find((b) => b.id === block.briefId)?.brief})`
-                        : ''}
-                    </div>
-                  ) : (
-                    <div key={block.id || i} className="rounded-[16px] border-2 border-slate-200 bg-slate-50 p-4">
-                      <p
-                        className="text-sm text-[#0F172A] whitespace-pre-wrap leading-relaxed"
-                        style={{ fontFamily: 'Manrope, sans-serif' }}
-                      >
-                        {block.text}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
+            {(lesson.contentBlocks || lesson.quiz?.contentBlocks || []).length > 0 ||
+            Boolean(lesson.content?.trim()) ? (
+              <LessonTeachingFromLesson lesson={lesson} showDiagrams />
             ) : (
               <div className="rounded-[16px] border-2 border-slate-200 bg-slate-50 p-4">
                 <p
                   className="text-sm text-[#0F172A] whitespace-pre-wrap leading-relaxed"
                   style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
-                  {lesson.content || 'No content text on this lesson.'}
+                  No content text on this lesson.
                 </p>
               </div>
             )}

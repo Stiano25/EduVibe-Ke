@@ -1,15 +1,3 @@
-/**
- * Adaptive one-by-one quiz session over a lesson question bank.
- * Main path: 10–12 items served from a ~30-question bank.
- * Failed items get one retry at the end — preferring a SIBLING question
- * (same outcome, same-or-lower bloom, unseen) over verbatim replay.
- * Selection uses mastery + bloom + modality (scaffold-then-ease).
- *
- * Session score % (Founder decision 2026-08-03, Option C): first-try (main
- * phase) answers only. Retries are counted separately via retryCount and
- * excluded from percentage / pass threshold inputs. See docs/quiz-systems-audit.md.
- */
-
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
 /** Modest nudge toward easier/harder items by mastery — keep low vs outcome/bloom bonuses. */
@@ -30,6 +18,98 @@ const bloomIndex = (b) => {
 const dropBloom = (b) => BLOOM_ORDER[Math.max(0, bloomIndex(b) - 1)];
 
 const asModality = (m) => (MODALITIES.includes(m) ? m : 'practice');
+
+/** Fisher–Yates shuffle of indices [0..n). */
+const shuffleIndices = (n) => {
+  const order = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = order[i];
+    order[i] = order[j];
+    order[j] = tmp;
+  }
+  return order;
+};
+
+/**
+ * Shuffle MCQ options so the correct answer is not always A.
+ * Returns display-space options + remapped correct index; `order[display] = original`.
+ */
+export const shuffleQuestionOptions = (q = {}) => {
+  const options = Array.isArray(q.options) ? q.options.map(String) : [];
+  const n = options.length;
+  if (n < 2) {
+    return {
+      options,
+      correctAnswerIndex: Number(q.correctAnswerIndex) || 0,
+      optionExplanations: Array.isArray(q.optionExplanations)
+        ? q.optionExplanations
+        : undefined,
+      order: options.map((_, i) => i)
+    };
+  }
+  const order = shuffleIndices(n);
+  const bankCorrect = Math.min(
+    Math.max(Number(q.correctAnswerIndex) || 0, 0),
+    n - 1
+  );
+  const explanations = Array.isArray(q.optionExplanations) ? q.optionExplanations : null;
+  return {
+    options: order.map((oi) => options[oi]),
+    correctAnswerIndex: order.indexOf(bankCorrect),
+    optionExplanations: explanations
+      ? order.map((oi) => explanations[oi] ?? '')
+      : undefined,
+    order
+  };
+};
+
+const applyStoredOrder = (q, order) => {
+  const options = Array.isArray(q.options) ? q.options.map(String) : [];
+  if (!Array.isArray(order) || order.length !== options.length) {
+    return {
+      options,
+      correctAnswerIndex: Number(q.correctAnswerIndex) || 0,
+      optionExplanations: q.optionExplanations
+    };
+  }
+  const bankCorrect = Math.min(
+    Math.max(Number(q.correctAnswerIndex) || 0, 0),
+    Math.max(options.length - 1, 0)
+  );
+  const explanations = Array.isArray(q.optionExplanations) ? q.optionExplanations : null;
+  return {
+    options: order.map((oi) => options[oi]),
+    correctAnswerIndex: order.indexOf(bankCorrect),
+    optionExplanations: explanations
+      ? order.map((oi) => explanations[oi] ?? '')
+      : q.optionExplanations
+  };
+};
+
+const publicQuestion = (q, indexInBank, session = null) => {
+  if (!q) return null;
+  const id = qid(q, indexInBank);
+  const shuffled = shuffleQuestionOptions(q);
+  if (session) {
+    session.optionOrders = { ...(session.optionOrders || {}), [id]: shuffled.order };
+  }
+  return {
+    id,
+    question: q.question,
+    type: q.type || 'multiple-choice',
+    options: shuffled.options,
+    points: q.points || 15,
+    skillFocus: q.skillFocus,
+    bloomLevel: q.bloomLevel,
+    modality: q.modality,
+    diagramBriefId: q.diagramBriefId || null,
+    steps: q.steps || undefined,
+    learningOutcomeIndex: q.learningOutcomeIndex,
+    learningOutcomeKey: q.learningOutcomeKey
+    // Never send correctAnswerIndex during live attempt
+  };
+};
 
 const targetMainLength = (bankSize) => {
   if (bankSize <= 0) return 0;
@@ -82,25 +162,6 @@ const modalityBonusFor = (mod, outcomeKey, preferredModality, modalitySuccessMap
     };
   }
   return { bonus: 0, source: 'none', modality: null };
-};
-
-const publicQuestion = (q, indexInBank) => {
-  if (!q) return null;
-  return {
-    id: qid(q, indexInBank),
-    question: q.question,
-    type: q.type || 'multiple-choice',
-    options: q.options || [],
-    points: q.points || 15,
-    skillFocus: q.skillFocus,
-    bloomLevel: q.bloomLevel,
-    modality: q.modality,
-    diagramBriefId: q.diagramBriefId || null,
-    steps: q.steps || undefined,
-    learningOutcomeIndex: q.learningOutcomeIndex,
-    learningOutcomeKey: q.learningOutcomeKey
-    // Never send correctAnswerIndex during live attempt
-  };
 };
 
 const findBankIndex = (bank, questionId) =>
@@ -298,7 +359,9 @@ export const createAdaptiveSession = ({
     mainScoreCorrect: 0,
     mainScoreTotal: 0,
     // Persisted into session_review + adaptive_modality_signal_log on complete
-    modalitySignalLog: []
+    modalitySignalLog: [],
+    // displayIndex → originalIndex per questionId (for shuffled options)
+    optionOrders: {}
   };
 
   const masteryMap = masteryByKey(masteryRows);
@@ -321,7 +384,7 @@ export const createAdaptiveSession = ({
   session.currentQuestionId = first.id;
   return {
     session,
-    question: publicQuestion(first.q, first.i),
+    question: publicQuestion(first.q, first.i, session),
     meta: {
       phase: 'main',
       mainAnswered: 0,
@@ -357,7 +420,8 @@ export const advanceAdaptiveSession = ({
     outcomeFailStreak: { ...(rawSession.outcomeFailStreak || {}) },
     mainScoreCorrect: rawSession.mainScoreCorrect ?? 0,
     mainScoreTotal: rawSession.mainScoreTotal ?? 0,
-    modalitySignalLog: [...(rawSession.modalitySignalLog || [])]
+    modalitySignalLog: [...(rawSession.modalitySignalLog || [])],
+    optionOrders: { ...(rawSession.optionOrders || {}) }
   };
 
   const currentId = session.currentQuestionId;
@@ -366,15 +430,26 @@ export const advanceAdaptiveSession = ({
     throw new Error('Current question not found in bank');
   }
   const question = bank[idx];
-  const selected = Number(selectedOptionIndex);
-  const correct = selected === Number(question.correctAnswerIndex);
+  const selectedDisplay = Number(selectedOptionIndex);
+  const order = session.optionOrders?.[currentId];
+  const selectedOriginal =
+    Array.isArray(order) && order[selectedDisplay] !== undefined
+      ? Number(order[selectedDisplay])
+      : selectedDisplay;
+  const bankCorrect = Number(question.correctAnswerIndex);
+  const correct = selectedOriginal === bankCorrect;
+  const displayCorrect =
+    Array.isArray(order) && order.length > 0
+      ? order.indexOf(bankCorrect)
+      : bankCorrect;
   const learningOutcomeKey = outcomeKeyOf(question, lesson);
   const bloomLevel = question.bloomLevel || 'understand';
   const phase = session.phase === 'retry' ? 'retry' : 'main';
 
   const answerRecord = {
     questionId: currentId,
-    selectedOptionIndex: selected,
+    selectedOptionIndex: selectedDisplay,
+    optionOrder: Array.isArray(order) ? order : undefined,
     correct,
     phase,
     learningOutcomeKey,
@@ -510,12 +585,12 @@ export const advanceAdaptiveSession = ({
 
   return {
     session,
-    question: next ? publicQuestion(next.q, next.i) : null,
+    question: next ? publicQuestion(next.q, next.i, session) : null,
     lastAnswer: {
       ...answerRecord,
-      correctAnswerIndex: question.correctAnswerIndex,
+      correctAnswerIndex: displayCorrect,
       explanation: question.explanation,
-      optionExplanations: question.optionExplanations
+      optionExplanations: applyStoredOrder(question, order).optionExplanations
     },
     meta: {
       phase: session.phase,
@@ -531,7 +606,7 @@ export const advanceAdaptiveSession = ({
     attemptContext: {
       question,
       questionId: currentId,
-      selected,
+      selected: selectedOriginal,
       correct,
       learningOutcomeKey,
       bloomLevel
@@ -554,15 +629,16 @@ export const buildReviewView = (lesson, sessionReview) => {
     const idx = findBankIndex(bank, questionId);
     if (idx < 0) continue;
     const q = bank[idx];
+    const displayed = applyStoredOrder(q, a.optionOrder);
     items.push({
       id: questionId,
       question: q.question,
-      options: q.options || [],
-      correctAnswerIndex: q.correctAnswerIndex,
+      options: displayed.options,
+      correctAnswerIndex: displayed.correctAnswerIndex,
       selectedOptionIndex: a.selectedOptionIndex,
       correct: a.correct,
       explanation: q.explanation,
-      optionExplanations: q.optionExplanations,
+      optionExplanations: displayed.optionExplanations,
       feedbackCorrect: q.feedbackCorrect,
       feedbackIncorrect: q.feedbackIncorrect,
       modality: q.modality,

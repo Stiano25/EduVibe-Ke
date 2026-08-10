@@ -355,7 +355,6 @@ export const startAdaptiveQuiz = async (req, res) => {
     const profile = await LearnerProfile.getOrCreate(userId);
     const masteryRows = await SkillMastery.findByUser(userId);
 
-    // If already completed with review, return review mode (all at once)
     const { getDbClient } = await import('../../config/supabase.js');
     const { data: progress } = await getDbClient()
       .from('lesson_progress')
@@ -364,13 +363,16 @@ export const startAdaptiveQuiz = async (req, res) => {
       .eq('lesson_id', lessonId)
       .maybeSingle();
 
-    if (progress?.completed && progress?.session_review) {
+    // If they already finished an attempt, show review (answers + corrections).
+    // Do NOT require progress.completed — that is pass/fail only; a finished
+    // but below-threshold attempt still has session_review and must not force a retake.
+    if (progress?.session_review) {
       const { buildReviewView } = await import('../services/adaptiveQuizService.js');
       return res.json({
         mode: 'review',
         review: buildReviewView(lesson, progress.session_review),
         progress: progress.progress,
-        completed: true
+        completed: !!progress.completed
       });
     }
 

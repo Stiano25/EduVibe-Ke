@@ -180,12 +180,60 @@ export const renderPlaceValue = (params = {}) => {
   `);
 };
 
-/** Labeled boxes: title + items [{label, text}] or labels[] */
-export const renderLabeledBoxes = (params = {}) => {
-  let items = Array.isArray(params.items) ? params.items : [];
-  if (items.length === 0 && Array.isArray(params.labels)) {
-    items = params.labels.map((l) => ({ label: String(l), text: '' }));
+/** True when items is missing or only default placeholder "Idea"/"Concept" shells. */
+export const isPlaceholderLabeledItems = (items) => {
+  if (!Array.isArray(items) || items.length === 0) return true;
+  return items.every((it) => {
+    const text = String(it?.text ?? it?.detail ?? '').trim();
+    const label = String(it?.label ?? '').trim();
+    return !text && /^(Idea|Concept)$/i.test(label);
+  });
+};
+
+/**
+ * Canonicalize labeled_boxes params to items:[{label,text}].
+ * Prefer real boxes/detail (or zipped boxes+labels) over empty placeholder items.
+ */
+export const coerceLabeledBoxesParams = (params = {}) => {
+  const p = params && typeof params === 'object' ? { ...params } : {};
+  let items = Array.isArray(p.items) ? [...p.items] : [];
+  if (isPlaceholderLabeledItems(items)) items = [];
+
+  if (items.length === 0 && Array.isArray(p.boxes) && p.boxes.length > 0) {
+    const labelsArr = Array.isArray(p.labels) ? p.labels : [];
+    const boxesAreStrings = p.boxes.every((b) => typeof b === 'string');
+    items = p.boxes.map((b, i) => {
+      if (typeof b === 'string') {
+        return { label: b, text: String(labelsArr[i] ?? '') };
+      }
+      return {
+        label: String(b?.label ?? ''),
+        text: String(b?.text ?? b?.detail ?? '')
+      };
+    });
+    // When boxes were string labels zipped with labels[], drop labels so we don't re-map
+    if (boxesAreStrings && labelsArr.length > 0) {
+      delete p.labels;
+    }
   }
+
+  if (items.length === 0 && Array.isArray(p.labels) && p.labels.length > 0) {
+    items = p.labels.map((l) => ({ label: String(l), text: '' }));
+  }
+
+  items = items.map((it) => ({
+    label: String(it?.label ?? ''),
+    text: String(it?.text ?? it?.detail ?? '')
+  }));
+
+  const { boxes: _boxes, ...rest } = p;
+  return { ...rest, items };
+};
+
+/** Labeled boxes: title + items [{label, text}] or labels[] / boxes[] */
+export const renderLabeledBoxes = (params = {}) => {
+  const coerced = coerceLabeledBoxesParams(params);
+  let items = Array.isArray(coerced.items) ? coerced.items : [];
   if (items.length === 0) {
     items = [
       { label: 'Concept', text: 'A' },
@@ -193,6 +241,7 @@ export const renderLabeledBoxes = (params = {}) => {
     ];
   }
   items = items.slice(0, 6);
+  params = coerced;
   const cols = items.length <= 3 ? items.length : Math.ceil(items.length / 2);
   const boxW = Math.min(180, (560 - (cols - 1) * 16) / cols);
   const boxH = 88;
@@ -223,7 +272,37 @@ export const renderLabeledBoxes = (params = {}) => {
   );
 };
 
-/** Process flow: steps string[] */
+/** Word-wrap plain text for SVG tspans (~charsPerLine for narrow process nodes). */
+const wrapSvgWords = (raw = '', charsPerLine = 14) => {
+  const words = String(raw || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) return [''];
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (next.length <= charsPerLine) {
+      cur = next;
+    } else {
+      if (cur) lines.push(cur);
+      // Hard-break oversized single tokens
+      if (w.length > charsPerLine) {
+        for (let i = 0; i < w.length; i += charsPerLine) {
+          lines.push(w.slice(i, i + charsPerLine));
+        }
+        cur = '';
+      } else {
+        cur = w;
+      }
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 4);
+};
+
+/** Process flow: steps string[] — wrap step text instead of truncating. */
 export const renderProcessFlow = (params = {}) => {
   let steps = Array.isArray(params.steps) ? params.steps.map(String) : [];
   if (steps.length === 0 && typeof params.brief === 'string') {
@@ -232,29 +311,47 @@ export const renderProcessFlow = (params = {}) => {
   if (steps.length === 0) steps = ['Step 1', 'Step 2', 'Step 3'];
   steps = steps.slice(0, 5);
   const n = steps.length;
-  const boxW = Math.min(110, (560 - (n - 1) * 28) / n);
+  const boxW = Math.min(120, (560 - (n - 1) * 28) / n);
+  const charsPerLine = Math.max(10, Math.floor(boxW / 7.5));
+  const wrapped = steps.map((step) => wrapSvgWords(step, charsPerLine));
+  const maxLines = Math.max(1, ...wrapped.map((lines) => lines.length));
+  const boxH = 28 + maxLines * 14 + 12;
   const totalW = n * boxW + (n - 1) * 28;
   const x0 = (640 - totalW) / 2;
-  const y = 120;
+  const y = 100;
   const nodes = steps.map((step, i) => {
     const x = x0 + i * (boxW + 28);
+    const cx = x + boxW / 2;
+    const lines = wrapped[i];
+    const arrowY = y + boxH / 2;
     const arrow =
       i < n - 1
-        ? `<line x1="${x + boxW + 2}" y1="${y + 32}" x2="${x + boxW + 24}" y2="${y + 32}" stroke="#64748B" stroke-width="2"/>
-           <polygon points="${x + boxW + 26},${y + 32} ${x + boxW + 16},${y + 26} ${x + boxW + 16},${y + 38}" fill="#64748B"/>`
+        ? `<line x1="${x + boxW + 2}" y1="${arrowY}" x2="${x + boxW + 24}" y2="${arrowY}" stroke="#64748B" stroke-width="2"/>
+           <polygon points="${x + boxW + 26},${arrowY} ${x + boxW + 16},${arrowY - 6} ${x + boxW + 16},${arrowY + 6}" fill="#64748B"/>`
         : '';
+    const tspans = lines
+      .map((line, li) => {
+        const dy = li === 0 ? 0 : 14;
+        return `<tspan x="${cx}" dy="${dy}">${formatDiagramLabel(line)}</tspan>`;
+      })
+      .join('');
     return `
-      <rect x="${x}" y="${y}" width="${boxW}" height="64" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" rx="8"/>
-      <text x="${x + boxW / 2}" y="${y + 28}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="11" fill="#64748B">${i + 1}</text>
-      <text x="${x + boxW / 2}" y="${y + 48}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="12" fill="#0F172A">${formatDiagramLabel(step.slice(0, 18))}</text>
+      <rect x="${x}" y="${y}" width="${boxW}" height="${boxH}" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" rx="8"/>
+      <text x="${cx}" y="${y + 18}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="11" fill="#64748B">${i + 1}</text>
+      <text x="${cx}" y="${y + 36}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="12" fill="#0F172A">${tspans}</text>
       ${arrow}
     `;
   });
   const title = params.title || params.label || 'Process';
-  return svgWrap(`
+  const svgH = Math.max(280, y + boxH + 40);
+  return svgWrap(
+    `
     <text x="320" y="48" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="18" font-weight="600" fill="#0F172A">${formatDiagramLabel(title)}</text>
     ${nodes.join('')}
-  `);
+  `,
+    640,
+    svgH
+  );
 };
 
 /** Comparison: left/right {title, items[]} or leftLabel/rightLabel */

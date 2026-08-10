@@ -53,27 +53,49 @@ const renderSegment = (segment: string, display: boolean, key: string) => {
   }
 }
 
+/** One-pass tokens: KaTeX $…$ / $$…$$ plus {{term:…}} / {{example:…}}. */
+const INLINE_TOKEN_RE =
+  /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\{\{term:([^}]+)\}\}|\{\{example:([^}]+)\}\})/g
+
 /**
- * Renders text with inline KaTeX: $...$ or $$...$$.
- * Also lifts common ASCII exponents (x^2) and simple fractions.
+ * Renders text with inline KaTeX ($...$ / $$...$$) and lesson emphasis
+ * ({{term:…}} bold vocabulary, {{example:…}} highlighted examples).
  */
 export const MathText = ({ text, className, as: Tag = 'span' }: MathTextProps) => {
   const nodes = useMemo(() => {
     const src = preprocessAsciiMath(text)
     const parts: ReactNode[] = []
-    const re = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g
     let last = 0
     let m: RegExpExecArray | null
     let i = 0
-    while ((m = re.exec(src)) !== null) {
+    INLINE_TOKEN_RE.lastIndex = 0
+    while ((m = INLINE_TOKEN_RE.exec(src)) !== null) {
       if (m.index > last) {
         parts.push(<span key={`t-${i++}`}>{src.slice(last, m.index)}</span>)
       }
       const token = m[1]
       if (token.startsWith('$$')) {
         parts.push(renderSegment(token.slice(2, -2).trim(), true, `m-${i++}`))
-      } else {
+      } else if (token.startsWith('$')) {
         parts.push(renderSegment(token.slice(1, -1).trim(), false, `m-${i++}`))
+      } else if (token.startsWith('{{term:')) {
+        parts.push(
+          <strong
+            key={`term-${i++}`}
+            className="lesson-term font-semibold text-primary-700"
+          >
+            {m[2]}
+          </strong>
+        )
+      } else if (token.startsWith('{{example:')) {
+        parts.push(
+          <mark
+            key={`ex-${i++}`}
+            className="lesson-example rounded px-0.5 bg-secondary-50 text-secondary-700"
+          >
+            {m[3]}
+          </mark>
+        )
       }
       last = m.index + token.length
     }

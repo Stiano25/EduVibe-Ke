@@ -8,6 +8,7 @@ import {
   buildCoverageReport,
   normalizeQuiz,
   normalizeDifficulty,
+  GENERATION_TOKEN_LIMITS,
   isQuizQaEnabled,
   runQuizQAPass
 } from '../admin/services/lessonGenerationService.js';
@@ -38,6 +39,39 @@ assert(
     { modalityCycle: ['practice'], allowedDiagramTypes: ['number_line'], fallbackDiagramType: 'number_line' }
   ).questions[0].difficulty === 'advanced',
   'normalizeQuiz maps hard→advanced'
+);
+assert(
+  GENERATION_TOKEN_LIMITS.quizChunk < 8192 &&
+    GENERATION_TOKEN_LIMITS.quizQa < GENERATION_TOKEN_LIMITS.quizChunk,
+  'generation phases use bounded token budgets'
+);
+
+const compactNormalized = normalizeQuiz(
+  {
+    questions: [
+      {
+        question: 'Which option is correct?',
+        options: ['Correct', 'Wrong A', 'Wrong B'],
+        correctAnswerIndex: 0,
+        explanation: 'Correct matches the rule.',
+        distractors: [
+          { optionIndex: 1, misconception: 'Uses the wrong rule' },
+          { optionIndex: 2, misconception: 'Reverses the values' }
+        ],
+        learningOutcomeIndex: 1,
+        bloomLevel: 'understand',
+        modality: 'practice',
+        difficulty: 'easy'
+      }
+    ]
+  },
+  ['Outcome A'],
+  { modalityCycle: ['practice'] }
+);
+assert(
+  compactNormalized.questions[0].optionExplanations[1] === 'Uses the wrong rule' &&
+    compactNormalized.questions[0].optionExplanations[2] === 'Reverses the values',
+  'compact distractors expand into option explanations'
 );
 
 const profile = {
@@ -114,8 +148,8 @@ const qs2 = oldShape.questions.map((q) => ({ ...q }));
 await runQuizQAPass(qs2, {
   generateContentFn: async () => ({
     text: JSON.stringify([
-      { question_index: 0, passes_qa: false, issue: 'Two answers could work' },
-      { question_index: 1, passes_qa: true, issue: null }
+      { i: 0, ok: false, issue: 'Two answers could work' },
+      { i: 1, ok: true }
     ]),
     inputTokens: 0,
     outputTokens: 0

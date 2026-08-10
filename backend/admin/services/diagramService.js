@@ -1,4 +1,4 @@
-import { DIAGRAM_TYPES, renderDiagram } from './diagramTemplates.js';
+import { DIAGRAM_TYPES, renderDiagram, coerceLabeledBoxesParams } from './diagramTemplates.js';
 
 /**
  * Infer diagram type from free-text brief when AI omits diagramType.
@@ -90,13 +90,15 @@ export const renderVisualBriefToSvg = (briefObj = {}) => {
     diagramType = inferDiagramType(brief, skillFocus);
   }
 
-  const params = {
+  const rawParams = {
     ...defaultParamsForType(diagramType, brief, skillFocus),
     ...(briefObj.params && typeof briefObj.params === 'object' ? briefObj.params : {}),
     brief,
     skillFocus,
     label: briefObj.params?.label || skillFocus || brief.slice(0, 60)
   };
+  const params =
+    diagramType === 'labeled_boxes' ? coerceLabeledBoxesParams(rawParams) : rawParams;
 
   const svg = renderDiagram(diagramType, params);
   return {

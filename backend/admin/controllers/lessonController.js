@@ -3,6 +3,7 @@ import {
   generateLessonsFromSubStrand,
   topUpLessonQuizBank
 } from '../services/lessonGenerationService.js';
+import { runWithGenerationUsage } from '../../providers/contentProvider.js';
 import {
   attachEducationalVisuals,
   previewEducationalDiagram,
@@ -59,10 +60,12 @@ export const createAIGeneratedLessons = async (req, res) => {
 
       try {
         send({ type: 'progress', percent: 2, message: 'Starting…' });
-        const generatedLessons = await generateLessonsFromSubStrand(
-          subStrandId,
-          numberOfLessons,
-          ({ percent, message }) => send({ type: 'progress', percent, message })
+        const { result: generatedLessons, usage } = await runWithGenerationUsage(() =>
+          generateLessonsFromSubStrand(
+            subStrandId,
+            numberOfLessons,
+            ({ percent, message }) => send({ type: 'progress', percent, message })
+          )
         );
         send({ type: 'progress', percent: 96, message: 'Saving lessons…' });
         const lessons = await Lesson.createMany(generatedLessons);
@@ -70,7 +73,8 @@ export const createAIGeneratedLessons = async (req, res) => {
           type: 'done',
           percent: 100,
           message: 'Done',
-          lessons
+          lessons,
+          usage
         });
       } catch (error) {
         console.error('Error generating AI lessons (stream):', error);
@@ -83,9 +87,14 @@ export const createAIGeneratedLessons = async (req, res) => {
       return res.end();
     }
 
-    const generatedLessons = await generateLessonsFromSubStrand(subStrandId, numberOfLessons);
+    const { result: generatedLessons, usage } = await runWithGenerationUsage(() =>
+      generateLessonsFromSubStrand(subStrandId, numberOfLessons)
+    );
     const lessons = await Lesson.createMany(generatedLessons);
 
+    res.setHeader('X-Generation-Calls', String(usage.calls));
+    res.setHeader('X-Generation-Input-Tokens', String(usage.inputTokens));
+    res.setHeader('X-Generation-Output-Tokens', String(usage.outputTokens));
     res.status(201).json(lessons);
   } catch (error) {
     console.error('Error generating AI lessons:', error);

@@ -65,8 +65,8 @@ const PROFILES = [
     modalityMixText: 'mostly practice (cloze and comprehension), some text_steps; at most 2 visual questions where a vocabulary table or comparison helps.',
     allowedDiagramTypes: FLOW_DIAGRAMS,
     diagramGuidance: `- vocabulary words and meanings → labeled_boxes (items:[{label,text}])
-- correct vs incorrect usage → comparison (leftLabel/rightLabel + items)
-- steps to build a sentence or greeting exchange → process_flow`,
+- correct vs incorrect usage → comparison (leftLabel/rightLabel + leftItems/rightItems)
+- steps to build a sentence or greeting exchange → process_flow (steps:[string])`,
     fallbackDiagramType: 'labeled_boxes'
   },
   {
@@ -82,9 +82,9 @@ const PROFILES = [
     modalityCycle: ['text_steps', 'practice', 'visual', 'practice', 'text_steps', 'practice', 'visual', 'practice', 'text_steps', 'practice'],
     modalityMixText: '~1/3 text_steps (activity steps), ~1/4 visual, the rest practice.',
     allowedDiagramTypes: FLOW_DIAGRAMS,
-    diagramGuidance: `- activity/technique steps → process_flow
-- tools, materials or parts → labeled_boxes
-- good vs poor technique → comparison`,
+    diagramGuidance: `- activity/technique steps → process_flow (steps:[string])
+- tools, materials or parts → labeled_boxes (items:[{label,text}])
+- good vs poor technique → comparison (leftLabel/rightLabel + leftItems/rightItems)`,
     fallbackDiagramType: 'process_flow'
   },
   {
@@ -99,9 +99,9 @@ const PROFILES = [
     modalityCycle: ['visual', 'practice', 'text_steps', 'practice', 'visual', 'practice', 'text_steps', 'practice', 'visual', 'practice'],
     modalityMixText: '~1/3 visual (process or parts diagrams), ~1/4 text_steps, the rest practice.',
     allowedDiagramTypes: ['process_flow', 'labeled_boxes', 'comparison', 'bar_model'],
-    diagramGuidance: `- cycles and processes (water cycle, digestion, circuits) → process_flow
-- parts and their functions → labeled_boxes
-- compare two things (solid vs liquid, healthy vs unhealthy) → comparison
+    diagramGuidance: `- cycles and processes (water cycle, digestion, circuits) → process_flow (steps:[string])
+- parts and their functions → labeled_boxes (items:[{label,text}])
+- compare two things (solid vs liquid, healthy vs unhealthy) → comparison (leftLabel/rightLabel + leftItems/rightItems)
 - simple measured amounts → bar_model`,
     fallbackDiagramType: 'process_flow'
   },
@@ -119,9 +119,9 @@ const PROFILES = [
     modalityCycle: ['practice', 'practice', 'text_steps', 'practice', 'visual', 'practice', 'practice', 'text_steps', 'practice', 'visual'],
     modalityMixText: 'mostly practice (story and values reasoning), some text_steps; at most 2 visual questions.',
     allowedDiagramTypes: FLOW_DIAGRAMS,
-    diagramGuidance: `- then vs now, right vs wrong choice → comparison
-- sequence of events in the story or in history → process_flow
-- roles and responsibilities → labeled_boxes`,
+    diagramGuidance: `- then vs now, right vs wrong choice → comparison (leftLabel/rightLabel + leftItems/rightItems)
+- sequence of events in the story or in history → process_flow (steps:[string])
+- roles and responsibilities → labeled_boxes (items:[{label,text}])`,
     fallbackDiagramType: 'comparison'
   }
 ];
@@ -135,7 +135,7 @@ const GENERAL_PROFILE = {
   modalityCycle: ['practice', 'visual', 'text_steps', 'practice', 'practice', 'visual', 'text_steps', 'practice', 'practice', 'visual'],
   modalityMixText: 'balanced mix of practice, text_steps and visual.',
   allowedDiagramTypes: FLOW_DIAGRAMS,
-  diagramGuidance: `- key ideas → labeled_boxes; steps → process_flow; contrasts → comparison`,
+  diagramGuidance: `- key ideas → labeled_boxes (items:[{label,text}]); steps → process_flow (steps:[string]); contrasts → comparison (leftLabel/rightLabel + leftItems/rightItems)`,
   fallbackDiagramType: 'labeled_boxes'
 };
 

@@ -4,6 +4,7 @@ import { embedText, cosineSimilarity } from './embeddingService.js';
 const POOL_CAP = 200;
 const MIN_FILTERED_POOL = 5;
 const SCORE_THRESHOLD = 0.2;
+const QUIZ_EXEMPLAR_MAX_CHARS = 420;
 
 const SELECT_FIELDS =
   'id, content, embedding, grade, subject_name, document_id, metadata, question_number, question_text, topic, sub_topic, question_type, difficulty, grade_level, is_full_question';
@@ -397,7 +398,11 @@ export const formatExemplarsForPrompt = (chunks = []) => {
 export const formatQuizExemplarsForPrompt = (exemplars = []) => {
   if (!exemplars.length) return '';
   const lines = exemplars.map((e) => {
-    const text = String(e.question_text || e.content || '').trim();
+    const raw = String(e.question_text || e.content || '').replace(/\s+/g, ' ').trim();
+    const text =
+      raw.length > QUIZ_EXEMPLAR_MAX_CHARS
+        ? `${raw.slice(0, QUIZ_EXEMPLAR_MAX_CHARS).trim()}…`
+        : raw;
     return `- [${e.question_type || 'unknown'}, ${e.difficulty || 'unknown'}] ${text}`;
   });
   return `Here are ${exemplars.length} real past-paper questions on this topic/grade for reference.

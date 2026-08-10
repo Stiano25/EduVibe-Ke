@@ -3,7 +3,7 @@ import { SubStrand } from '../../models/SubStrand.js';
 import { Strand } from '../../models/Strand.js';
 import { Subject } from '../../models/Subject.js';
 import { outcomeKey, normalizeOutcomeText } from '../../utils/outcomeKey.js';
-import { DIAGRAM_TYPES } from './diagramTemplates.js';
+import { DIAGRAM_TYPES, coerceLabeledBoxesParams } from './diagramTemplates.js';
 import { inferDiagramType } from './diagramService.js';
 import {
   retrieveLessonExemplars,
@@ -220,6 +220,20 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
         };
       })
       .filter(Boolean);
+    const suppliedOptionExplanations = Array.isArray(q.optionExplanations)
+      ? q.optionExplanations
+      : [];
+    const optionExplanations = options.map((_, optIndex) => {
+      const supplied = String(suppliedOptionExplanations[optIndex] || '').trim();
+      if (supplied) return supplied;
+      if (optIndex === correctAnswerIndex) {
+        return String(q.explanation || 'This is the correct answer.').trim();
+      }
+      return (
+        distractors.find((d) => d.optionIndex === optIndex)?.misconception ||
+        'This option does not match the skill.'
+      );
+    });
 
     const qid = q.id || `q-${qi + 1}`;
     const difficulty = normalizeDifficulty(q.difficulty, {
@@ -274,6 +288,9 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
         params ? { ...defaultParamsHint(diagramType), ...params } : defaultParamsHint(diagramType),
         stem
       );
+      if (diagramType === 'labeled_boxes') {
+        params = coerceLabeledBoxesParams(params);
+      }
 
       // Never attach teaching vb-1/vb-2 to a quiz item
       const requestedId = String(q.diagramBriefId || embedded?.id || '').trim();
@@ -312,7 +329,10 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
       options,
       correctAnswerIndex,
       explanation: q.explanation || '',
-      optionExplanations: q.optionExplanations || options.map(() => ''),
+      // The model now emits one compact distractor reason per wrong option.
+      // Expand it locally into the display-space array instead of paying for
+      // both distractors[] and optionExplanations[] in every generated item.
+      optionExplanations,
       feedbackCorrect: q.feedbackCorrect || 'Well done!',
       feedbackIncorrect: q.feedbackIncorrect || 'Review this skill and try again.',
       difficulty,
@@ -419,10 +439,13 @@ const normalizeVisualBriefs = (briefs, outcomes, profile) => {
         diagramType = 'coordinate_plane';
       }
       diagramType = clampDiagramType(diagramType, profile);
-      const params =
+      let params =
         b.params && typeof b.params === 'object'
           ? { ...defaultParamsHint(diagramType), ...b.params }
           : defaultParamsHint(diagramType);
+      if (diagramType === 'labeled_boxes') {
+        params = coerceLabeledBoxesParams(params);
+      }
 
       return {
         id: isTeachingBriefId(b.id) ? b.id : `vb-${i + 1}`,
@@ -503,6 +526,17 @@ const BANK_SIZE = 30;
 const CHUNK_SIZE = 10;
 const MIN_CHUNK_QUESTIONS = 6;
 
+/**
+ * Phase-specific output budgets. The previous blanket 8,192-token allowance
+ * let quiz chunks run to the cap and then repeat the entire expensive call.
+ */
+export const GENERATION_TOKEN_LIMITS = Object.freeze({
+  lessonShell: 2500,
+  quizChunk: 6000,
+  coverageGap: 2200,
+  quizQa: 1800
+});
+
 /** Bloom-banded chunk specs — together they form the outcome × bloom × modality matrix. */
 const QUIZ_CHUNKS = [
   {
@@ -557,12 +591,24 @@ export const computeBankStats = (questions = []) => {
   return stats;
 };
 
-const sanitizeContent = (content = '') =>
-  String(content || '')
+const sanitizeContent = (content = '') => {
+  // Protect {{term:…}} / {{example:…}} so #*_` stripping cannot corrupt marker payloads
+  const markers = [];
+  const protectedText = String(content || '').replace(
+    /\{\{(term|example):([^}]*)\}\}/g,
+    (match) => {
+      markers.push(match);
+      return `\u0000EMPH${markers.length - 1}\u0000`;
+    }
+  );
+  let cleaned = protectedText
     .replace(/[#*_`]+/g, '')
     // Keep $…$ for KaTeX; strip only bare markdown-style leftovers
     .replace(/[📐🗣🔬🌍✝️🎨🎵🔥⭐✅❌]/g, '')
     .trim();
+  cleaned = cleaned.replace(/\u0000EMPH(\d+)\u0000/g, (_, i) => markers[Number(i)] || '');
+  return cleaned;
+};
 
 const reportProgress = (onProgress, percent, message) => {
   if (typeof onProgress === 'function') {
@@ -726,6 +772,13 @@ Do NOT include quiz questions yet. Quiz comes in a later step.
 RULES:
 - Use ONLY the numbered outcomes below (exact wording in learningObjectives; pick 1–2).
 - No markdown headings/bullets, no emojis.
+- INLINE EMPHASIS: mark key vocabulary and examples inline using {{term:word}} for
+  important vocabulary and {{example:word}} for specific examples. Use sparingly —
+  only genuinely important terms/examples, not every noun. Example:
+  "A {{term:pronoun}} is a word that replaces a noun. For example, {{example:he}}
+  and {{example:she}} are pronouns."
+  This is separate from the "no markdown headings/bullets/emojis" rule —
+  this inline syntax is allowed and expected where relevant.
 - Keep teaching SHORT: 2–3 short text blocks + diagrams between them.
 - ${profile.mathRule}
 
@@ -741,6 +794,8 @@ TEACHING VISUALS: exactly 2 briefs vb-1, vb-2. diagramType ONLY: ${diagramTypeLi
 Pick the right type for the topic:
 ${profile.diagramGuidance}
 Params content MUST match the teaching text (same numbers, words, steps).
+Params MUST use each type's canonical fields from the guidance above (never invent alternate keys like boxes/detail for labeled_boxes).
+Example labeled_boxes params: {"title":"Parts of a Plant","items":[{"label":"Roots","text":"Absorb water and hold the plant"},{"label":"Stem","text":"Carries water and holds the plant upright"}]}
 
 Return ONLY one JSON object (no quiz questions):
 {
@@ -752,9 +807,9 @@ Return ONLY one JSON object (no quiz questions):
   "learningObjectives": ["exact outcome"],
   "tags": ["practice"],
   "duration": 10,
-  "visualBriefs": [{"id":"vb-1","skillFocus":"...","diagramType":"...","params":{},"brief":"..."}],
+  "visualBriefs": [{"id":"vb-1","skillFocus":"...","diagramType":"labeled_boxes","params":{"title":"...","items":[{"label":"...","text":"..."}]},"brief":"..."}],
   "contentBlocks": [
-    {"type":"text","text":"2–4 sentences"},
+    {"type":"text","text":"2–4 sentences with {{term:...}} / {{example:...}} where useful"},
     {"type":"diagram","briefId":"vb-1"},
     {"type":"text","text":"Short example or activity"}
   ]
@@ -768,7 +823,8 @@ const buildQuizChunkPrompt = (
   totalLessons,
   chunk,
   avoidStems = [],
-  quizExemplarsBlock = ''
+  quizExemplarsBlock = '',
+  targetCount = CHUNK_SIZE
 ) => {
   const title = shell?.title || `Lesson ${lessonIndex}`;
   const objectives = (shell?.learningObjectives || ctx.sourceOutcomes.slice(0, 2))
@@ -798,18 +854,22 @@ ${avoidBlock}${quizExemplarsBlock ? `\n${quizExemplarsBlock}\n` : ''}
 Return ONLY one JSON object:
 {
   "quiz": {
-    "questions": [ /* EXACTLY ${CHUNK_SIZE} items */ ]
+    "questions": [ /* EXACTLY ${targetCount} items */ ]
   }
 }
 
-Each question MUST have: id, question, type:"multiple-choice", options(3-4), correctAnswerIndex, explanation (1 short sentence), optionExplanations (short), distractors[{optionIndex,misconception}], learningOutcomeIndex, skillFocus, bloomLevel, modality, difficulty, points.
-Keep explanations SHORT (under 25 words) so JSON does not truncate.
+COMPACT QUESTION SHAPE — include ONLY:
+- question, options (3-4), correctAnswerIndex
+- explanation (max 16 words)
+- distractors:[{"optionIndex":number,"misconception":"max 8 words"}] for wrong options
+- learningOutcomeIndex, bloomLevel, modality, difficulty
+Do NOT include id, type, points, skillFocus, optionExplanations, feedbackCorrect or feedbackIncorrect; the server adds them.
 Visual questions MUST include "diagram": { "diagramType": one of ${diagramTypeList}, "params":{}, "brief":"..." }.
 text_steps questions MUST include steps[] (max 3 short steps).
 NEVER reuse vb-1/vb-2 for quiz diagrams.
 Match diagram type to topic. Diagram content must match the question exactly (same numbers, words, steps).
 ${profile.mathRule}
-Return complete valid JSON only — do not truncate. No markdown fences.`;
+Keep every string concise. Return complete valid JSON only — do not truncate. No markdown fences.`;
 };
 
 /** Flag generated questions that are near-verbatim copies of injected exemplars. */
@@ -894,8 +954,10 @@ All lesson outcomes (for index reference):
 ${allOutcomes}
 Topic: ${ctx.subject.name} · ${ctx.strand.name} · ${ctx.subStrand.name}
 ${avoidBlock}
-Use bloomLevel "understand" or "apply" (mix). Each question MUST have: question, type:"multiple-choice", options(3-4), correctAnswerIndex, explanation, optionExplanations, distractors[{optionIndex,misconception}], learningOutcomeIndex (from the uncovered list), skillFocus, bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced), points.
-Keep explanations SHORT. Return ONLY one JSON object:
+Use bloomLevel "understand" or "apply" (mix). Use the same COMPACT shape as the main bank:
+question, options(3-4), correctAnswerIndex, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}], learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+Do NOT include id, type, points, skillFocus, optionExplanations or feedback fields; the server adds them.
+Return ONLY one JSON object:
 { "quiz": { "questions": [ /* exactly ${count} items */ ] } }
 No markdown fences.`;
 };
@@ -962,8 +1024,9 @@ For each question below, check:
 3. Is the question text clear and age-appropriate, with no ambiguous wording?
 4. Is there any factual error in the question or the marked correct answer?
 
-Return ONLY a JSON array, one entry per question in the same order, with:
-{ "question_index": number, "passes_qa": boolean, "issue": string | null }
+Return ONLY a compact JSON array, one entry per question in the same order:
+{"i":number,"ok":boolean} for a passing question.
+{"i":number,"ok":false,"issue":"max 18 words"} for a genuine problem.
 
 Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording).
 Do not fail a question just for being easy or simple — that's expected for some Bloom levels.
@@ -971,13 +1034,10 @@ Do not fail a question just for being easy or simple — that's expected for som
 QUESTIONS:
 ${JSON.stringify(
   questions.map((q, i) => ({
-    index: i,
-    question: q.question,
-    options: q.options,
-    correctAnswerIndex: q.correctAnswerIndex,
-    explanation: q.explanation,
-    bloomLevel: q.bloomLevel,
-    skillFocus: q.skillFocus
+    i,
+    q: q.question,
+    o: q.options,
+    a: q.correctAnswerIndex
   }))
 )}
 `;
@@ -988,7 +1048,7 @@ ${JSON.stringify(
     await sleep(AI_CALL_GAP_MS);
     const { text } = await runGenerate({
       prompt: qaPrompt,
-      maxTokens: 8192,
+      maxTokens: GENERATION_TOKEN_LIMITS.quizQa,
       label: label ? `${label} quiz QA` : 'quiz QA'
     });
     const jsonText = extractJsonText(text);
@@ -998,9 +1058,10 @@ ${JSON.stringify(
       return questions;
     }
     for (const entry of parsed) {
-      const idx = Number(entry?.question_index ?? entry?.index);
+      const idx = Number(entry?.i ?? entry?.question_index ?? entry?.index);
       if (!Number.isFinite(idx) || idx < 0 || idx >= questions.length) continue;
-      if (entry.passes_qa === false) {
+      const passes = entry?.ok ?? entry?.passes_qa;
+      if (passes === false) {
         questions[idx].qa_flagged = true;
         questions[idx].qa_issue = String(entry.issue || 'Flagged by automated QA').slice(0, 280);
       }
@@ -1119,7 +1180,7 @@ export const generateLessonsFromSubStrand = async (
       );
       const { text: shellText } = await generateContent({
         prompt: buildLessonShellPrompt(ctx, i + 1, total),
-        maxTokens: 8192,
+        maxTokens: GENERATION_TOKEN_LIMITS.lessonShell,
         label: `lesson ${i + 1} shell`,
         onWait: (msg) => reportProgress(onProgress, start, msg)
       });
@@ -1130,7 +1191,7 @@ export const generateLessonsFromSubStrand = async (
         await sleep(AI_CALL_GAP_MS);
         const { text: retryText } = await generateContent({
           prompt: buildLessonShellPrompt(ctx, i + 1, total),
-          maxTokens: 8192,
+          maxTokens: GENERATION_TOKEN_LIMITS.lessonShell,
           label: `lesson ${i + 1} shell retry`
         });
         const retryParsed = parseOneLessonJson(retryText, ctx, i);
@@ -1181,12 +1242,16 @@ export const generateLessonsFromSubStrand = async (
         }
         const quizExemplarsBlock = formatQuizExemplarsForPrompt(quizExemplars);
 
-        const avoidStems = bankQuestions.map((q) => String(q.question || ''));
         let chunkAdded = 0;
         for (let attempt = 0; attempt < 2; attempt++) {
           await sleep(AI_CALL_GAP_MS);
           let chunkText;
           try {
+            const attemptAvoidStems = bankQuestions.map((q) => String(q.question || ''));
+            const targetCount = Math.max(
+              MIN_CHUNK_QUESTIONS,
+              CHUNK_SIZE - chunkAdded
+            );
             const chunkResult = await generateContent({
               prompt: buildQuizChunkPrompt(
                 ctx,
@@ -1194,15 +1259,24 @@ export const generateLessonsFromSubStrand = async (
                 i + 1,
                 total,
                 chunk,
-                avoidStems,
-                quizExemplarsBlock
+                attemptAvoidStems,
+                quizExemplarsBlock,
+                targetCount
               ),
-              maxTokens: 8192,
+              maxTokens: GENERATION_TOKEN_LIMITS.quizChunk,
               label: `lesson ${i + 1} quiz ${chunk.label}`,
               onWait: (msg) =>
                 reportProgress(onProgress, start + span * (0.4 + 0.18 * c), msg)
             });
             chunkText = chunkResult.text;
+            if (
+              chunkResult.raw?.stop_reason === 'max_tokens' ||
+              chunkResult.outputTokens >= GENERATION_TOKEN_LIMITS.quizChunk - 32
+            ) {
+              console.warn(
+                `Lesson ${i + 1}: chunk "${chunk.label}" reached its ${GENERATION_TOKEN_LIMITS.quizChunk}-token output budget`
+              );
+            }
           } catch (chunkError) {
             // Quota fully exhausted or hard failure — keep what we have
             console.error(
@@ -1256,7 +1330,7 @@ export const generateLessonsFromSubStrand = async (
           const avoidStems = bankQuestions.map((q) => String(q.question || ''));
           const { text: gapText } = await generateContent({
             prompt: buildCoverageGapPrompt(ctx, shell, targetOutcomes, uncovered, avoidStems),
-            maxTokens: 8192,
+            maxTokens: GENERATION_TOKEN_LIMITS.coverageGap,
             label: `lesson ${i + 1} coverage gap`,
             onWait: (msg) => reportProgress(onProgress, start + span * 0.9, msg)
           });
@@ -1391,9 +1465,19 @@ export const topUpLessonQuizBank = async (lessonId) => {
     await sleep(AI_CALL_GAP_MS);
     let chunkText;
     try {
+      const targetCount = Math.min(CHUNK_SIZE, needed - newRaw.length);
       const chunkResult = await generateContent({
-        prompt: buildQuizChunkPrompt(ctx, shellLike, 1, 1, chunk, avoidStems, quizExemplarsBlock),
-        maxTokens: 8192,
+        prompt: buildQuizChunkPrompt(
+          ctx,
+          shellLike,
+          1,
+          1,
+          chunk,
+          avoidStems,
+          quizExemplarsBlock,
+          targetCount
+        ),
+        maxTokens: GENERATION_TOKEN_LIMITS.quizChunk,
         label: `top-up ${chunk.label}`
       });
       chunkText = chunkResult.text;

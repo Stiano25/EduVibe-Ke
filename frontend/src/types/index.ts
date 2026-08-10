@@ -140,7 +140,7 @@ export interface Note {
   subStrandId?: string // Optional link to sub-strand
   grade: Grade
   difficulty: Difficulty
-  content: string // Markdown content
+  content: string // Plain text; optional {{term:…}} / {{example:…}} emphasis
   images?: string[] // Array of image URLs (uploaded)
   videos?: {
     type: 'upload' | 'youtube' | 'vimeo'
@@ -222,7 +222,7 @@ export interface Lesson {
   tags: string[]
   duration: number // in minutes
   videoUrl?: string
-  content?: string // Markdown content
+  content?: string // Plain text; optional {{term:…}} / {{example:…}} emphasis
   images?: string[] // Array of image URLs
   videos?: {
     type: 'upload' | 'youtube' | 'vimeo'

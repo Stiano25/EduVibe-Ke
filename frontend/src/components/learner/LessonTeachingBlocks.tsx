@@ -80,12 +80,12 @@ export const LessonTeachingBlocks = ({
                 alt={asset.alt || brief?.brief || 'Lesson diagram'}
                 className="w-full h-auto object-contain max-h-72 bg-white"
               />
-              {(asset.skillFocus || brief?.skillFocus) && (
+              {(brief?.brief || asset.alt || asset.skillFocus || brief?.skillFocus) && (
                 <figcaption
-                  className="px-3 py-2 text-xs text-slate-600 border-t border-slate-200"
+                  className="px-3 py-2 text-xs italic text-slate-600 border-t border-slate-200 leading-relaxed"
                   style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
-                  {asset.skillFocus || brief?.skillFocus}
+                  {brief?.brief || asset.alt || asset.skillFocus || brief?.skillFocus}
                 </figcaption>
               )}
             </figure>

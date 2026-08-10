@@ -222,6 +222,11 @@ class ApiClient {
               percent?: number
               message?: string
               lessons?: unknown[]
+              usage?: {
+                calls?: number
+                inputTokens?: number
+                outputTokens?: number
+              }
             }
             if (payload.type === 'progress' || payload.percent != null) {
               onProgress?.({
@@ -231,9 +236,16 @@ class ApiClient {
             }
             if (payload.type === 'done') {
               lessons = payload.lessons || []
+              const usage = payload.usage
+              const totalTokens =
+                Number(usage?.inputTokens || 0) + Number(usage?.outputTokens || 0)
+              const usageSummary =
+                usage?.calls != null
+                  ? ` · ${usage.calls} AI calls · ${totalTokens.toLocaleString()} tokens`
+                  : ''
               onProgress?.({
                 percent: 100,
-                message: payload.message || 'Done',
+                message: `${payload.message || 'Done'}${usageSummary}`,
               })
             }
             if (payload.type === 'error') {

@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { MathText } from '@/components/ui/MathText'
+import { TapSelectOptions, type TapSelection } from './TapSelectOptions'
 import type { Lesson } from '@/types'
 
 type AdaptiveQuestion = {
@@ -132,7 +133,10 @@ export const AdaptiveQuizPanel = ({
   }
 
   /** Tap an option → submit immediately (no separate Submit button). */
-  const handleSelectAndSubmit = async (optionIndex: number) => {
+  const handleSelectAndSubmit = async ({
+    optionIndex,
+    responseTimeMs,
+  }: TapSelection) => {
     if (!session || !question || submitting || flash) return
     setSelected(optionIndex)
     setSubmitting(true)
@@ -141,6 +145,7 @@ export const AdaptiveQuizPanel = ({
       const res = (await api.learner.nextAdaptiveQuiz(lessonId, {
         session,
         selectedOptionIndex: optionIndex,
+        responseTimeMs,
       })) as {
         session: Record<string, unknown>
         question: AdaptiveQuestion | null
@@ -440,33 +445,14 @@ export const AdaptiveQuizPanel = ({
           className="text-lg font-bold text-[#0F172A]"
         />
 
-        <div className="space-y-2">
-          {question.options.map((opt, oi) => {
-            const isSel = selected === oi
-            const showFlash = flash && isSel
-            return (
-              <button
-                key={oi}
-                type="button"
-                disabled={submitting || !!flash}
-                onClick={() => handleSelectAndSubmit(oi)}
-                className={`w-full text-left p-4 rounded-[12px] border-2 transition-all ${
-                  showFlash
-                    ? flash.correct
-                      ? 'bg-emerald-100 border-emerald-400'
-                      : 'bg-red-100 border-red-400'
-                    : isSel
-                      ? 'bg-primary-50 border-primary-400'
-                      : 'bg-white border-slate-200 hover:border-primary-300'
-                }`}
-                 
-              >
-                <span className="font-semibold mr-2">{String.fromCharCode(65 + oi)}.</span>
-                <MathText text={opt} />
-              </button>
-            )
-          })}
-        </div>
+        <TapSelectOptions
+          questionKey={question.id}
+          options={question.options}
+          selectedIndex={selected}
+          disabled={submitting || !!flash}
+          feedback={flash}
+          onSelect={handleSelectAndSubmit}
+        />
 
         {flash && !flash.correct && flash.correctAnswerIndex != null && (
           <p className="text-xs text-emerald-800"  >

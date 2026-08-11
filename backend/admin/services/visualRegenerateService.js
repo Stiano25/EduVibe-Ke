@@ -1,5 +1,5 @@
 import { getModel } from '../../config/gemini.js';
-import { DIAGRAM_TYPES } from './diagramTemplates.js';
+import { coerceLabeledBoxesParams, DIAGRAM_TYPES } from './diagramTemplates.js';
 import { inferDiagramType } from './diagramService.js';
 
 const TYPE_LIST = [...DIAGRAM_TYPES].join('|');
@@ -58,11 +58,12 @@ Return ONLY JSON:
   if (!DIAGRAM_TYPES.has(diagramType)) {
     diagramType = inferred;
   }
+  const params = data.params && typeof data.params === 'object' ? data.params : {};
   return {
     diagramType,
     brief: String(data.brief || brief || `${diagramType} diagram`).slice(0, 240),
     skillFocus: String(data.skillFocus || skillFocus || 'concept').slice(0, 120),
-    params: data.params && typeof data.params === 'object' ? data.params : {},
+    params: diagramType === 'labeled_boxes' ? coerceLabeledBoxesParams(params) : params,
     source: 'template'
   };
 };

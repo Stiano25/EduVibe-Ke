@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import { twistAdditionQuestion } from '../../utils/additionTemplate.js';
+
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
 /** Modest nudge toward easier/harder items by mastery — keep low vs outcome/bloom bonuses. */
@@ -7,6 +10,25 @@ const DIFFICULTY_MATCH_BONUS = 5;
  * Modest by design — UI does not claim a majority “learning style” mix.
  */
 const MODALITY_MATCH_BONUS = 8;
+/** Placeholder heuristics until real Grade 1 Addition timing data is available. */
+export const TWIN_TIMING_HEURISTIC = Object.freeze({
+  minimumBaselineSamples: 2,
+  fastRatio: 0.35,
+  coldStartMs: 1200,
+  interveningMainQuestions: 2
+});
+
+const asResponseTimeMs = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? Math.min(Math.round(n), 3600000) : null;
+};
+
+const isAdditionTemplateQuestion = (question) =>
+  question?.template === true &&
+  question?.constraints?.operation === 'addition' &&
+  question?.params &&
+  Number.isFinite(Number(question.params.a)) &&
+  Number.isFinite(Number(question.params.b));
 
 const qid = (q, i) => q.id || `q-${i + 1}` || `question-${i}`;
 
@@ -106,7 +128,14 @@ const publicQuestion = (q, indexInBank, session = null) => {
     diagramBriefId: q.diagramBriefId || null,
     steps: q.steps || undefined,
     learningOutcomeIndex: q.learningOutcomeIndex,
-    learningOutcomeKey: q.learningOutcomeKey
+    learningOutcomeKey: q.learningOutcomeKey,
+    ...(q.isTwistedVariant
+      ? {
+          isTwistedVariant: true,
+          twinPairId: q.twinPairId,
+          twinOf: q.twinOf
+        }
+      : {})
     // Never send correctAnswerIndex during live attempt
   };
 };
@@ -311,6 +340,75 @@ const serveRetry = (bank, lesson, session) => {
   return next;
 };
 
+const fastAnswerTrigger = (session, responseTimeMs) => {
+  if (responseTimeMs === null) return false;
+  const samples = (session.additionTemplateResponseTimes || []).filter(Number.isFinite);
+  if (samples.length < TWIN_TIMING_HEURISTIC.minimumBaselineSamples) {
+    return responseTimeMs < TWIN_TIMING_HEURISTIC.coldStartMs;
+  }
+  const average = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+  return responseTimeMs < average * TWIN_TIMING_HEURISTIC.fastRatio;
+};
+
+const scheduleTwin = ({ session, lesson, question, questionId, correct, responseTimeMs }) => {
+  if (String(lesson?.grade) !== '1' || !isAdditionTemplateQuestion(question)) return null;
+  const triggerReason = !correct
+    ? 'incorrect'
+    : fastAnswerTrigger(session, responseTimeMs)
+      ? 'fast_correct'
+      : null;
+  if (!triggerReason) return null;
+
+  const twisted = twistAdditionQuestion(question);
+  if (!twisted.ok) {
+    console.warn(`[twin-consistency] ${questionId}: ${twisted.reason}`);
+    return null;
+  }
+
+  const pairId = randomUUID();
+  const twistId = `${questionId}-twin-${pairId.slice(0, 8)}`;
+  const twistQuestion = {
+    ...twisted.question,
+    id: twistId,
+    isTwistedVariant: true,
+    twinPairId: pairId,
+    twinOf: questionId,
+    diagramBriefId: null,
+    modality: 'practice',
+    steps: undefined
+  };
+  const entry = {
+    pairId,
+    originalQuestionId: questionId,
+    twistQuestionId: twistId,
+    triggerReason,
+    eligibleAfterMain:
+      session.mainAnswered + TWIN_TIMING_HEURISTIC.interveningMainQuestions + 1
+  };
+  session.twistedQuestions[twistId] = twistQuestion;
+  session.twinQueue.push(entry);
+  session.twinPairs.push({
+    ...entry,
+    originalParams: question.params,
+    twistParams: twistQuestion.params,
+    originalResult: { correct, responseTimeMs },
+    twistResult: null
+  });
+  return entry;
+};
+
+const serveTwin = (session, { force = false } = {}) => {
+  const index = session.twinQueue.findIndex(
+    (entry) => force || session.mainAnswered >= entry.eligibleAfterMain
+  );
+  if (index < 0) return null;
+  const [entry] = session.twinQueue.splice(index, 1);
+  const question = session.twistedQuestions[entry.twistQuestionId];
+  if (!question) return null;
+  session.currentTwinPairId = entry.pairId;
+  return { q: question, i: -1, id: entry.twistQuestionId };
+};
+
 /** First-try (main phase) score only — retries excluded from percentage (Option C). */
 const firstTryScore = (session) => {
   const total = session.mainScoreTotal || 0;
@@ -342,7 +440,7 @@ export const createAdaptiveSession = ({
   const mainTarget = targetMainLength(bank.length);
   const session = {
     lessonId: lesson.id,
-    phase: 'main', // main | retry | done
+    phase: 'main', // main | twin | retry | done
     mainTarget,
     mainAnswered: 0,
     usedIds: [],
@@ -361,7 +459,13 @@ export const createAdaptiveSession = ({
     // Persisted into session_review + adaptive_modality_signal_log on complete
     modalitySignalLog: [],
     // displayIndex → originalIndex per questionId (for shuffled options)
-    optionOrders: {}
+    optionOrders: {},
+    // Twin-consistency is Addition-template-only in Phase 1.
+    additionTemplateResponseTimes: [],
+    twinQueue: [],
+    twinPairs: [],
+    twistedQuestions: {},
+    currentTwinPairId: null
   };
 
   const masteryMap = masteryByKey(masteryRows);
@@ -405,6 +509,7 @@ export const advanceAdaptiveSession = ({
   session: rawSession,
   lesson,
   selectedOptionIndex,
+  responseTimeMs: rawResponseTimeMs,
   masteryRows = [],
   modalitySuccessMap = new Map()
 }) => {
@@ -421,15 +526,23 @@ export const advanceAdaptiveSession = ({
     mainScoreCorrect: rawSession.mainScoreCorrect ?? 0,
     mainScoreTotal: rawSession.mainScoreTotal ?? 0,
     modalitySignalLog: [...(rawSession.modalitySignalLog || [])],
-    optionOrders: { ...(rawSession.optionOrders || {}) }
+    optionOrders: { ...(rawSession.optionOrders || {}) },
+    additionTemplateResponseTimes: [...(rawSession.additionTemplateResponseTimes || [])],
+    twinQueue: [...(rawSession.twinQueue || [])],
+    twinPairs: (rawSession.twinPairs || []).map((pair) => ({ ...pair })),
+    twistedQuestions: { ...(rawSession.twistedQuestions || {}) },
+    currentTwinPairId: rawSession.currentTwinPairId || null
   };
 
   const currentId = session.currentQuestionId;
   const idx = findBankIndex(bank, currentId);
-  if (idx < 0) {
+  const isTwin = session.phase === 'twin';
+  if (idx < 0 && !isTwin) {
     throw new Error('Current question not found in bank');
   }
-  const question = bank[idx];
+  const question = isTwin ? session.twistedQuestions[currentId] : bank[idx];
+  if (!question) throw new Error('Current question payload not found');
+  const responseTimeMs = asResponseTimeMs(rawResponseTimeMs);
   const selectedDisplay = Number(selectedOptionIndex);
   const order = session.optionOrders?.[currentId];
   const selectedOriginal =
@@ -444,7 +557,22 @@ export const advanceAdaptiveSession = ({
       : bankCorrect;
   const learningOutcomeKey = outcomeKeyOf(question, lesson);
   const bloomLevel = question.bloomLevel || 'understand';
-  const phase = session.phase === 'retry' ? 'retry' : 'main';
+  const phase = isTwin ? 'twin' : session.phase === 'retry' ? 'retry' : 'main';
+  const scheduledTwin =
+    phase === 'main'
+      ? scheduleTwin({
+          session,
+          lesson,
+          question,
+          questionId: currentId,
+          correct,
+          responseTimeMs
+        })
+      : null;
+  const twinPairId = isTwin ? session.currentTwinPairId : scheduledTwin?.pairId || null;
+  const twinPair = twinPairId
+    ? session.twinPairs.find((pair) => pair.pairId === twinPairId)
+    : null;
 
   const answerRecord = {
     questionId: currentId,
@@ -455,36 +583,59 @@ export const advanceAdaptiveSession = ({
     learningOutcomeKey,
     bloomLevel,
     modality: question.modality || null,
-    skillFocus: question.skillFocus || null
+    skillFocus: question.skillFocus || null,
+    responseTimeMs,
+    ...(twinPairId
+      ? {
+          twinPairId,
+          twinRole: isTwin ? 'twist' : 'original',
+          twinTriggerReason: twinPair?.triggerReason || scheduledTwin?.triggerReason || null,
+          sourceQuestionId: isTwin ? question.twinOf : currentId,
+          questionParams: question.params || null
+        }
+      : {}),
+    ...(isTwin ? { questionSnapshot: question } : {})
   };
 
   session.answered.push(answerRecord);
+
+  if (
+    phase === 'main' &&
+    String(lesson?.grade) === '1' &&
+    isAdditionTemplateQuestion(question) &&
+    responseTimeMs !== null
+  ) {
+    session.additionTemplateResponseTimes.push(responseTimeMs);
+  }
+  if (isTwin && twinPair) {
+    twinPair.twistResult = { correct, responseTimeMs };
+  }
 
   if (phase === 'main') {
     session.mainScoreTotal += 1;
     if (correct) session.mainScoreCorrect += 1;
   }
 
-  session.lastAttempt = answerRecord;
+  if (!isTwin) session.lastAttempt = answerRecord;
 
   if (!session.coveredOutcomes.includes(learningOutcomeKey)) {
     session.coveredOutcomes.push(learningOutcomeKey);
   }
 
-  if (!correct) {
+  if (!correct && !isTwin) {
     session.outcomeFailStreak[learningOutcomeKey] =
       (session.outcomeFailStreak[learningOutcomeKey] || 0) + 1;
     if (phase === 'main' && !session.failQueue.includes(currentId)) {
       session.failQueue.push(currentId);
     }
-  } else {
+  } else if (!isTwin) {
     session.outcomeFailStreak[learningOutcomeKey] = 0;
   }
 
   if (phase === 'main') {
     if (!session.usedIds.includes(currentId)) session.usedIds.push(currentId);
     session.mainAnswered += 1;
-  } else {
+  } else if (phase === 'retry') {
     // A sibling may have been served for the failed question — clear the
     // ORIGINAL failed id, not just the served one.
     const retryFor = session.currentRetryFor || currentId;
@@ -493,6 +644,8 @@ export const advanceAdaptiveSession = ({
       (id) => id !== retryFor && id !== currentId
     );
     session.currentRetryFor = null;
+  } else {
+    session.currentTwinPairId = null;
   }
 
   const masteryMap = masteryByKey(masteryRows);
@@ -500,11 +653,15 @@ export const advanceAdaptiveSession = ({
   let nextPhase = session.phase;
   let modalitySignal = { source: 'none', modality: null };
 
-  if (session.phase === 'main') {
+  if (phase === 'main' || phase === 'twin') {
     const mainDone = session.mainAnswered >= session.mainTarget;
     const noMoreUnused = bank.every((q, i) => session.usedIds.includes(qid(q, i)));
     if (mainDone || noMoreUnused) {
-      if (session.failQueue.length > 0) {
+      next = serveTwin(session, { force: true });
+      if (next) {
+        nextPhase = 'twin';
+        session.phase = 'twin';
+      } else if (session.failQueue.length > 0) {
         nextPhase = 'retry';
         session.phase = 'retry';
         next = serveRetry(bank, lesson, session);
@@ -513,17 +670,34 @@ export const advanceAdaptiveSession = ({
         session.phase = 'done';
       }
     } else {
-      next = pickNextMain(
-        session,
-        lesson,
-        masteryMap,
-        session.preferredModality,
-        modalitySuccessMap
-      );
-      if (next?.modalitySignal) modalitySignal = next.modalitySignal;
-      if (next) pushModalitySignalLog(session, next, lesson);
+      // Never serve a twin immediately after its original. Once due, it may
+      // interrupt the main path; after a twin, return to a normal main item.
+      if (phase === 'main') {
+        next = serveTwin(session);
+        if (next) {
+          nextPhase = 'twin';
+          session.phase = 'twin';
+        }
+      }
       if (!next) {
-        if (session.failQueue.length > 0) {
+        next = pickNextMain(
+          session,
+          lesson,
+          masteryMap,
+          session.preferredModality,
+          modalitySuccessMap
+        );
+        nextPhase = 'main';
+        session.phase = 'main';
+        if (next?.modalitySignal) modalitySignal = next.modalitySignal;
+        if (next) pushModalitySignalLog(session, next, lesson);
+      }
+      if (!next) {
+        next = serveTwin(session, { force: true });
+        if (next) {
+          nextPhase = 'twin';
+          session.phase = 'twin';
+        } else if (session.failQueue.length > 0) {
           nextPhase = 'retry';
           session.phase = 'retry';
           next = serveRetry(bank, lesson, session);
@@ -552,7 +726,7 @@ export const advanceAdaptiveSession = ({
 
   if (next) {
     session.currentQuestionId = next.id;
-    session.phase = nextPhase === 'retry' ? 'retry' : 'main';
+    session.phase = nextPhase;
   } else {
     session.currentQuestionId = null;
     session.phase = 'done';
@@ -567,6 +741,8 @@ export const advanceAdaptiveSession = ({
     progressLabel = 'Complete';
   } else if (session.phase === 'retry') {
     progressLabel = `Retry ${Math.min(retryIndex, Math.max(retryTotal, 1))} of ${Math.max(retryTotal, 1)}`;
+  } else if (session.phase === 'twin') {
+    progressLabel = 'Practice check';
   } else {
     progressLabel = `Question ${session.mainAnswered + 1} of ${session.mainTarget}`;
   }
@@ -579,6 +755,7 @@ export const advanceAdaptiveSession = ({
         score: finalScore,
         // Queryable copy of selection signals (also written to adaptive_modality_signal_log)
         modalitySignals: session.modalitySignalLog || [],
+        twinPairs: session.twinPairs || [],
         completedAt: new Date().toISOString()
       }
     : null;
@@ -600,7 +777,8 @@ export const advanceAdaptiveSession = ({
       progressLabel,
       done,
       score: finalScore,
-      modalitySignal
+      modalitySignal,
+      twinPending: session.twinQueue.length
     },
     review: reviewPayload,
     attemptContext: {
@@ -609,7 +787,14 @@ export const advanceAdaptiveSession = ({
       selected: selectedOriginal,
       correct,
       learningOutcomeKey,
-      bloomLevel
+      bloomLevel,
+      responseTimeMs,
+      isTwin,
+      twinPairId,
+      twinRole: twinPairId ? (isTwin ? 'twist' : 'original') : null,
+      twinTriggerReason: twinPair?.triggerReason || scheduledTwin?.triggerReason || null,
+      sourceQuestionId: isTwin ? question.twinOf : currentId,
+      questionParams: question.params || null
     }
   };
 };
@@ -627,8 +812,8 @@ export const buildReviewView = (lesson, sessionReview) => {
   const items = [];
   for (const [questionId, a] of byId.entries()) {
     const idx = findBankIndex(bank, questionId);
-    if (idx < 0) continue;
-    const q = bank[idx];
+    const q = idx >= 0 ? bank[idx] : a.questionSnapshot;
+    if (!q) continue;
     const displayed = applyStoredOrder(q, a.optionOrder);
     items.push({
       id: questionId,
@@ -654,6 +839,7 @@ export const buildReviewView = (lesson, sessionReview) => {
     items,
     score: sessionReview?.score || null,
     modalitySignals: sessionReview?.modalitySignals || [],
+    twinPairs: sessionReview?.twinPairs || [],
     completedAt: sessionReview?.completedAt || null
   };
 };

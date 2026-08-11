@@ -197,9 +197,13 @@ export const isPlaceholderLabeledItems = (items) => {
 export const coerceLabeledBoxesParams = (params = {}) => {
   const p = params && typeof params === 'object' ? { ...params } : {};
   let items = Array.isArray(p.items) ? [...p.items] : [];
-  if (isPlaceholderLabeledItems(items)) items = [];
+  const hasBoxes = Array.isArray(p.boxes) && p.boxes.length > 0;
+  const itemsAreDefaultShell =
+    items.length > 0 &&
+    items.every((it) => /^(Idea|Concept)$/i.test(String(it?.label ?? '').trim()));
+  if (isPlaceholderLabeledItems(items) || (hasBoxes && itemsAreDefaultShell)) items = [];
 
-  if (items.length === 0 && Array.isArray(p.boxes) && p.boxes.length > 0) {
+  if (items.length === 0 && hasBoxes) {
     const labelsArr = Array.isArray(p.labels) ? p.labels : [];
     const boxesAreStrings = p.boxes.every((b) => typeof b === 'string');
     items = p.boxes.map((b, i) => {
@@ -299,7 +303,7 @@ const wrapSvgWords = (raw = '', charsPerLine = 14) => {
     }
   }
   if (cur) lines.push(cur);
-  return lines.slice(0, 4);
+  return lines;
 };
 
 /** Process flow: steps string[] — wrap step text instead of truncating. */

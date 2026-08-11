@@ -267,7 +267,14 @@ const recordOneAttempt = async ({
   learningOutcomeKey,
   bloomLevel,
   modalityShown,
-  profile
+  profile,
+  responseTimeMs,
+  isTwin = false,
+  twinPairId = null,
+  twinRole = null,
+  twinTriggerReason = null,
+  sourceQuestionId = null,
+  questionParams = null
 }) => {
   const shown = modalityShown || profile.preferredModality || 'mixed';
 
@@ -318,18 +325,27 @@ const recordOneAttempt = async ({
     selectedOptionIndex: selected,
     misconceptionKey: correct ? null : distractor?.misconception || null,
     modalityShown: shown,
-    attemptInSkillStreak
+    attemptInSkillStreak,
+    responseTimeMs,
+    twinPairId,
+    twinRole,
+    twinTriggerReason,
+    sourceQuestionId,
+    questionParams
   });
 
-  await SkillMastery.upsertFromAttempt({
-    userId,
-    learningOutcomeKey,
-    skillFocus: question.skillFocus || learningOutcomeKey,
-    gradeLevel: lesson.grade,
-    correct,
-    consecutiveFails: correct ? 0 : attemptInSkillStreak,
-    modalityShown: shown
-  });
+  // Twin results are diagnostic evidence only in Phase 1.
+  if (!isTwin) {
+    await SkillMastery.upsertFromAttempt({
+      userId,
+      learningOutcomeKey,
+      skillFocus: question.skillFocus || learningOutcomeKey,
+      gradeLevel: lesson.grade,
+      correct,
+      consecutiveFails: correct ? 0 : attemptInSkillStreak,
+      modalityShown: shown
+    });
+  }
 
   return { attemptInSkillStreak, distractor };
 };
@@ -404,7 +420,7 @@ export const nextAdaptiveQuiz = async (req, res) => {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const lessonId = req.params.lessonId;
-    const { session, selectedOptionIndex } = req.body || {};
+    const { session, selectedOptionIndex, responseTimeMs } = req.body || {};
     if (!session || selectedOptionIndex === undefined || selectedOptionIndex === null) {
       return res.status(400).json({ error: 'session and selectedOptionIndex are required' });
     }
@@ -433,6 +449,7 @@ export const nextAdaptiveQuiz = async (req, res) => {
       session: stripSignature(session),
       lesson,
       selectedOptionIndex,
+      responseTimeMs,
       masteryRows,
       modalitySuccessMap
     });
@@ -450,7 +467,14 @@ export const nextAdaptiveQuiz = async (req, res) => {
         bloomLevel: attemptContext.bloomLevel,
         modalityShown:
           attemptContext.question.modality || profile.preferredModality || 'mixed',
-        profile
+        profile,
+        responseTimeMs: attemptContext.responseTimeMs,
+        isTwin: attemptContext.isTwin,
+        twinPairId: attemptContext.twinPairId,
+        twinRole: attemptContext.twinRole,
+        twinTriggerReason: attemptContext.twinTriggerReason,
+        sourceQuestionId: attemptContext.sourceQuestionId,
+        questionParams: attemptContext.questionParams
       });
     }
 

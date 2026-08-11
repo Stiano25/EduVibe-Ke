@@ -3,6 +3,10 @@ import { SubStrand } from '../../models/SubStrand.js';
 import { Strand } from '../../models/Strand.js';
 import { Subject } from '../../models/Subject.js';
 import { outcomeKey, normalizeOutcomeText } from '../../utils/outcomeKey.js';
+import {
+  isGradeOneAdditionContext,
+  normalizeAdditionTemplateQuestion
+} from '../../utils/additionTemplate.js';
 import { DIAGRAM_TYPES, coerceLabeledBoxesParams } from './diagramTemplates.js';
 import { inferDiagramType } from './diagramService.js';
 import {
@@ -182,7 +186,7 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
  * Build a dedicated brief per visual question (never reuse teaching vb-1/vb-2).
  * Returns { questions, questionBriefs, title, passingScore, timeLimit }.
  */
-export const normalizeQuiz = (quiz, outcomes, profile) => {
+export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = false } = {}) => {
   if (!quiz || !Array.isArray(quiz.questions)) {
     return {
       title: 'Quiz Challenge',
@@ -195,7 +199,22 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
 
   const questionBriefs = [];
 
-  const questions = quiz.questions.map((q, qi) => {
+  const questions = quiz.questions.map((rawQuestion, qi) => {
+    let q = rawQuestion || {};
+    if (additionTemplates && q.template === true) {
+      const normalizedTemplate = normalizeAdditionTemplateQuestion(q);
+      if (normalizedTemplate.valid) {
+        q = normalizedTemplate.question;
+        if (normalizedTemplate.repairedDistractors) {
+          console.warn(`Addition template ${q.id || qi + 1}: repaired invalid distractor formulas`);
+        }
+      } else {
+        console.warn(
+          `Addition template ${q.id || qi + 1}: disabled (${normalizedTemplate.reason || 'invalid'})`
+        );
+        q = { ...q, template: false };
+      }
+    }
     const options = Array.isArray(q.options) ? q.options.map(String) : [];
     let outcomeIndex = Number(q.learningOutcomeIndex);
     if (!Number.isFinite(outcomeIndex) || outcomeIndex < 1 || outcomeIndex > outcomes.length) {
@@ -345,6 +364,17 @@ export const normalizeQuiz = (quiz, outcomes, profile) => {
       modality,
       diagramBriefId: modality === 'visual' ? diagramBriefId : null,
       steps: modality === 'text_steps' ? steps || [] : undefined,
+      ...(q.template === true
+        ? {
+            template: true,
+            templateVersion: Number(q.templateVersion) || 1,
+            questionText: q.questionText,
+            params: q.params,
+            constraints: q.constraints,
+            answerFormula: q.answerFormula,
+            distractorFormulas: q.distractorFormulas
+          }
+        : {}),
       ...(q.flagged_near_duplicate ? { flagged_near_duplicate: true } : {}),
       ...(q.coverage_remapped ? { coverage_remapped: true } : {}),
       ...(q.qa_flagged ? { qa_flagged: true, qa_issue: q.qa_issue || null } : {})
@@ -532,9 +562,9 @@ const MIN_CHUNK_QUESTIONS = 6;
  */
 export const GENERATION_TOKEN_LIMITS = Object.freeze({
   lessonShell: 2500,
-  quizChunk: 6000,
+  quizChunk: 20000,
   coverageGap: 2200,
-  quizQa: 1800
+  quizQa: 3000
 });
 
 /** Bloom-banded chunk specs — together they form the outcome × bloom × modality matrix. */
@@ -839,6 +869,25 @@ const buildQuizChunkPrompt = (
           .map((s) => `- ${s.slice(0, 80)}`)
           .join('\n')}\n`
       : '';
+  const additionTemplateBlock = isGradeOneAdditionContext(ctx)
+    ? `
+GRADE 1 ADDITION TEMPLATE SLICE:
+- For every TWO-OPERAND addition question, set template:true and include:
+  questionText with both {a} and {b}; params:{a,b}; constraints; answerFormula:"a + b";
+  distractorFormulas with at least 3 {id,formula,misconception} entries.
+- Keep "question" and "options" rendered with the initial params for review.
+- Derive constraints from the exact outcome:
+  * two single digits: a:[1,9], b:[1,9], sumMax:10
+  * two-digit + one-digit without regrouping: a:[10,99], b:[1,9], sumMax:100, noRegrouping:true
+  * multiples of ten: a:[10,90], b:[10,90], aStep:10, bStep:10, sumMax:100
+- Always include operation:"addition". Never exceed the outcome's sum limit.
+- Formula results must be non-negative integers and never duplicate the correct answer or each other
+  for ANY valid pair in the constraint range. Safe examples are a+b-1, a+b+1 and a+b+2.
+- Three-addend and missing-pattern questions are not supported by this Phase 1 template engine:
+  set template:false and omit all template-only fields for those questions.
+- Include at least 4 valid template:true questions in this chunk when the selected outcomes permit it.
+`
+    : '';
   return `Create PART "${chunk.label}" of the adaptive QUIZ BANK for Kenyan CBC lesson "${title}" (lesson ${lessonIndex} of ${totalLessons}, Grade ${ctx.grade}).
 
 Outcomes:
@@ -868,6 +917,7 @@ Visual questions MUST include "diagram": { "diagramType": one of ${diagramTypeLi
 text_steps questions MUST include steps[] (max 3 short steps).
 NEVER reuse vb-1/vb-2 for quiz diagrams.
 Match diagram type to topic. Diagram content must match the question exactly (same numbers, words, steps).
+${additionTemplateBlock}
 ${profile.mathRule}
 Keep every string concise. Return complete valid JSON only — do not truncate. No markdown fences.`;
 };
@@ -1099,7 +1149,8 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
   const quizResult = normalizeQuiz(
     lesson.quiz,
     learningObjectives.length ? learningObjectives : sourceOutcomes,
-    ctx.profile
+    ctx.profile,
+    { additionTemplates: isGradeOneAdditionContext(ctx) }
   );
   const outcomesForQuiz = learningObjectives.length ? learningObjectives : sourceOutcomes;
   const { questionBriefs, ...quizNormalized } = quizResult;
@@ -1269,14 +1320,6 @@ export const generateLessonsFromSubStrand = async (
                 reportProgress(onProgress, start + span * (0.4 + 0.18 * c), msg)
             });
             chunkText = chunkResult.text;
-            if (
-              chunkResult.raw?.stop_reason === 'max_tokens' ||
-              chunkResult.outputTokens >= GENERATION_TOKEN_LIMITS.quizChunk - 32
-            ) {
-              console.warn(
-                `Lesson ${i + 1}: chunk "${chunk.label}" reached its ${GENERATION_TOKEN_LIMITS.quizChunk}-token output budget`
-              );
-            }
           } catch (chunkError) {
             // Quota fully exhausted or hard failure — keep what we have
             console.error(
@@ -1519,7 +1562,9 @@ export const topUpLessonQuizBank = async (lessonId) => {
     return { ...q, id: `q-${idCounter}` };
   });
 
-  const normalized = normalizeQuiz({ questions: rawWithIds }, outcomes, ctx.profile);
+  const normalized = normalizeQuiz({ questions: rawWithIds }, outcomes, ctx.profile, {
+    additionTemplates: isGradeOneAdditionContext(ctx)
+  });
 
   // QA only the newly added batch (existing questions already reviewed / flagged)
   if (isQuizQaEnabled() && normalized.questions.length > 0) {

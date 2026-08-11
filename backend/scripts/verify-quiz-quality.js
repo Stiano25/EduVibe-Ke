@@ -41,9 +41,12 @@ assert(
   'normalizeQuiz maps hard→advanced'
 );
 assert(
-  GENERATION_TOKEN_LIMITS.quizChunk < 8192 &&
+  GENERATION_TOKEN_LIMITS.lessonShell === 2500 &&
+    GENERATION_TOKEN_LIMITS.quizChunk === 20000 &&
+    GENERATION_TOKEN_LIMITS.coverageGap === 2200 &&
+    GENERATION_TOKEN_LIMITS.quizQa === 3000 &&
     GENERATION_TOKEN_LIMITS.quizQa < GENERATION_TOKEN_LIMITS.quizChunk,
-  'generation phases use bounded token budgets'
+  'generation phases use evidence-based token budgets'
 );
 
 const compactNormalized = normalizeQuiz(

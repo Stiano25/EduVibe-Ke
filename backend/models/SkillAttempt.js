@@ -1,50 +1,72 @@
 import { getDbClient } from '../config/supabase.js';
 import { oneOrNull } from '../utils/dbResult.js';
 
+const isMissingTwinColumn = (error) =>
+  error &&
+  (error.code === '42703' ||
+    error.code === 'PGRST204' ||
+    /twin_role|twin_pair_id|response_time_ms|question_params/i.test(error.message || ''));
+
+const baseAttemptRow = (row) => ({
+  user_id: row.userId,
+  lesson_id: row.lessonId,
+  question_id: row.questionId,
+  learning_outcome_key: row.learningOutcomeKey,
+  skill_focus: row.skillFocus || null,
+  grade_level: row.gradeLevel || null,
+  bloom_level: row.bloomLevel || null,
+  correct: row.correct,
+  selected_option_index: row.selectedOptionIndex ?? null,
+  misconception_key: row.misconceptionKey || null,
+  modality_shown: row.modalityShown || 'mixed',
+  attempt_in_skill_streak: row.attemptInSkillStreak || 1,
+  created_at: new Date().toISOString()
+});
+
+const diagnosticAttemptFields = (row) => ({
+  response_time_ms: row.responseTimeMs ?? null,
+  twin_pair_id: row.twinPairId || null,
+  twin_role: row.twinRole || null,
+  twin_trigger_reason: row.twinTriggerReason || null,
+  source_question_id: row.sourceQuestionId || null,
+  question_params: row.questionParams || null
+});
+
 export class SkillAttempt {
   static tableName = 'skill_attempts';
 
   static async create(row) {
-    const { data, error } = await getDbClient()
+    const db = getDbClient();
+    const payload = { ...baseAttemptRow(row), ...diagnosticAttemptFields(row) };
+    let { data, error } = await db
       .from(this.tableName)
-      .insert({
-        user_id: row.userId,
-        lesson_id: row.lessonId,
-        question_id: row.questionId,
-        learning_outcome_key: row.learningOutcomeKey,
-        skill_focus: row.skillFocus || null,
-        grade_level: row.gradeLevel || null,
-        bloom_level: row.bloomLevel || null,
-        correct: row.correct,
-        selected_option_index: row.selectedOptionIndex ?? null,
-        misconception_key: row.misconceptionKey || null,
-        modality_shown: row.modalityShown || 'mixed',
-        attempt_in_skill_streak: row.attemptInSkillStreak || 1,
-        created_at: new Date().toISOString()
-      })
+      .insert(payload)
       .select()
       .single();
 
+    if (error && isMissingTwinColumn(error)) {
+      if (row.twinRole === 'twist') {
+        console.warn('[twin-consistency] migration missing; twist retained in session_review only');
+        return null;
+      }
+      ({ data, error } = await db.from(this.tableName).insert(baseAttemptRow(row)).select().single());
+    }
     if (error) throw error;
     return this.mapToModel(data);
   }
 
   static async createMany(rows) {
     if (!rows?.length) return [];
+    const hasDiagnostics = rows.some(
+      (row) =>
+        row.responseTimeMs !== undefined ||
+        row.twinPairId ||
+        row.twinRole ||
+        row.questionParams
+    );
     const insertData = rows.map((row) => ({
-      user_id: row.userId,
-      lesson_id: row.lessonId,
-      question_id: row.questionId,
-      learning_outcome_key: row.learningOutcomeKey,
-      skill_focus: row.skillFocus || null,
-      grade_level: row.gradeLevel || null,
-      bloom_level: row.bloomLevel || null,
-      correct: row.correct,
-      selected_option_index: row.selectedOptionIndex ?? null,
-      misconception_key: row.misconceptionKey || null,
-      modality_shown: row.modalityShown || 'mixed',
-      attempt_in_skill_streak: row.attemptInSkillStreak || 1,
-      created_at: new Date().toISOString()
+      ...baseAttemptRow(row),
+      ...(hasDiagnostics ? diagnosticAttemptFields(row) : {})
     }));
 
     const { data, error } = await getDbClient()
@@ -57,15 +79,27 @@ export class SkillAttempt {
   }
 
   static async countRecentFails(userId, learningOutcomeKey, gradeLevel) {
-    const { data, error } = await getDbClient()
+    const db = getDbClient();
+    let { data, error } = await db
       .from(this.tableName)
       .select('id, correct, created_at')
       .eq('user_id', userId)
       .eq('learning_outcome_key', learningOutcomeKey)
       .eq('grade_level', gradeLevel)
+      .or('twin_role.is.null,twin_role.neq.twist')
       .order('created_at', { ascending: false })
       .limit(10);
 
+    if (error && isMissingTwinColumn(error)) {
+      ({ data, error } = await db
+        .from(this.tableName)
+        .select('id, correct, created_at')
+        .eq('user_id', userId)
+        .eq('learning_outcome_key', learningOutcomeKey)
+        .eq('grade_level', gradeLevel)
+        .order('created_at', { ascending: false })
+        .limit(10));
+    }
     if (error) throw error;
     let streak = 0;
     for (const row of data || []) {
@@ -77,14 +111,25 @@ export class SkillAttempt {
 
   /** Recent attempts for one learner/outcome, newest first. */
   static async listByUserOutcome(userId, learningOutcomeKey, { limit = 40 } = {}) {
-    const { data, error } = await getDbClient()
+    const db = getDbClient();
+    let { data, error } = await db
       .from(this.tableName)
       .select('*')
       .eq('user_id', userId)
       .eq('learning_outcome_key', learningOutcomeKey)
+      .or('twin_role.is.null,twin_role.neq.twist')
       .order('created_at', { ascending: false })
       .limit(limit);
 
+    if (error && isMissingTwinColumn(error)) {
+      ({ data, error } = await db
+        .from(this.tableName)
+        .select('*')
+        .eq('user_id', userId)
+        .eq('learning_outcome_key', learningOutcomeKey)
+        .order('created_at', { ascending: false })
+        .limit(limit));
+    }
     if (error) throw error;
     return (data || []).map((row) => this.mapToModel(row));
   }
@@ -145,13 +190,23 @@ export class SkillAttempt {
     for (const k of keys) result.set(k, null);
     if (!keys.length) return result;
 
-    const { data, error } = await getDbClient()
+    const db = getDbClient();
+    let { data, error } = await db
       .from(this.tableName)
       .select('learning_outcome_key, modality_shown, correct, created_at')
       .eq('user_id', userId)
       .in('learning_outcome_key', keys)
+      .or('twin_role.is.null,twin_role.neq.twist')
       .order('created_at', { ascending: false });
 
+    if (error && isMissingTwinColumn(error)) {
+      ({ data, error } = await db
+        .from(this.tableName)
+        .select('learning_outcome_key, modality_shown, correct, created_at')
+        .eq('user_id', userId)
+        .in('learning_outcome_key', keys)
+        .order('created_at', { ascending: false }));
+    }
     if (error) throw error;
 
     const byOutcome = new Map();
@@ -194,6 +249,12 @@ export class SkillAttempt {
       misconceptionKey: data.misconception_key,
       modalityShown: data.modality_shown,
       attemptInSkillStreak: data.attempt_in_skill_streak,
+      responseTimeMs: data.response_time_ms,
+      twinPairId: data.twin_pair_id,
+      twinRole: data.twin_role,
+      twinTriggerReason: data.twin_trigger_reason,
+      sourceQuestionId: data.source_question_id,
+      questionParams: data.question_params,
       createdAt: data.created_at
     };
   }

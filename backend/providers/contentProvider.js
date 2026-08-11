@@ -56,10 +56,15 @@ export const runWithGenerationUsage = async (fn) => {
   });
 };
 
-const recordUsage = (provider, result, label) => {
+const recordUsage = (provider, result, label, maxTokens) => {
   const session = activeUsage();
   const inputTokens = Number(result?.inputTokens) || 0;
   const outputTokens = Number(result?.outputTokens) || 0;
+  const tokenLimit = Number(maxTokens) || null;
+  const stopReason = result?.raw?.stop_reason || null;
+  const reachedTokenLimit =
+    stopReason === 'max_tokens' ||
+    (tokenLimit !== null && outputTokens >= Math.max(0, tokenLimit - 32));
   session.calls += 1;
   session.inputTokens += inputTokens;
   session.outputTokens += outputTokens;
@@ -67,8 +72,17 @@ const recordUsage = (provider, result, label) => {
     provider,
     label: label || '-',
     inputTokens,
-    outputTokens
+    outputTokens,
+    maxTokens: tokenLimit,
+    stopReason,
+    reachedTokenLimit
   });
+  if (reachedTokenLimit) {
+    console.warn(
+      `[generation] label=${label || '-'} reached output budget ` +
+        `(out=${outputTokens}, max=${tokenLimit ?? 'unknown'}, stop=${stopReason ?? 'unknown'})`
+    );
+  }
 };
 
 export const getGenerationProvider = () => {
@@ -100,6 +114,6 @@ export const generateContent = async (options = {}) => {
     result = await claudeProvider.generateContent(options);
   }
 
-  recordUsage(used, result, options.label);
+  recordUsage(used, result, options.label, options.maxTokens);
   return result;
 };

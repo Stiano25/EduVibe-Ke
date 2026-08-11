@@ -422,7 +422,11 @@ class ApiClient {
       this.request(`/learner/lessons/${lessonId}/adaptive-start`, { method: 'POST' }),
     nextAdaptiveQuiz: (
       lessonId: string,
-      data: { session: Record<string, unknown>; selectedOptionIndex: number }
+      data: {
+        session: Record<string, unknown>
+        selectedOptionIndex: number
+        responseTimeMs: number
+      }
     ) =>
       this.request(`/learner/lessons/${lessonId}/adaptive-next`, {
         method: 'POST',

@@ -5,6 +5,8 @@ import { Lesson } from '../../models/Lesson.js';
 import { findSimilarLessonsWithAI } from '../../admin/services/aiService.js';
 import { User } from '../../models/User.js';
 import { getDbClient } from '../../config/supabase.js';
+import { progressMeetsUnlock } from '../../utils/lessonUnlock.js';
+import { loadStrandUnitUnlock } from '../services/unitGatingService.js';
 
 const GRADE_ORDER = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
@@ -286,11 +288,37 @@ export const getLearnerLesson = async (req, res) => {
       .eq('lesson_id', lesson.id)
       .maybeSingle();
 
+    let isUnlocked = true;
+    if (lesson.subStrandId) {
+      const substrand = await SubStrand.findById(lesson.subStrandId);
+      if (substrand) {
+        const { flagsById } = await loadStrandUnitUnlock(userId, substrand.strandId);
+        isUnlocked = flagsById.get(substrand.id) !== false;
+        if (isUnlocked) {
+          const siblings = (await Lesson.findBySubStrand(substrand.id))
+            .filter((l) => l.status === 'approved')
+            .sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
+          const index = siblings.findIndex((l) => l.id === lesson.id);
+          if (index > 0) {
+            const prev = siblings[index - 1];
+            const { data: prevProgress } = await db
+              .from('lesson_progress')
+              .select('progress, completed')
+              .eq('user_id', userId)
+              .eq('lesson_id', prev.id)
+              .maybeSingle();
+            isUnlocked = progressMeetsUnlock(prevProgress);
+          }
+        }
+      }
+    }
+
     res.json({
       ...lesson,
       quiz: sanitizeQuizForLearner(lesson.quiz),
       progress: progress?.progress ?? 0,
       isCompleted: !!progress?.completed,
+      isUnlocked,
       sessionReview: progress?.session_review || null
     });
   } catch (error) {
@@ -323,52 +351,14 @@ export const getLearnerSubstrands = async (req, res) => {
       return res.json([]);
     }
 
-    const substrandIdsWithLessons = await Lesson.findSubStrandIdsWithApproved(
-      substrands.map((substrand) => substrand.id)
+    const { flagsById, lessonsBySub, progressByLessonId } = await loadStrandUnitUnlock(
+      userId,
+      strandId
     );
 
-    const visible = substrands.filter((substrand) =>
-      substrandIdsWithLessons.has(substrand.id)
-    );
+    const visible = substrands.filter((substrand) => (lessonsBySub.get(substrand.id) || []).length > 0);
     if (visible.length === 0) {
       return res.json([]);
-    }
-
-    const visibleIds = visible.map((s) => s.id);
-    const db = getDbClient();
-
-    // All approved lessons for these substrands (one query)
-    const { data: lessonRows, error: lessonError } = await db
-      .from('lessons')
-      .select('id, sub_strand_id, duration')
-      .in('sub_strand_id', visibleIds)
-      .eq('status', 'approved');
-
-    if (lessonError) {
-      console.error('Error fetching substrand lessons:', lessonError);
-    }
-
-    const lessonsBySub = new Map();
-    for (const row of lessonRows || []) {
-      if (!lessonsBySub.has(row.sub_strand_id)) lessonsBySub.set(row.sub_strand_id, []);
-      lessonsBySub.get(row.sub_strand_id).push(row);
-    }
-
-    const allLessonIds = (lessonRows || []).map((r) => r.id);
-    const progressMap = new Map();
-    if (allLessonIds.length > 0) {
-      const { data: progressData, error: progressError } = await db
-        .from('lesson_progress')
-        .select('lesson_id, progress, completed')
-        .eq('user_id', userId)
-        .in('lesson_id', allLessonIds);
-
-      if (progressError) {
-        console.error('Error fetching substrand progress:', progressError);
-      }
-      for (const p of progressData || []) {
-        progressMap.set(p.lesson_id, p);
-      }
     }
 
     res.json(
@@ -378,7 +368,7 @@ export const getLearnerSubstrands = async (req, res) => {
         let progressPercent = 0;
         if (total > 0) {
           const sum = lessons.reduce((acc, lesson) => {
-            const p = progressMap.get(lesson.id);
+            const p = progressByLessonId.get(lesson.id);
             if (!p) return acc;
             if (p.completed) return acc + 100;
             return acc + Math.max(0, Math.min(100, Number(p.progress) || 0));
@@ -392,9 +382,11 @@ export const getLearnerSubstrands = async (req, res) => {
 
         return {
           ...substrand,
+          unitId: substrand.id,
           lessonCount: total,
           progressPercent,
-          estimatedMinutes: estimatedMinutes || total * 10
+          estimatedMinutes: estimatedMinutes || total * 10,
+          isUnlocked: flagsById.get(substrand.id) !== false
         };
       })
     );
@@ -457,13 +449,16 @@ export const getLearnerLessons = async (req, res) => {
     }
 
     // Determine unlock status for each lesson and include theme
+    const { flagsById } = await loadStrandUnitUnlock(userId, substrand.strandId);
+    const unitUnlocked = flagsById.get(substrandId) !== false;
+
     const lessonsWithUnlock = approvedLessons.map((lesson, index) => {
       const progress = progressMap[lesson.id] || { completed: false, progress: 0 };
       const isFirst = index === 0;
       const previousLesson = index > 0 ? approvedLessons[index - 1] : null;
       const previousProgress = previousLesson ? progressMap[previousLesson.id] : null;
-      // Unlock if previous lesson is completed (100%) OR has progress >= 60% (passed threshold)
-      const isUnlocked = isFirst || (previousProgress?.completed === true) || (previousProgress?.progress >= 60);
+      const isUnlocked =
+        unitUnlocked && (isFirst || progressMeetsUnlock(previousProgress));
 
       return {
         ...lesson,

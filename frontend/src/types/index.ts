@@ -40,7 +40,18 @@ export interface QuizQuestion {
   skillFocus?: string
   bloomLevel?: BloomLevel
   distractors?: QuizDistractor[]
+  /**
+   * Full reasoning for every option, indexed like `options`. Admin review only —
+   * never served on any learner endpoint, and never a substitute for the terse
+   * learner-facing `explanation` / `misconception` strings.
+   */
+  reviewRationale?: string[]
   modality?: Exclude<LearnerModality, 'mixed'> | 'practice' | 'visual' | 'text_steps'
+  /**
+   * How the learner answers. Canonical value today is `multiple_choice`.
+   * Distinct from legacy `type: 'multiple-choice'`, which is kept for older banks.
+   */
+  interactionType?: 'multiple_choice'
   diagramBriefId?: string | null
   steps?: string[]
   /** Set when AI output is too close to a past-paper exemplar — admin should review */
@@ -50,6 +61,8 @@ export interface QuizQuestion {
   /** Automated QA flagged a quality issue — admin should review */
   qa_flagged?: boolean
   qa_issue?: string | null
+  /** Set when this quiz item was pulled from the reviewed question bank */
+  bankEntryId?: string
 }
 
 export interface QuizBankStats {
@@ -204,6 +217,8 @@ export interface SubStrand {
   learningOutcomes: string[] // Learning outcomes from PDF
   keyInquiryQuestions: string[] // Key inquiry questions from PDF
   isAIGenerated: boolean
+  lessonsAllocated?: number | null
+  sequenceNumber?: number | null
   createdAt: string
   updatedAt: string
 }

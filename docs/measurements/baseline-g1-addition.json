@@ -1,0 +1,3362 @@
+{
+  "report": {
+    "label": "baseline-g1-addition",
+    "subStrandId": "6566c510-80af-4ff9-a159-cd23a6ca70dc",
+    "generatedAt": "2026-08-11T07:56:53.454Z",
+    "elapsedSeconds": 342,
+    "lessonTitle": "Adding a 2-Digit Number and a 1-Digit Number",
+    "grade": "1",
+    "questionCount": 30,
+    "overall": {
+      "n": 30,
+      "avgWords": 13.43,
+      "maxWords": 24,
+      "avgSentences": 1.9,
+      "maxSentences": 3,
+      "stemsWithSubordinator": 6,
+      "stemsWithComparative": 10,
+      "stemsOver20Words": 3,
+      "stemsOver12Words": 16,
+      "stemsOver2Sentences": 11
+    },
+    "byBloom": {
+      "recall": {
+        "n": 3,
+        "avgWords": 9.67,
+        "maxWords": 16,
+        "avgSentences": 1.33,
+        "maxSentences": 2,
+        "stemsWithSubordinator": 1,
+        "stemsWithComparative": 0,
+        "stemsOver20Words": 0,
+        "stemsOver12Words": 1,
+        "stemsOver2Sentences": 0
+      },
+      "understand": {
+        "n": 6,
+        "avgWords": 12.67,
+        "maxWords": 22,
+        "avgSentences": 2,
+        "maxSentences": 3,
+        "stemsWithSubordinator": 0,
+        "stemsWithComparative": 2,
+        "stemsOver20Words": 1,
+        "stemsOver12Words": 3,
+        "stemsOver2Sentences": 3
+      },
+      "apply": {
+        "n": 11,
+        "avgWords": 12.55,
+        "maxWords": 21,
+        "avgSentences": 1.91,
+        "maxSentences": 3,
+        "stemsWithSubordinator": 1,
+        "stemsWithComparative": 3,
+        "stemsOver20Words": 1,
+        "stemsOver12Words": 4,
+        "stemsOver2Sentences": 4
+      },
+      "reason": {
+        "n": 10,
+        "avgWords": 16,
+        "maxWords": 24,
+        "avgSentences": 2,
+        "maxSentences": 3,
+        "stemsWithSubordinator": 4,
+        "stemsWithComparative": 5,
+        "stemsOver20Words": 1,
+        "stemsOver12Words": 8,
+        "stemsOver2Sentences": 4
+      }
+    },
+    "modality": {
+      "visual": 9,
+      "text_steps": 8,
+      "practice": 13
+    },
+    "visualQuestions": 9,
+    "visualWithBrief": 9,
+    "questionBriefs": 9,
+    "placeholderBriefs": 6,
+    "placeholderRatio": 0.667,
+    "qaFlagged": 0,
+    "qaIssues": [],
+    "optionsTotal": 120,
+    "rationalesPresent": 0,
+    "rationaleAvgWords": 0,
+    "tokens": {
+      "calls": 6,
+      "inputTokens": 9971,
+      "outputTokens": 36516,
+      "byLabel": [
+        {
+          "provider": "claude",
+          "label": "lesson 1 shell",
+          "inputTokens": 1509,
+          "outputTokens": 1794,
+          "maxTokens": 2500,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz foundation",
+          "inputTokens": 1410,
+          "outputTokens": 9076,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz application",
+          "inputTokens": 1678,
+          "outputTokens": 8246,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz reasoning",
+          "inputTokens": 1935,
+          "outputTokens": 14251,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 coverage gap",
+          "inputTokens": 1265,
+          "outputTokens": 2141,
+          "maxTokens": 2200,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz QA",
+          "inputTokens": 2174,
+          "outputTokens": 1008,
+          "maxTokens": 3000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        }
+      ],
+      "estimatedUsd": 0.5777,
+      "pricing": {
+        "inputPerM": 3,
+        "outputPerM": 15
+      }
+    },
+    "reasoningStems": [
+      {
+        "id": "q-19",
+        "words": 24,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "Wanjiku saved $41$ shillings for a toy. Her uncle gave her $6$ more shillings as a gift. How many shillings does she have now?"
+      },
+      {
+        "id": "q-20",
+        "words": 17,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A plant was $57$ cm tall. It grew $2$ more centimetres. How tall is the plant now?"
+      },
+      {
+        "id": "q-21",
+        "words": 20,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A school assembly lasted $68$ minutes. Announcements added $1$ more minute(s). How many minutes did the assembly take in total?"
+      },
+      {
+        "id": "q-22",
+        "words": 13,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "If Juma adds $3$ ones to $46$, will the number of tens change?"
+      },
+      {
+        "id": "q-23",
+        "words": 14,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "Which addition can be solved by just adding the ones, without changing the tens?"
+      },
+      {
+        "id": "q-24",
+        "words": 12,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "Follow the steps to add $24 + 5$. What is the sum?"
+      },
+      {
+        "id": "q-25",
+        "words": 13,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "Use the place value chart to predict the sum of $81 + 7$."
+      },
+      {
+        "id": "q-26",
+        "words": 19,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A bar model shows $93$ split into tens and ones, joined with $4$ more ones. What is the total?"
+      },
+      {
+        "id": "q-27",
+        "words": 19,
+        "sentences": 3,
+        "subordinators": 1,
+        "comparatives": 1,
+        "stem": "Neema had $64$ mangoes. She picked $3$ more from the tree. Which number sentence correctly shows her total mangoes?"
+      },
+      {
+        "id": "q-28",
+        "words": 9,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "Which sum is bigger: $34+5$ or $34+9$, and why?"
+      }
+    ],
+    "allRows": [
+      {
+        "id": "q-1",
+        "bloom": "recall",
+        "modality": "visual",
+        "words": 9,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Add $45 + 3$ (vertical form). Find the sum."
+      },
+      {
+        "id": "q-2",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 5,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "What is $32 + 6$?"
+      },
+      {
+        "id": "q-3",
+        "bloom": "recall",
+        "modality": "practice",
+        "words": 4,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Calculate $51 + 7$."
+      },
+      {
+        "id": "q-4",
+        "bloom": "understand",
+        "modality": "visual",
+        "words": 9,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Use the bar model to find $26 + 3$."
+      },
+      {
+        "id": "q-5",
+        "bloom": "understand",
+        "modality": "visual",
+        "words": 18,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Amina has $34$ shillings. Her mother gives her $5$ more shillings. How many shillings does she have now?"
+      },
+      {
+        "id": "q-6",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 22,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A cartoon lasted $42$ minutes. Then Juma watched $3$ more minutes of another show. How many minutes did he watch in total?"
+      },
+      {
+        "id": "q-7",
+        "bloom": "understand",
+        "modality": "practice",
+        "words": 17,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A rope is $61$ cm long. Another rope is $8$ cm long. What is their total length?"
+      },
+      {
+        "id": "q-8",
+        "bloom": "recall",
+        "modality": "visual",
+        "words": 16,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "When adding a 2-digit number and a 1-digit number without regrouping, what do we add together?"
+      },
+      {
+        "id": "q-9",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 12,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Add $42 + 5$ using the vertical method. What is the sum?"
+      },
+      {
+        "id": "q-10",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 5,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "What is $63 + 4$?"
+      },
+      {
+        "id": "q-11",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 4,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Calculate $71 + 6$."
+      },
+      {
+        "id": "q-12",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Find the sum of $84 + 3$."
+      },
+      {
+        "id": "q-13",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 18,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Fatuma has $52$ shillings. Her friend gives her $6$ more shillings. How many shillings does she have now?"
+      },
+      {
+        "id": "q-14",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 20,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A movie lasted $53$ minutes. Then Juma watched $4$ more minutes of adverts. How many minutes did he watch altogether?"
+      },
+      {
+        "id": "q-15",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 21,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A ribbon is $47$ cm long. A second ribbon is $2$ cm long. What is the total length of both ribbons?"
+      },
+      {
+        "id": "q-16",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 11,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Use steps to add $75 + 4$. What is the sum?"
+      },
+      {
+        "id": "q-17",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 10,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Use the place value chart to find $62 + 7$."
+      },
+      {
+        "id": "q-18",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 12,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "After adding $36 + 2$, how many tens are in the sum?"
+      },
+      {
+        "id": "q-19",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 24,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Wanjiku saved $41$ shillings for a toy. Her uncle gave her $6$ more shillings as a gift. How many shillings does she have now?"
+      },
+      {
+        "id": "q-20",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 17,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A plant was $57$ cm tall. It grew $2$ more centimetres. How tall is the plant now?"
+      },
+      {
+        "id": "q-21",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 20,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A school assembly lasted $68$ minutes. Announcements added $1$ more minute(s). How many minutes did the assembly take in total?"
+      },
+      {
+        "id": "q-22",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 13,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "If Juma adds $3$ ones to $46$, will the number of tens change?"
+      },
+      {
+        "id": "q-23",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 14,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Which addition can be solved by just adding the ones, without changing the tens?"
+      },
+      {
+        "id": "q-24",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 12,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Follow the steps to add $24 + 5$. What is the sum?"
+      },
+      {
+        "id": "q-25",
+        "bloom": "reason",
+        "modality": "visual",
+        "words": 13,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Use the place value chart to predict the sum of $81 + 7$."
+      },
+      {
+        "id": "q-26",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 19,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A bar model shows $93$ split into tens and ones, joined with $4$ more ones. What is the total?"
+      },
+      {
+        "id": "q-27",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 19,
+        "sentences": 3,
+        "subordinators": 1,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Neema had $64$ mangoes. She picked $3$ more from the tree. Which number sentence correctly shows her total mangoes?"
+      },
+      {
+        "id": "q-28",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 9,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Which sum is bigger: $34+5$ or $34+9$, and why?"
+      },
+      {
+        "id": "q-29",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 5,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "What is $65 + 3$?"
+      },
+      {
+        "id": "q-30",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 18,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Kevin has $25$ books. His friend gives him $4$ more books. How many books does he have now?"
+      }
+    ]
+  },
+  "lesson": {
+    "title": "Adding a 2-Digit Number and a 1-Digit Number",
+    "description": "Children learn to add a 2-digit number to a 1-digit number without regrouping, both horizontally and vertically.",
+    "strandId": "b3bf41ce-2c76-4eb9-9ef5-32c28d7912ab",
+    "subStrandId": "6566c510-80af-4ff9-a159-cd23a6ca70dc",
+    "subjectId": "235311d3-d8b1-42cc-9c3d-ee503ffadca9",
+    "grade": "1",
+    "contentType": "interactive",
+    "difficulty": "beginner",
+    "tags": [
+      "practice"
+    ],
+    "duration": 10,
+    "content": "A {{term:2-digit number}} has tens and ones, like {{example:23}} which is 2 tens and 3 ones. A {{term:1-digit number}} like {{example:4}} has only ones. When we add them, we join the ones together and keep the tens the same. So {{example:23 + 4 = 27}}.\n\nWe can also add {{term:vertically}}, writing one number above the other with ones lined under ones. For {{example:45 + 3}}, we add 5 ones + 3 ones = 8 ones and keep the 4 tens, so {{example:45 + 3 = 48}}.\n\nNow try it yourself: work out {{example:32 + 6}} by first adding the ones, then keeping the tens the same.",
+    "learningObjectives": [
+      "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100"
+    ],
+    "keyConcepts": [],
+    "examples": [],
+    "summary": "",
+    "isAIGenerated": true,
+    "status": "pending",
+    "lessonOrder": 1,
+    "quiz": {
+      "title": "Quiz Challenge",
+      "questions": [
+        {
+          "id": "q-1",
+          "question": "Add $45 + 3$ (vertical form). Find the sum.",
+          "type": "multiple-choice",
+          "options": [
+            "48",
+            "47",
+            "49",
+            "50"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 5+3=8, tens stay 4, sum 48.",
+          "optionExplanations": [
+            "Add ones 5+3=8, tens stay 4, sum 48.",
+            "Subtracted one from correct sum",
+            "Added one extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-1",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Add ${a} + {b}$ (vertical form). Find the sum.",
+          "params": {
+            "a": 45,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-2",
+          "question": "What is $32 + 6$?",
+          "type": "multiple-choice",
+          "options": [
+            "38",
+            "37",
+            "39",
+            "40"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 2+6=8, keep tens 3, sum 38.",
+          "optionExplanations": [
+            "Add ones 2+6=8, keep tens 3, sum 38.",
+            "Subtracted one from correct sum",
+            "Added one extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a} + {b}$?",
+          "params": {
+            "a": 32,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-3",
+          "question": "Calculate $51 + 7$.",
+          "type": "multiple-choice",
+          "options": [
+            "58",
+            "57",
+            "59",
+            "60"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 1+7=8, keep tens 5, sum 58.",
+          "optionExplanations": [
+            "Add ones 1+7=8, keep tens 5, sum 58.",
+            "Subtracted one from correct sum",
+            "Added one extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Calculate ${a} + {b}$.",
+          "params": {
+            "a": 51,
+            "b": 7
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-4",
+          "question": "Use the bar model to find $26 + 3$.",
+          "type": "multiple-choice",
+          "options": [
+            "29",
+            "28",
+            "30",
+            "31"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Join 26 and 3: ones 6+3=9, tens stay 2, sum 29.",
+          "optionExplanations": [
+            "Join 26 and 3: ones 6+3=9, tens stay 2, sum 29.",
+            "Subtracted one from correct sum",
+            "Added one extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-4",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Use the bar model to find ${a} + {b}$.",
+          "params": {
+            "a": 26,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-5",
+          "question": "Amina has $34$ shillings. Her mother gives her $5$ more shillings. How many shillings does she have now?",
+          "type": "multiple-choice",
+          "options": [
+            "39",
+            "38",
+            "40",
+            "41"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 4+5=9, tens stay 3, total 39 shillings.",
+          "optionExplanations": [
+            "Add ones 4+5=9, tens stay 3, total 39 shillings.",
+            "Subtracted one from correct sum",
+            "Added one extra shilling",
+            "Added two extra shillings"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra shilling"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra shillings"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-5",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Amina has ${a}$ shillings. Her mother gives her ${b}$ more shillings. How many shillings does she have now?",
+          "params": {
+            "a": 34,
+            "b": 5
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one from correct sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra shilling"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra shillings"
+            }
+          ]
+        },
+        {
+          "id": "q-6",
+          "question": "A cartoon lasted $42$ minutes. Then Juma watched $3$ more minutes of another show. How many minutes did he watch in total?",
+          "type": "multiple-choice",
+          "options": [
+            "45",
+            "44",
+            "46",
+            "47"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 2+3=5, tens stay 4, total 45 minutes.",
+          "optionExplanations": [
+            "Add ones 2+3=5, tens stay 4, total 45 minutes.",
+            "Subtracted one minute from sum",
+            "Added one extra minute",
+            "Added two extra minutes"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one minute from sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra minute"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra minutes"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A cartoon lasted ${a}$ minutes. Then Juma watched ${b}$ more minutes of another show. How many minutes did he watch in total?",
+          "params": {
+            "a": 42,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one minute from sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra minute"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra minutes"
+            }
+          ]
+        },
+        {
+          "id": "q-7",
+          "question": "A rope is $61$ cm long. Another rope is $8$ cm long. What is their total length?",
+          "type": "multiple-choice",
+          "options": [
+            "69",
+            "68",
+            "70",
+            "71"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 1+8=9, tens stay 6, total 69 cm.",
+          "optionExplanations": [
+            "Add ones 1+8=9, tens stay 6, total 69 cm.",
+            "Subtracted one cm from sum",
+            "Added one extra cm",
+            "Added two extra cm"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted one cm from sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra cm"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra cm"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A rope is ${a}$ cm long. Another rope is ${b}$ cm long. What is their total length?",
+          "params": {
+            "a": 61,
+            "b": 8
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted one cm from sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra cm"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra cm"
+            }
+          ]
+        },
+        {
+          "id": "q-8",
+          "question": "When adding a 2-digit number and a 1-digit number without regrouping, what do we add together?",
+          "type": "multiple-choice",
+          "options": [
+            "Only the ones digits",
+            "Only the tens digits",
+            "Both tens and ones together as one number",
+            "The tens digit of the 1-digit number"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "We add ones to ones; the tens digit stays unchanged.",
+          "optionExplanations": [
+            "We add ones to ones; the tens digit stays unchanged.",
+            "Confused tens place with ones place",
+            "Mixed whole numbers instead of digits",
+            "Thinks 1-digit number has tens"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Confused tens place with ones place"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Mixed whole numbers instead of digits"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks 1-digit number has tens"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-8"
+        },
+        {
+          "id": "q-9",
+          "question": "Add $42 + 5$ using the vertical method. What is the sum?",
+          "type": "multiple-choice",
+          "options": [
+            "47",
+            "46",
+            "48",
+            "49"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "5 ones + 2 ones... actually 2+5=7 ones, tens stay 4.",
+          "optionExplanations": [
+            "5 ones + 2 ones... actually 2+5=7 ones, tens stay 4.",
+            "Forgot to add the last one",
+            "Added one too many ones",
+            "Miscounted the tens digit"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to add the last one"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one too many ones"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Miscounted the tens digit"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Add ${a} + {b}$ using the vertical method. What is the sum?",
+          "params": {
+            "a": 42,
+            "b": 5
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Forgot to add the last one"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one too many ones"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Miscounted the tens digit"
+            }
+          ]
+        },
+        {
+          "id": "q-10",
+          "question": "What is $63 + 4$?",
+          "type": "multiple-choice",
+          "options": [
+            "67",
+            "66",
+            "68",
+            "69"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "3 ones + 4 ones = 7 ones, keep 6 tens.",
+          "optionExplanations": [
+            "3 ones + 4 ones = 7 ones, keep 6 tens.",
+            "Subtracted instead of adding",
+            "Added an extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted instead of adding"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a} + {b}$?",
+          "params": {
+            "a": 63,
+            "b": 4
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Subtracted instead of adding"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added an extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-11",
+          "question": "Calculate $71 + 6$.",
+          "type": "multiple-choice",
+          "options": [
+            "77",
+            "76",
+            "78",
+            "79"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "1 one + 6 ones = 7 ones, tens stay 7.",
+          "optionExplanations": [
+            "1 one + 6 ones = 7 ones, tens stay 7.",
+            "Left out one unit",
+            "Added one too many",
+            "Confused tens and ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Left out one unit"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one too many"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confused tens and ones"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-11",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Calculate ${a} + {b}$.",
+          "params": {
+            "a": 71,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Left out one unit"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one too many"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Confused tens and ones"
+            }
+          ]
+        },
+        {
+          "id": "q-12",
+          "question": "Find the sum of $84 + 3$.",
+          "type": "multiple-choice",
+          "options": [
+            "87",
+            "86",
+            "88",
+            "89"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "4 ones + 3 ones = 7 ones, keep 8 tens.",
+          "optionExplanations": [
+            "4 ones + 3 ones = 7 ones, keep 8 tens.",
+            "Dropped one from the ones",
+            "Added an extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Dropped one from the ones"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Find the sum of ${a} + {b}$.",
+          "params": {
+            "a": 84,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Dropped one from the ones"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added an extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-13",
+          "question": "Fatuma has $52$ shillings. Her friend gives her $6$ more shillings. How many shillings does she have now?",
+          "type": "multiple-choice",
+          "options": [
+            "58",
+            "57",
+            "59",
+            "60"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "2 ones + 6 ones = 8 ones, keep 5 tens.",
+          "optionExplanations": [
+            "2 ones + 6 ones = 8 ones, keep 5 tens.",
+            "Forgot one shilling given",
+            "Added an extra shilling",
+            "Added two extra shillings"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot one shilling given"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra shilling"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra shillings"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Fatuma has ${a}$ shillings. Her friend gives her ${b}$ more shillings. How many shillings does she have now?",
+          "params": {
+            "a": 52,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Forgot one shilling given"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added an extra shilling"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra shillings"
+            }
+          ]
+        },
+        {
+          "id": "q-14",
+          "question": "A movie lasted $53$ minutes. Then Juma watched $4$ more minutes of adverts. How many minutes did he watch altogether?",
+          "type": "multiple-choice",
+          "options": [
+            "57",
+            "56",
+            "58",
+            "59"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "3 ones + 4 ones = 7 ones, keep 5 tens.",
+          "optionExplanations": [
+            "3 ones + 4 ones = 7 ones, keep 5 tens.",
+            "Missed one minute of adverts",
+            "Added an extra minute",
+            "Added two extra minutes"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Missed one minute of adverts"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra minute"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra minutes"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A movie lasted ${a}$ minutes. Then Juma watched ${b}$ more minutes of adverts. How many minutes did he watch altogether?",
+          "params": {
+            "a": 53,
+            "b": 4
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Missed one minute of adverts"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added an extra minute"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra minutes"
+            }
+          ]
+        },
+        {
+          "id": "q-15",
+          "question": "A ribbon is $47$ cm long. A second ribbon is $2$ cm long. What is the total length of both ribbons?",
+          "type": "multiple-choice",
+          "options": [
+            "49 cm",
+            "48 cm",
+            "50 cm",
+            "51 cm"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "7 cm + 2 cm = 9 cm, tens stay 4.",
+          "optionExplanations": [
+            "7 cm + 2 cm = 9 cm, tens stay 4.",
+            "Left out one centimetre",
+            "Added an extra centimetre",
+            "Added two extra centimetres"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Left out one centimetre"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra centimetre"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra centimetres"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-15"
+        },
+        {
+          "id": "q-16",
+          "question": "Use steps to add $75 + 4$. What is the sum?",
+          "type": "multiple-choice",
+          "options": [
+            "79",
+            "78",
+            "80",
+            "81"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "5 ones + 4 ones = 9 ones, keep 7 tens.",
+          "optionExplanations": [
+            "5 ones + 4 ones = 9 ones, keep 7 tens.",
+            "Missed one when adding ones",
+            "Added an extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Missed one when adding ones"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Add the ones: 5 ones + 4 ones = 9 ones",
+            "Keep the tens the same: 7 tens stay as they are",
+            "Join tens and ones: 70 + 9 = 79"
+          ]
+        },
+        {
+          "id": "q-17",
+          "question": "Use the place value chart to find $62 + 7$.",
+          "type": "multiple-choice",
+          "options": [
+            "69",
+            "68",
+            "70",
+            "71"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "2 ones + 7 ones = 9 ones, keep 6 tens.",
+          "optionExplanations": [
+            "2 ones + 7 ones = 9 ones, keep 6 tens.",
+            "Left out one ones digit",
+            "Added an extra one",
+            "Added two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Left out one ones digit"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added an extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra ones"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-17",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Use the place value chart to find ${a} + {b}$.",
+          "params": {
+            "a": 62,
+            "b": 7
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Left out one ones digit"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added an extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-18",
+          "question": "After adding $36 + 2$, how many tens are in the sum?",
+          "type": "multiple-choice",
+          "options": [
+            "3 tens",
+            "4 tens",
+            "2 tens",
+            "5 tens"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "$36+2=38$; the tens digit stays 3.",
+          "optionExplanations": [
+            "$36+2=38$; the tens digit stays 3.",
+            "Thought tens increased after adding ones",
+            "Confused tens with the original ones digit",
+            "Guessed a random tens value"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thought tens increased after adding ones"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confused tens with the original ones digit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Guessed a random tens value"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-18"
+        },
+        {
+          "id": "q-19",
+          "question": "Wanjiku saved $41$ shillings for a toy. Her uncle gave her $6$ more shillings as a gift. How many shillings does she have now?",
+          "type": "multiple-choice",
+          "options": [
+            "47",
+            "46",
+            "48",
+            "49"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: $1+6=7$, tens stay $4$, giving $47$.",
+          "optionExplanations": [
+            "Add ones: $1+6=7$, tens stay $4$, giving $47$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Wanjiku saved ${a}$ shillings for a toy. Her uncle gave her ${b}$ more shillings as a gift. How many shillings does she have now?",
+          "params": {
+            "a": 41,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-20",
+          "question": "A plant was $57$ cm tall. It grew $2$ more centimetres. How tall is the plant now?",
+          "type": "multiple-choice",
+          "options": [
+            "59",
+            "58",
+            "60",
+            "61"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: $7+2=9$, tens stay $5$, giving $59$.",
+          "optionExplanations": [
+            "Add ones: $7+2=9$, tens stay $5$, giving $59$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A plant was ${a}$ cm tall. It grew ${b}$ more centimetres. How tall is the plant now?",
+          "params": {
+            "a": 57,
+            "b": 2
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-21",
+          "question": "A school assembly lasted $68$ minutes. Announcements added $1$ more minute(s). How many minutes did the assembly take in total?",
+          "type": "multiple-choice",
+          "options": [
+            "69",
+            "68",
+            "70",
+            "71"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: $8+1=9$, tens stay $6$, giving $69$.",
+          "optionExplanations": [
+            "Add ones: $8+1=9$, tens stay $6$, giving $69$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A school assembly lasted ${a}$ minutes. Announcements added ${b}$ more minute(s). How many minutes did the assembly take in total?",
+          "params": {
+            "a": 68,
+            "b": 1
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-22",
+          "question": "If Juma adds $3$ ones to $46$, will the number of tens change?",
+          "type": "multiple-choice",
+          "options": [
+            "No, it stays $4$ tens because only ones are added",
+            "Yes, it becomes $5$ tens",
+            "Yes, it becomes $3$ tens",
+            "No, it becomes $0$ tens"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Adding a 1-digit number changes only the ones, not the tens.",
+          "optionExplanations": [
+            "Adding a 1-digit number changes only the ones, not the tens.",
+            "Thinks adding always increases tens",
+            "Confuses ones digit with tens digit",
+            "Thinks tens disappear after adding"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks adding always increases tens"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses ones digit with tens digit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks tens disappear after adding"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-23",
+          "question": "Which addition can be solved by just adding the ones, without changing the tens?",
+          "type": "multiple-choice",
+          "options": [
+            "$52+7$",
+            "$58+7$",
+            "$49+7$",
+            "$95+7$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Only $52+7$ has ones sum $9$, so tens stay the same.",
+          "optionExplanations": [
+            "Only $52+7$ has ones sum $9$, so tens stay the same.",
+            "Ones sum exceeds 9, causing regrouping",
+            "Ones sum exceeds 9, causing regrouping",
+            "Ones sum exceeds 9, causing regrouping"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Ones sum exceeds 9, causing regrouping"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Ones sum exceeds 9, causing regrouping"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Ones sum exceeds 9, causing regrouping"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-24",
+          "question": "Follow the steps to add $24 + 5$. What is the sum?",
+          "type": "multiple-choice",
+          "options": [
+            "29",
+            "28",
+            "30",
+            "31"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones $4+5=9$, keep tens $2$, sum is $29$.",
+          "optionExplanations": [
+            "Add ones $4+5=9$, keep tens $2$, sum is $29$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Look at the ones: 4 and 5.",
+            "Add the ones: 4+5=9.",
+            "Keep the tens 2, so the answer is 29."
+          ],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Follow the steps to add ${a} + {b}$. What is the sum?",
+          "params": {
+            "a": 24,
+            "b": 5
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-25",
+          "question": "Use the place value chart to predict the sum of $81 + 7$.",
+          "type": "multiple-choice",
+          "options": [
+            "88",
+            "87",
+            "89",
+            "90"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "8 tens stay same; ones $1+7=8$, giving $88$.",
+          "optionExplanations": [
+            "8 tens stay same; ones $1+7=8$, giving $88$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-25",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Use the place value chart to predict the sum of ${a} + {b}$.",
+          "params": {
+            "a": 81,
+            "b": 7
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-26",
+          "question": "A bar model shows $93$ split into tens and ones, joined with $4$ more ones. What is the total?",
+          "type": "multiple-choice",
+          "options": [
+            "97",
+            "96",
+            "98",
+            "99"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Join ones $3+4=7$, tens stay $9$, total is $97$.",
+          "optionExplanations": [
+            "Join ones $3+4=7$, tens stay $9$, total is $97$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A bar model shows ${a}$ split into tens and ones, joined with ${b}$ more ones. What is the total?",
+          "params": {
+            "a": 93,
+            "b": 4
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-27",
+          "question": "Neema had $64$ mangoes. She picked $3$ more from the tree. Which number sentence correctly shows her total mangoes?",
+          "type": "multiple-choice",
+          "options": [
+            "67",
+            "66",
+            "68",
+            "69"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones $4+3=7$, tens stay $6$, giving $67$.",
+          "optionExplanations": [
+            "Add ones $4+3=7$, tens stay $6$, giving $67$.",
+            "Miscounted ones, one less",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Neema had ${a}$ mangoes. She picked ${b}$ more from the tree. Which number sentence correctly shows her total mangoes?",
+          "params": {
+            "a": 64,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a + b - 1",
+              "misconception": "Miscounted ones, one less"
+            },
+            {
+              "id": "d2",
+              "formula": "a + b + 1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a + b + 2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-28",
+          "question": "Which sum is bigger: $34+5$ or $34+9$, and why?",
+          "type": "multiple-choice",
+          "options": [
+            "$34+9$, because adding a bigger ones number gives a bigger sum",
+            "$34+5$, because 5 is a lucky number",
+            "They are equal because the tens stay the same",
+            "$34+9$, because the tens increase"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Adding a larger ones number increases the sum while tens stay same.",
+          "optionExplanations": [
+            "Adding a larger ones number increases the sum while tens stay same.",
+            "Irrelevant reasoning not based on maths",
+            "Ignores that ones values differ",
+            "Wrongly thinks tens change here"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Irrelevant reasoning not based on maths"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Ignores that ones values differ"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Wrongly thinks tens change here"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-29",
+          "question": "What is $65 + 3$?",
+          "type": "multiple-choice",
+          "options": [
+            "68",
+            "95",
+            "62",
+            "71"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add the ones only: 5+3=8; tens stay as 6.",
+          "optionExplanations": [
+            "Add the ones only: 5+3=8; tens stay as 6.",
+            "Added 3 to the tens digit instead",
+            "Subtracted instead of adding numbers",
+            "Confused the ones digit with 6"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added 3 to the tens digit instead"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Subtracted instead of adding numbers"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confused the ones digit with 6"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": []
+        },
+        {
+          "id": "q-30",
+          "question": "Kevin has $25$ books. His friend gives him $4$ more books. How many books does he have now?",
+          "type": "multiple-choice",
+          "options": [
+            "29",
+            "21",
+            "24",
+            "30"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 5+4=9, tens stay 2, giving 29 books.",
+          "optionExplanations": [
+            "Add ones 5+4=9, tens stay 2, giving 29 books.",
+            "Subtracted the books instead of adding",
+            "Forgot to add the ones correctly",
+            "Added 5 instead of 4 books"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted the books instead of adding"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Forgot to add the ones correctly"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added 5 instead of 4 books"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        }
+      ],
+      "passingScore": 65,
+      "timeLimit": 12,
+      "bankStats": {
+        "total": 30,
+        "byBloom": {
+          "recall": 3,
+          "understand": 6,
+          "apply": 11,
+          "reason": 10
+        },
+        "byModality": {
+          "visual": 9,
+          "text_steps": 8,
+          "practice": 13
+        },
+        "byOutcome": {
+          "1": {
+            "total": 30,
+            "visual": 9,
+            "text_steps": 8,
+            "practice": 13
+          }
+        }
+      },
+      "coverageReport": {
+        "realCovered": [
+          1
+        ],
+        "remapped": [],
+        "stillMissing": [],
+        "outcomes": [
+          "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100"
+        ]
+      },
+      "visualBriefs": [
+        {
+          "id": "vb-1",
+          "skillFocus": "Adding ones to a 2-digit number horizontally",
+          "outcomeKey": "1c0e568f18eef6e4",
+          "brief": "Show 23 as 2 tens blocks and 3 ones blocks, then 4 more ones blocks joining the ones group, ending with 2 tens and 7 ones equal to 27.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 245,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "title": "23 + 4 = 27",
+            "numbers": [
+              {
+                "value": 23,
+                "tens": 2,
+                "ones": 3
+              },
+              {
+                "value": 4,
+                "tens": 0,
+                "ones": 4
+              }
+            ],
+            "sum": 27
+          },
+          "scope": "teaching"
+        },
+        {
+          "id": "vb-2",
+          "skillFocus": "Adding a 1-digit number to a 2-digit number vertically",
+          "outcomeKey": "1b0d4b7b1bf18454",
+          "brief": "Show 45 written above 3 with ones lined under ones, adding 5 + 3 = 8 ones and keeping 4 tens, giving 48.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 245,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "title": "45 + 3 = 48",
+            "numbers": [
+              {
+                "value": 45,
+                "tens": 4,
+                "ones": 5
+              },
+              {
+                "value": 3,
+                "tens": 0,
+                "ones": 3
+              }
+            ],
+            "sum": 48
+          },
+          "scope": "teaching"
+        },
+        {
+          "id": "qvb-q-1",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Figure for: Add $45 + 3$ (vertical form). Find the sum.",
+          "diagramType": "labeled_boxes",
+          "params": {
+            "title": "Key ideas",
+            "items": []
+          },
+          "scope": "question",
+          "questionId": "q-1"
+        },
+        {
+          "id": "qvb-q-4",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Bar split into 26 and 3 joined to make total 29",
+          "diagramType": "bar_model",
+          "params": {
+            "label": "Bar model",
+            "segments": [
+              {
+                "value": 26,
+                "label": "26"
+              },
+              {
+                "value": 3,
+                "label": "3"
+              }
+            ],
+            "a": 26,
+            "b": 3,
+            "total": 29
+          },
+          "scope": "question",
+          "questionId": "q-4"
+        },
+        {
+          "id": "qvb-q-5",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Figure for: Amina has $34$ shillings. Her mother gives her $5$ more shillings. How many shillings does she have ",
+          "diagramType": "counting_circles",
+          "params": {
+            "title": "Count",
+            "count": 34,
+            "columns": 5
+          },
+          "scope": "question",
+          "questionId": "q-5"
+        },
+        {
+          "id": "qvb-q-8",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Figure for: When adding a 2-digit number and a 1-digit number without regrouping, what do we add together?",
+          "diagramType": "labeled_boxes",
+          "params": {
+            "title": "Key ideas",
+            "items": []
+          },
+          "scope": "question",
+          "questionId": "q-8"
+        },
+        {
+          "id": "qvb-q-11",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Figure for: Calculate $71 + 6$.",
+          "diagramType": "labeled_boxes",
+          "params": {
+            "title": "Key ideas",
+            "items": []
+          },
+          "scope": "question",
+          "questionId": "q-11"
+        },
+        {
+          "id": "qvb-q-15",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Figure for: A ribbon is $47$ cm long. A second ribbon is $2$ cm long. What is the total length of both ribbons?",
+          "diagramType": "labeled_boxes",
+          "params": {
+            "title": "Key ideas",
+            "items": []
+          },
+          "scope": "question",
+          "questionId": "q-15"
+        },
+        {
+          "id": "qvb-q-17",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Place value chart showing 62 (6 tens, 2 ones) plus 7 ones added to the ones column.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 62,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "tens": 6,
+            "ones": 2,
+            "addOnes": 7
+          },
+          "scope": "question",
+          "questionId": "q-17"
+        },
+        {
+          "id": "qvb-q-18",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Figure for: After adding $36 + 2$, how many tens are in the sum?",
+          "diagramType": "counting_circles",
+          "params": {
+            "title": "Count",
+            "count": 36,
+            "columns": 5
+          },
+          "scope": "question",
+          "questionId": "q-18"
+        },
+        {
+          "id": "qvb-q-25",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Place value chart showing 81 with 7 added to the ones column",
+          "diagramType": "place_value",
+          "params": {
+            "number": 81,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "tens": 8,
+            "ones": 1,
+            "addOnes": 7
+          },
+          "scope": "question",
+          "questionId": "q-25"
+        }
+      ],
+      "contentBlocks": [
+        {
+          "id": "cb-1",
+          "type": "text",
+          "text": "A {{term:2-digit number}} has tens and ones, like {{example:23}} which is 2 tens and 3 ones. A {{term:1-digit number}} like {{example:4}} has only ones. When we add them, we join the ones together and keep the tens the same. So {{example:23 + 4 = 27}}."
+        },
+        {
+          "id": "cb-2",
+          "type": "diagram",
+          "briefId": "vb-1"
+        },
+        {
+          "id": "cb-3",
+          "type": "text",
+          "text": "We can also add {{term:vertically}}, writing one number above the other with ones lined under ones. For {{example:45 + 3}}, we add 5 ones + 3 ones = 8 ones and keep the 4 tens, so {{example:45 + 3 = 48}}."
+        },
+        {
+          "id": "cb-4",
+          "type": "diagram",
+          "briefId": "vb-2"
+        },
+        {
+          "id": "cb-5",
+          "type": "text",
+          "text": "Now try it yourself: work out {{example:32 + 6}} by first adding the ones, then keeping the tens the same."
+        }
+      ],
+      "visualAssets": []
+    },
+    "visualBriefs": [
+      {
+        "id": "vb-1",
+        "skillFocus": "Adding ones to a 2-digit number horizontally",
+        "outcomeKey": "1c0e568f18eef6e4",
+        "brief": "Show 23 as 2 tens blocks and 3 ones blocks, then 4 more ones blocks joining the ones group, ending with 2 tens and 7 ones equal to 27.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 245,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "title": "23 + 4 = 27",
+          "numbers": [
+            {
+              "value": 23,
+              "tens": 2,
+              "ones": 3
+            },
+            {
+              "value": 4,
+              "tens": 0,
+              "ones": 4
+            }
+          ],
+          "sum": 27
+        },
+        "scope": "teaching"
+      },
+      {
+        "id": "vb-2",
+        "skillFocus": "Adding a 1-digit number to a 2-digit number vertically",
+        "outcomeKey": "1b0d4b7b1bf18454",
+        "brief": "Show 45 written above 3 with ones lined under ones, adding 5 + 3 = 8 ones and keeping 4 tens, giving 48.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 245,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "title": "45 + 3 = 48",
+          "numbers": [
+            {
+              "value": 45,
+              "tens": 4,
+              "ones": 5
+            },
+            {
+              "value": 3,
+              "tens": 0,
+              "ones": 3
+            }
+          ],
+          "sum": 48
+        },
+        "scope": "teaching"
+      },
+      {
+        "id": "qvb-q-1",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Figure for: Add $45 + 3$ (vertical form). Find the sum.",
+        "diagramType": "labeled_boxes",
+        "params": {
+          "title": "Key ideas",
+          "items": []
+        },
+        "scope": "question",
+        "questionId": "q-1"
+      },
+      {
+        "id": "qvb-q-4",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Bar split into 26 and 3 joined to make total 29",
+        "diagramType": "bar_model",
+        "params": {
+          "label": "Bar model",
+          "segments": [
+            {
+              "value": 26,
+              "label": "26"
+            },
+            {
+              "value": 3,
+              "label": "3"
+            }
+          ],
+          "a": 26,
+          "b": 3,
+          "total": 29
+        },
+        "scope": "question",
+        "questionId": "q-4"
+      },
+      {
+        "id": "qvb-q-5",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Figure for: Amina has $34$ shillings. Her mother gives her $5$ more shillings. How many shillings does she have ",
+        "diagramType": "counting_circles",
+        "params": {
+          "title": "Count",
+          "count": 34,
+          "columns": 5
+        },
+        "scope": "question",
+        "questionId": "q-5"
+      },
+      {
+        "id": "qvb-q-8",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Figure for: When adding a 2-digit number and a 1-digit number without regrouping, what do we add together?",
+        "diagramType": "labeled_boxes",
+        "params": {
+          "title": "Key ideas",
+          "items": []
+        },
+        "scope": "question",
+        "questionId": "q-8"
+      },
+      {
+        "id": "qvb-q-11",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Figure for: Calculate $71 + 6$.",
+        "diagramType": "labeled_boxes",
+        "params": {
+          "title": "Key ideas",
+          "items": []
+        },
+        "scope": "question",
+        "questionId": "q-11"
+      },
+      {
+        "id": "qvb-q-15",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Figure for: A ribbon is $47$ cm long. A second ribbon is $2$ cm long. What is the total length of both ribbons?",
+        "diagramType": "labeled_boxes",
+        "params": {
+          "title": "Key ideas",
+          "items": []
+        },
+        "scope": "question",
+        "questionId": "q-15"
+      },
+      {
+        "id": "qvb-q-17",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Place value chart showing 62 (6 tens, 2 ones) plus 7 ones added to the ones column.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 62,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "tens": 6,
+          "ones": 2,
+          "addOnes": 7
+        },
+        "scope": "question",
+        "questionId": "q-17"
+      },
+      {
+        "id": "qvb-q-18",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Figure for: After adding $36 + 2$, how many tens are in the sum?",
+        "diagramType": "counting_circles",
+        "params": {
+          "title": "Count",
+          "count": 36,
+          "columns": 5
+        },
+        "scope": "question",
+        "questionId": "q-18"
+      },
+      {
+        "id": "qvb-q-25",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Place value chart showing 81 with 7 added to the ones column",
+        "diagramType": "place_value",
+        "params": {
+          "number": 81,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "tens": 8,
+          "ones": 1,
+          "addOnes": 7
+        },
+        "scope": "question",
+        "questionId": "q-25"
+      }
+    ],
+    "contentBlocks": [
+      {
+        "id": "cb-1",
+        "type": "text",
+        "text": "A {{term:2-digit number}} has tens and ones, like {{example:23}} which is 2 tens and 3 ones. A {{term:1-digit number}} like {{example:4}} has only ones. When we add them, we join the ones together and keep the tens the same. So {{example:23 + 4 = 27}}."
+      },
+      {
+        "id": "cb-2",
+        "type": "diagram",
+        "briefId": "vb-1"
+      },
+      {
+        "id": "cb-3",
+        "type": "text",
+        "text": "We can also add {{term:vertically}}, writing one number above the other with ones lined under ones. For {{example:45 + 3}}, we add 5 ones + 3 ones = 8 ones and keep the 4 tens, so {{example:45 + 3 = 48}}."
+      },
+      {
+        "id": "cb-4",
+        "type": "diagram",
+        "briefId": "vb-2"
+      },
+      {
+        "id": "cb-5",
+        "type": "text",
+        "text": "Now try it yourself: work out {{example:32 + 6}} by first adding the ones, then keeping the tens the same."
+      }
+    ]
+  }
+}

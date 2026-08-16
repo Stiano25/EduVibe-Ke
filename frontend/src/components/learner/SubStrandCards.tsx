@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Clock, Play } from 'lucide-react'
+import { Clock, Lock, Play } from 'lucide-react'
 import type { Subject, Strand } from '@/types'
 
 type SubStrandCardItem = {
@@ -8,6 +8,9 @@ type SubStrandCardItem = {
   progressPercent?: number
   estimatedMinutes?: number
   lessonCount?: number
+  isUnlocked?: boolean
+  sequenceNumber?: number | null
+  lessonsAllocated?: number | null
 }
 
 interface SubStrandCardsProps {
@@ -22,7 +25,8 @@ export const SubStrandCards = ({ subStrands, strand, subject }: SubStrandCardsPr
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
       {subStrands.map((subStrand, index) => {
-        const isSpotlight = index === 0
+        const locked = subStrand.isUnlocked === false
+        const isSpotlight = index === 0 && !locked
         const cardTheme = isSpotlight
           ? 'from-indigo-400 via-sky-400 to-emerald-400'
           : 'from-primary-400 via-primary-500 to-teal-400'
@@ -41,30 +45,47 @@ export const SubStrandCards = ({ subStrands, strand, subject }: SubStrandCardsPr
           e.currentTarget.style.boxShadow = '0 10px 0 0 rgba(0,0,0,0.05)'
         }
 
+        const Wrapper: 'div' | typeof Link = locked ? 'div' : Link
+        const wrapperProps = locked
+          ? {}
+          : {
+              to: `/learner/lessons?subject=${subject.id}&strand=${strand.id}&substrand=${subStrand.id}`,
+              onMouseDown: handleMouseDown,
+              onMouseUp: resetTransform,
+              onMouseLeave: resetTransform,
+            }
+
         return (
-          <Link
+          <Wrapper
             key={subStrand.id}
-            to={`/learner/lessons?subject=${subject.id}&strand=${strand.id}&substrand=${subStrand.id}`}
             className={`
               group h-full relative transition-transform duration-300
               ${isSpotlight ? 'sm:col-span-2 md:col-span-2 xl:col-span-2' : ''}
+              ${locked ? 'cursor-not-allowed' : ''}
             `}
             style={{
               fontFamily: 'Manrope, sans-serif',
               boxShadow: '0 10px 0 0 rgba(0,0,0,0.05)',
             }}
-            onMouseDown={handleMouseDown}
-            onMouseUp={resetTransform}
-            onMouseLeave={resetTransform}
+            {...wrapperProps}
           >
             <div
               className={`
                 h-full flex flex-col bg-white/80 backdrop-blur-md rounded-[24px]
                 border border-slate-200 relative overflow-hidden
                 hover:scale-[1.03] transition-transform
+                ${locked ? 'hover:scale-100 grayscale-[0.3]' : ''}
               `}
               style={{ borderWidth: '2.5px' }}
             >
+              {locked && (
+                <div className="absolute top-3 right-3">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-200 text-[10px] font-bold text-slate-700">
+                    <Lock className="w-3 h-3" />
+                    Locked
+                  </span>
+                </div>
+              )}
               {isSpotlight && (
                 <div className="absolute -top-2 right-3 rotate-[-3deg]">
                   <span
@@ -96,7 +117,9 @@ export const SubStrandCards = ({ subStrands, strand, subject }: SubStrandCardsPr
                       className="text-[11px] sm:text-xs text-text-secondary line-clamp-2 leading-relaxed"
                        
                     >
-                      Explore lessons and activities for {subStrand.name} in {strand.name}
+                      {locked
+                        ? 'Finish the previous unit first.'
+                        : `Explore lessons and activities for ${subStrand.name} in ${strand.name}`}
                     </p>
                   </div>
                 </div>
@@ -120,8 +143,16 @@ export const SubStrandCards = ({ subStrands, strand, subject }: SubStrandCardsPr
                       className="flex items-center gap-1 text-primary-700 font-semibold text-xs group-hover:gap-1.5 transition-all"
                        
                     >
-                      {progress > 0 ? 'Continue' : 'Start'}{' '}
-                      <Play className="w-3 h-3 fill-current" />
+                      {locked ? (
+                        <>
+                          Locked <Lock className="w-3 h-3" />
+                        </>
+                      ) : (
+                        <>
+                          {progress > 0 ? 'Continue' : 'Start'}{' '}
+                          <Play className="w-3 h-3 fill-current" />
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -142,7 +173,7 @@ export const SubStrandCards = ({ subStrands, strand, subject }: SubStrandCardsPr
                 </div>
               </div>
             </div>
-          </Link>
+          </Wrapper>
         )
       })}
     </div>

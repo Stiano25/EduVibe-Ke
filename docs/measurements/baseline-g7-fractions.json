@@ -1,0 +1,2521 @@
+{
+  "report": {
+    "label": "baseline-g7-fractions",
+    "subStrandId": "82716c61-609e-4547-b847-da2fe7a60866",
+    "generatedAt": "2026-08-11T08:02:19.894Z",
+    "elapsedSeconds": 301,
+    "lessonTitle": "Adding and Subtracting Fractions in Real Life",
+    "grade": "7",
+    "questionCount": 30,
+    "overall": {
+      "n": 30,
+      "avgWords": 15.37,
+      "maxWords": 28,
+      "avgSentences": 2,
+      "maxSentences": 3,
+      "stemsWithSubordinator": 5,
+      "stemsWithComparative": 4,
+      "stemsOver20Words": 10,
+      "stemsOver12Words": 21,
+      "stemsOver2Sentences": 9
+    },
+    "byBloom": {
+      "recall": {
+        "n": 4,
+        "avgWords": 6.25,
+        "maxWords": 12,
+        "avgSentences": 1.25,
+        "maxSentences": 2,
+        "stemsWithSubordinator": 1,
+        "stemsWithComparative": 0,
+        "stemsOver20Words": 0,
+        "stemsOver12Words": 0,
+        "stemsOver2Sentences": 0
+      },
+      "understand": {
+        "n": 5,
+        "avgWords": 15.2,
+        "maxWords": 23,
+        "avgSentences": 2.4,
+        "maxSentences": 3,
+        "stemsWithSubordinator": 0,
+        "stemsWithComparative": 0,
+        "stemsOver20Words": 1,
+        "stemsOver12Words": 4,
+        "stemsOver2Sentences": 3
+      },
+      "apply": {
+        "n": 11,
+        "avgWords": 12.64,
+        "maxWords": 21,
+        "avgSentences": 1.91,
+        "maxSentences": 3,
+        "stemsWithSubordinator": 0,
+        "stemsWithComparative": 1,
+        "stemsOver20Words": 2,
+        "stemsOver12Words": 7,
+        "stemsOver2Sentences": 3
+      },
+      "reason": {
+        "n": 10,
+        "avgWords": 22.1,
+        "maxWords": 28,
+        "avgSentences": 2.2,
+        "maxSentences": 3,
+        "stemsWithSubordinator": 4,
+        "stemsWithComparative": 3,
+        "stemsOver20Words": 7,
+        "stemsOver12Words": 10,
+        "stemsOver2Sentences": 3
+      }
+    },
+    "modality": {
+      "visual": 6,
+      "text_steps": 10,
+      "practice": 14
+    },
+    "visualQuestions": 6,
+    "visualWithBrief": 6,
+    "questionBriefs": 6,
+    "placeholderBriefs": 3,
+    "placeholderRatio": 0.5,
+    "qaFlagged": 0,
+    "qaIssues": [],
+    "optionsTotal": 120,
+    "rationalesPresent": 0,
+    "rationaleAvgWords": 0,
+    "tokens": {
+      "calls": 6,
+      "inputTokens": 11213,
+      "outputTokens": 32630,
+      "byLabel": [
+        {
+          "provider": "claude",
+          "label": "lesson 1 shell",
+          "inputTokens": 1563,
+          "outputTokens": 2115,
+          "maxTokens": 2500,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz foundation",
+          "inputTokens": 952,
+          "outputTokens": 6193,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz application",
+          "inputTokens": 1346,
+          "outputTokens": 10018,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz reasoning",
+          "inputTokens": 1725,
+          "outputTokens": 10116,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 coverage gap",
+          "inputTokens": 1601,
+          "outputTokens": 2034,
+          "maxTokens": 2200,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz QA",
+          "inputTokens": 4026,
+          "outputTokens": 2154,
+          "maxTokens": 3000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        }
+      ],
+      "estimatedUsd": 0.5231,
+      "pricing": {
+        "inputPerM": 3,
+        "outputPerM": 15
+      }
+    },
+    "reasoningStems": [
+      {
+        "id": "q-19",
+        "words": 24,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "Amina saves $\\frac{1}{3}$ of her pocket money on Monday and $\\frac{1}{4}$ on Tuesday. What fraction of her pocket money has she saved in total?"
+      },
+      {
+        "id": "q-20",
+        "words": 22,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "A water tank is $\\frac{5}{6}$ full. A leak drains $\\frac{1}{3}$ of the tank's capacity overnight. What fraction of the tank remains full?"
+      },
+      {
+        "id": "q-21",
+        "words": 27,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "A dairy mixes $\\frac{2}{5}$ litre of milk from one cow with $\\frac{3}{10}$ litre from another. The bars show fifths and tenths shaded. What is the total milk?"
+      },
+      {
+        "id": "q-22",
+        "words": 15,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "A bus journey takes $\\frac{3}{4}$ hour. After $\\frac{1}{2}$ hour has passed, how much time remains?"
+      },
+      {
+        "id": "q-23",
+        "words": 28,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 2,
+        "stem": "Peter wants to combine two mobile money transactions, $\\frac{1}{6}$ and $\\frac{1}{4}$ of his savings, to check if the total is more than half. What should he do first?"
+      },
+      {
+        "id": "q-24",
+        "words": 24,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 2,
+        "stem": "A car's fuel tank is $\\frac{7}{8}$ full. After a trip using $\\frac{3}{4}$ of the tank, will there be more, less, or exactly $\\frac{1}{8}$ remaining?"
+      },
+      {
+        "id": "q-25",
+        "words": 13,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 3,
+        "stem": "Without finding the exact answer, will $\\frac{3}{5}+\\frac{1}{10}$ be more or less than $\\frac{1}{2}$?"
+      },
+      {
+        "id": "q-26",
+        "words": 26,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "A tailor has $\\frac{9}{10}$ m of cloth and needs to cut a piece of $\\frac{3}{5}$ m for a sleeve. Which method correctly finds the cloth left?"
+      },
+      {
+        "id": "q-27",
+        "words": 20,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "Two neighbouring farms measure $\\frac{3}{8}$ hectare and $\\frac{1}{4}$ hectare, as shown in the bar model. What is their combined area?"
+      },
+      {
+        "id": "q-28",
+        "words": 22,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "A study plan allocates $\\frac{5}{8}$ hour to Maths. The number line shows $\\frac{2}{8}$ hour has already passed. How much study time remains?"
+      }
+    ],
+    "allRows": [
+      {
+        "id": "q-1",
+        "bloom": "recall",
+        "modality": "visual",
+        "words": 9,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "The number line shows $\\frac{3}{4}-\\frac{1}{4}$. What is the answer?"
+      },
+      {
+        "id": "q-2",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Subtract $\\frac{5}{6}-\\frac{1}{3}$."
+      },
+      {
+        "id": "q-3",
+        "bloom": "understand",
+        "modality": "practice",
+        "words": 18,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Mary spent $\\frac{1}{4}$ of her money on Monday and $\\frac{1}{2}$ on Tuesday. What fraction did she spend altogether?"
+      },
+      {
+        "id": "q-4",
+        "bloom": "understand",
+        "modality": "practice",
+        "words": 17,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A rope is $\\frac{3}{4}$ m long. A piece of $\\frac{1}{2}$ m is cut off. What length remains?"
+      },
+      {
+        "id": "q-5",
+        "bloom": "recall",
+        "modality": "visual",
+        "words": 12,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Why do we find a common denominator before adding or subtracting fractions?"
+      },
+      {
+        "id": "q-6",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 16,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A lesson lasts $\\frac{5}{6}$ hour. Group work used $\\frac{1}{2}$ hour. What fraction of the hour remains?"
+      },
+      {
+        "id": "q-7",
+        "bloom": "recall",
+        "modality": "practice",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Add $\\frac{2}{5}+\\frac{1}{5}$."
+      },
+      {
+        "id": "q-8",
+        "bloom": "recall",
+        "modality": "visual",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Subtract $\\frac{4}{7}-\\frac{2}{7}$."
+      },
+      {
+        "id": "q-9",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 21,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "John spent $\\frac{1}{3}$ of his salary on food and $\\frac{1}{4}$ on rent. What fraction of his salary did he spend altogether?"
+      },
+      {
+        "id": "q-10",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Add $\\frac{2}{3}+\\frac{1}{6}$."
+      },
+      {
+        "id": "q-11",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 20,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Two bars divided into fifths are shown: the first has $\\frac{1}{5}$ shaded, the second has $\\frac{3}{5}$ shaded. What is $\\frac{1}{5}+\\frac{3}{5}$?"
+      },
+      {
+        "id": "q-12",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Add $\\frac{3}{8}+\\frac{1}{4}$."
+      },
+      {
+        "id": "q-13",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 19,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A tailor has $\\frac{7}{8}$ m of cloth and uses $\\frac{3}{4}$ m to make a shirt. How much cloth remains?"
+      },
+      {
+        "id": "q-14",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Subtract $\\frac{5}{6}-\\frac{1}{4}$."
+      },
+      {
+        "id": "q-15",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 15,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A number line marked in eighths shows points at $\\frac{7}{8}$ and $\\frac{2}{8}$. What is $\\frac{7}{8}-\\frac{2}{8}$?"
+      },
+      {
+        "id": "q-16",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 2,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Subtract $\\frac{9}{10}-\\frac{3}{5}$."
+      },
+      {
+        "id": "q-17",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 17,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A study session lasts $\\frac{2}{3}$ hour. A break adds $\\frac{1}{6}$ hour more. What is the total time?"
+      },
+      {
+        "id": "q-18",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 21,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Grace has $\\frac{3}{4}$ of her allowance. She uses $\\frac{1}{2}$ of her allowance for bus fare. What fraction of her allowance remains?"
+      },
+      {
+        "id": "q-19",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 24,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Amina saves $\\frac{1}{3}$ of her pocket money on Monday and $\\frac{1}{4}$ on Tuesday. What fraction of her pocket money has she saved in total?"
+      },
+      {
+        "id": "q-20",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 22,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A water tank is $\\frac{5}{6}$ full. A leak drains $\\frac{1}{3}$ of the tank's capacity overnight. What fraction of the tank remains full?"
+      },
+      {
+        "id": "q-21",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 27,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A dairy mixes $\\frac{2}{5}$ litre of milk from one cow with $\\frac{3}{10}$ litre from another. The bars show fifths and tenths shaded. What is the total milk?"
+      },
+      {
+        "id": "q-22",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 15,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A bus journey takes $\\frac{3}{4}$ hour. After $\\frac{1}{2}$ hour has passed, how much time remains?"
+      },
+      {
+        "id": "q-23",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 28,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 2,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Peter wants to combine two mobile money transactions, $\\frac{1}{6}$ and $\\frac{1}{4}$ of his savings, to check if the total is more than half. What should he do first?"
+      },
+      {
+        "id": "q-24",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 24,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 2,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A car's fuel tank is $\\frac{7}{8}$ full. After a trip using $\\frac{3}{4}$ of the tank, will there be more, less, or exactly $\\frac{1}{8}$ remaining?"
+      },
+      {
+        "id": "q-25",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 13,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 3,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Without finding the exact answer, will $\\frac{3}{5}+\\frac{1}{10}$ be more or less than $\\frac{1}{2}$?"
+      },
+      {
+        "id": "q-26",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 26,
+        "sentences": 2,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A tailor has $\\frac{9}{10}$ m of cloth and needs to cut a piece of $\\frac{3}{5}$ m for a sleeve. Which method correctly finds the cloth left?"
+      },
+      {
+        "id": "q-27",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 20,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "Two neighbouring farms measure $\\frac{3}{8}$ hectare and $\\frac{1}{4}$ hectare, as shown in the bar model. What is their combined area?"
+      },
+      {
+        "id": "q-28",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 22,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A study plan allocates $\\frac{5}{8}$ hour to Maths. The number line shows $\\frac{2}{8}$ hour has already passed. How much study time remains?"
+      },
+      {
+        "id": "q-29",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 18,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A shopkeeper had $\\frac{5}{6}$ kg of sugar. She sold $\\frac{1}{3}$ kg to a customer. How much sugar remains?"
+      },
+      {
+        "id": "q-30",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 23,
+        "sentences": 3,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 0,
+        "rationaleWords": [],
+        "stem": "A community borehole tank was $\\frac{7}{10}$ full in the morning. By evening it dropped to $\\frac{2}{5}$ full. What fraction of water was used?"
+      }
+    ]
+  },
+  "lesson": {
+    "title": "Adding and Subtracting Fractions in Real Life",
+    "description": "Learn to add and subtract fractions with different denominators using real-life situations.",
+    "strandId": "cb1f0d90-267d-42da-964b-3aaaf751b737",
+    "subStrandId": "82716c61-609e-4547-b847-da2fe7a60866",
+    "subjectId": "00cc011f-f272-401a-b0de-9a4019e605ba",
+    "grade": "7",
+    "contentType": "interactive",
+    "difficulty": "beginner",
+    "tags": [
+      "practice"
+    ],
+    "duration": 10,
+    "content": "A fraction shows part of a whole, like the amount of a chapati or a length of rope. To add or subtract fractions with different denominators, we first find a {{term:common denominator}} so the pieces are the same size.\n\nExample: A farmer used $\\frac{1}{2}$ of a bag of fertilizer on Monday and $\\frac{1}{3}$ of a bag on Tuesday. Total used = $\\frac{1}{2}+\\frac{1}{3}=\\frac{3}{6}+\\frac{2}{6}=\\frac{5}{6}$ of a bag.\n\nExample: A tailor had $\\frac{3}{4}$ metre of cloth and used $\\frac{1}{2}$ metre for a pocket. Cloth remaining = $\\frac{3}{4}-\\frac{1}{2}=\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$ metre. Now try this: A pupil drank $\\frac{2}{5}$ of a bottle of juice in the morning and $\\frac{1}{5}$ in the afternoon. How much juice did the pupil drink in total?",
+    "learningObjectives": [
+      "add fractions in different situations",
+      "subtract fractions in different situations"
+    ],
+    "keyConcepts": [],
+    "examples": [],
+    "summary": "",
+    "isAIGenerated": true,
+    "status": "pending",
+    "lessonOrder": 1,
+    "quiz": {
+      "title": "Quiz Challenge",
+      "questions": [
+        {
+          "id": "q-1",
+          "question": "The number line shows $\\frac{3}{4}-\\frac{1}{4}$. What is the answer?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{2}{8}$",
+            "$\\frac{4}{4}$",
+            "$\\frac{1}{4}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Same denominator: subtract numerators, $\\frac{2}{4}=\\frac{1}{2}$.",
+          "optionExplanations": [
+            "Same denominator: subtract numerators, $\\frac{2}{4}=\\frac{1}{2}$.",
+            "Doubled the denominator by mistake",
+            "Added instead of subtracting numerators",
+            "Subtracted denominator instead of numerator"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Doubled the denominator by mistake"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added instead of subtracting numerators"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Subtracted denominator instead of numerator"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-1"
+        },
+        {
+          "id": "q-2",
+          "question": "Subtract $\\frac{5}{6}-\\frac{1}{3}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{4}{3}$",
+            "$\\frac{4}{9}$",
+            "$\\frac{5}{3}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{1}{3}$ to $\\frac{2}{6}$, then subtract from $\\frac{5}{6}$.",
+          "optionExplanations": [
+            "Convert $\\frac{1}{3}$ to $\\frac{2}{6}$, then subtract from $\\frac{5}{6}$.",
+            "Added the fractions instead of subtracting",
+            "Subtracted numerators and denominators separately",
+            "Kept wrong denominator after conversion"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added the fractions instead of subtracting"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Subtracted numerators and denominators separately"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Kept wrong denominator after conversion"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Find LCD of 6 and 3, which is 6.",
+            "Convert: $\\frac{1}{3}=\\frac{2}{6}$.",
+            "Subtract: $\\frac{5}{6}-\\frac{2}{6}=\\frac{3}{6}=\\frac{1}{2}$."
+          ]
+        },
+        {
+          "id": "q-3",
+          "question": "Mary spent $\\frac{1}{4}$ of her money on Monday and $\\frac{1}{2}$ on Tuesday. What fraction did she spend altogether?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{3}{4}$",
+            "$\\frac{2}{6}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{3}{6}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "LCD is 4: $\\frac{1}{4}+\\frac{2}{4}=\\frac{3}{4}$.",
+          "optionExplanations": [
+            "LCD is 4: $\\frac{1}{4}+\\frac{2}{4}=\\frac{3}{4}$.",
+            "Added denominators together by mistake",
+            "Forgot to convert before adding",
+            "Used wrong common denominator value"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added denominators together by mistake"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Forgot to convert before adding"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Used wrong common denominator value"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-4",
+          "question": "A rope is $\\frac{3}{4}$ m long. A piece of $\\frac{1}{2}$ m is cut off. What length remains?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{4}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{1}{8}$",
+            "$\\frac{2}{8}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "LCD is 4: $\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$.",
+          "optionExplanations": [
+            "LCD is 4: $\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$.",
+            "Forgot to convert half before subtracting",
+            "Divided instead of subtracting fractions",
+            "Used wrong denominator during conversion"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to convert half before subtracting"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Divided instead of subtracting fractions"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Used wrong denominator during conversion"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-5",
+          "question": "Why do we find a common denominator before adding or subtracting fractions?",
+          "type": "multiple-choice",
+          "options": [
+            "So the pieces are the same size",
+            "So the fractions become bigger",
+            "So we can remove the denominators",
+            "So the numerators cancel out"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Equal-sized pieces allow numerators to be combined correctly.",
+          "optionExplanations": [
+            "Equal-sized pieces allow numerators to be combined correctly.",
+            "Believes common denominators increase fraction value",
+            "Thinks denominators are unnecessary after conversion",
+            "Confuses common denominator with cancellation rule"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Believes common denominators increase fraction value"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks denominators are unnecessary after conversion"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confuses common denominator with cancellation rule"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-5"
+        },
+        {
+          "id": "q-6",
+          "question": "A lesson lasts $\\frac{5}{6}$ hour. Group work used $\\frac{1}{2}$ hour. What fraction of the hour remains?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{6}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{3}{6}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "LCD is 6: $\\frac{5}{6}-\\frac{3}{6}=\\frac{2}{6}=\\frac{1}{3}$.",
+          "optionExplanations": [
+            "LCD is 6: $\\frac{5}{6}-\\frac{3}{6}=\\frac{2}{6}=\\frac{1}{3}$.",
+            "Subtracted numerators without converting first",
+            "Added the fractions instead of subtracting",
+            "Forgot to convert half to sixths"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted numerators without converting first"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added the fractions instead of subtracting"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to convert half to sixths"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": []
+        },
+        {
+          "id": "q-7",
+          "question": "Add $\\frac{2}{5}+\\frac{1}{5}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{3}{5}$",
+            "$\\frac{3}{10}$",
+            "$\\frac{1}{5}$",
+            "$\\frac{2}{10}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Same denominator: add numerators, keep denominator the same.",
+          "optionExplanations": [
+            "Same denominator: add numerators, keep denominator the same.",
+            "Added denominators together by mistake",
+            "Ignored one numerator when adding",
+            "Doubled the denominator unnecessarily"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added denominators together by mistake"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Ignored one numerator when adding"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Doubled the denominator unnecessarily"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-8",
+          "question": "Subtract $\\frac{4}{7}-\\frac{2}{7}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{2}{7}$",
+            "$\\frac{2}{14}$",
+            "$\\frac{6}{7}$",
+            "$\\frac{2}{0}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Same denominator: subtract numerators, keep denominator the same.",
+          "optionExplanations": [
+            "Same denominator: subtract numerators, keep denominator the same.",
+            "Doubled the denominator instead of keeping it",
+            "Added numerators instead of subtracting",
+            "Subtracted denominators leading to invalid fraction"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Doubled the denominator instead of keeping it"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added numerators instead of subtracting"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Subtracted denominators leading to invalid fraction"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-8"
+        },
+        {
+          "id": "q-9",
+          "question": "John spent $\\frac{1}{3}$ of his salary on food and $\\frac{1}{4}$ on rent. What fraction of his salary did he spend altogether?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{7}{12}$",
+            "$\\frac{2}{7}$",
+            "$\\frac{1}{12}$",
+            "$\\frac{4}{7}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert to twelfths: $\\frac{4}{12}+\\frac{3}{12}=\\frac{7}{12}$.",
+          "optionExplanations": [
+            "Convert to twelfths: $\\frac{4}{12}+\\frac{3}{12}=\\frac{7}{12}$.",
+            "Added numerators and denominators together",
+            "Subtracted instead of adding the fractions",
+            "Added numerators, used wrong denominator"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added numerators and denominators together"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Subtracted instead of adding the fractions"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added numerators, used wrong denominator"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": []
+        },
+        {
+          "id": "q-10",
+          "question": "Add $\\frac{2}{3}+\\frac{1}{6}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{5}{6}$",
+            "$\\frac{3}{9}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{2}{9}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Change $\\frac{2}{3}$ to $\\frac{4}{6}$, then add sixths.",
+          "optionExplanations": [
+            "Change $\\frac{2}{3}$ to $\\frac{4}{6}$, then add sixths.",
+            "Added numerators and denominators directly",
+            "Simplified a fraction wrongly before adding",
+            "Used original denominators without converting"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 2,
+          "learningOutcomeKey": "ef058074c7bfe860",
+          "skillFocus": "subtract fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added numerators and denominators directly"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Simplified a fraction wrongly before adding"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Used original denominators without converting"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Convert $\\frac{2}{3}$ to sixths: $\\frac{4}{6}$",
+            "Add like fractions: $\\frac{4}{6}+\\frac{1}{6}$",
+            "Answer: $\\frac{5}{6}$"
+          ]
+        },
+        {
+          "id": "q-11",
+          "question": "Two bars divided into fifths are shown: the first has $\\frac{1}{5}$ shaded, the second has $\\frac{3}{5}$ shaded. What is $\\frac{1}{5}+\\frac{3}{5}$?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{4}{5}$",
+            "$\\frac{3}{10}$",
+            "$\\frac{4}{10}$",
+            "$1$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Same denominator, so add numerators: $1+3=4$ fifths.",
+          "optionExplanations": [
+            "Same denominator, so add numerators: $1+3=4$ fifths.",
+            "Added denominators together instead of numerators",
+            "Doubled the denominator by mistake",
+            "Assumed shaded parts make a whole bar"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added denominators together instead of numerators"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Doubled the denominator by mistake"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Assumed shaded parts make a whole bar"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-11"
+        },
+        {
+          "id": "q-12",
+          "question": "Add $\\frac{3}{8}+\\frac{1}{4}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{5}{8}$",
+            "$\\frac{4}{12}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{4}{8}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{1}{4}$ to $\\frac{2}{8}$, then add eighths.",
+          "optionExplanations": [
+            "Convert $\\frac{1}{4}$ to $\\frac{2}{8}$, then add eighths.",
+            "Added numerators and denominators directly",
+            "Used wrong common denominator by mistake",
+            "Forgot to convert numerator of quarter"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 2,
+          "learningOutcomeKey": "ef058074c7bfe860",
+          "skillFocus": "subtract fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added numerators and denominators directly"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Used wrong common denominator by mistake"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to convert numerator of quarter"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": []
+        },
+        {
+          "id": "q-13",
+          "question": "A tailor has $\\frac{7}{8}$ m of cloth and uses $\\frac{3}{4}$ m to make a shirt. How much cloth remains?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{8}$",
+            "$1$",
+            "$\\frac{1}{2}$",
+            "$\\frac{3}{8}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{3}{4}$ to $\\frac{6}{8}$, then subtract: $\\frac{7}{8}-\\frac{6}{8}$.",
+          "optionExplanations": [
+            "Convert $\\frac{3}{4}$ to $\\frac{6}{8}$, then subtract: $\\frac{7}{8}-\\frac{6}{8}$.",
+            "Subtracted numerators and denominators separately",
+            "Used a wrong common denominator value",
+            "Subtracted numerators without converting fractions"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted numerators and denominators separately"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Used a wrong common denominator value"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Subtracted numerators without converting fractions"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-14",
+          "question": "Subtract $\\frac{5}{6}-\\frac{1}{4}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{7}{12}$",
+            "$\\frac{4}{12}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{1}{2}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Common denominator 12: $\\frac{10}{12}-\\frac{3}{12}=\\frac{7}{12}$.",
+          "optionExplanations": [
+            "Common denominator 12: $\\frac{10}{12}-\\frac{3}{12}=\\frac{7}{12}$.",
+            "Subtracted numerators before converting fractions",
+            "Used wrong common denominator by mistake",
+            "Simplified the correct answer incorrectly"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted numerators before converting fractions"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Used wrong common denominator by mistake"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Simplified the correct answer incorrectly"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Find common denominator: 12",
+            "Convert: $\\frac{10}{12}-\\frac{3}{12}$",
+            "Answer: $\\frac{7}{12}$"
+          ]
+        },
+        {
+          "id": "q-15",
+          "question": "A number line marked in eighths shows points at $\\frac{7}{8}$ and $\\frac{2}{8}$. What is $\\frac{7}{8}-\\frac{2}{8}$?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{5}{8}$",
+            "$\\frac{9}{8}$",
+            "$\\frac{5}{16}$",
+            "$\\frac{9}{16}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Same denominator, so subtract numerators: $7-2=5$ eighths.",
+          "optionExplanations": [
+            "Same denominator, so subtract numerators: $7-2=5$ eighths.",
+            "Added the two fractions instead of subtracting",
+            "Subtracted denominators as well as numerators",
+            "Added numerators and denominators together"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added the two fractions instead of subtracting"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Subtracted denominators as well as numerators"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added numerators and denominators together"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-15"
+        },
+        {
+          "id": "q-16",
+          "question": "Subtract $\\frac{9}{10}-\\frac{3}{5}$.",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{3}{10}$",
+            "$\\frac{6}{5}$",
+            "$\\frac{3}{5}$",
+            "$\\frac{1}{2}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{3}{5}$ to $\\frac{6}{10}$, then subtract tenths.",
+          "optionExplanations": [
+            "Convert $\\frac{3}{5}$ to $\\frac{6}{10}$, then subtract tenths.",
+            "Added instead of subtracting the fractions",
+            "Forgot to convert fraction before subtracting",
+            "Simplified the correct answer incorrectly"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added instead of subtracting the fractions"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Forgot to convert fraction before subtracting"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Simplified the correct answer incorrectly"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": []
+        },
+        {
+          "id": "q-17",
+          "question": "A study session lasts $\\frac{2}{3}$ hour. A break adds $\\frac{1}{6}$ hour more. What is the total time?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{5}{6}$",
+            "$\\frac{3}{9}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{3}{6}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{2}{3}$ to $\\frac{4}{6}$, then add sixths.",
+          "optionExplanations": [
+            "Convert $\\frac{2}{3}$ to $\\frac{4}{6}$, then add sixths.",
+            "Added numerators and denominators together",
+            "Used wrong common denominator by mistake",
+            "Forgot to convert numerator before adding"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added numerators and denominators together"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Used wrong common denominator by mistake"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to convert numerator before adding"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-18",
+          "question": "Grace has $\\frac{3}{4}$ of her allowance. She uses $\\frac{1}{2}$ of her allowance for bus fare. What fraction of her allowance remains?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{4}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{5}{4}$",
+            "$\\frac{3}{2}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{1}{2}$ to $\\frac{2}{4}$, then subtract quarters.",
+          "optionExplanations": [
+            "Convert $\\frac{1}{2}$ to $\\frac{2}{4}$, then subtract quarters.",
+            "Forgot to convert fraction before subtracting",
+            "Added instead of subtracting the fractions",
+            "Used wrong common denominator by mistake"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to convert fraction before subtracting"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added instead of subtracting the fractions"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Used wrong common denominator by mistake"
+            }
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-18"
+        },
+        {
+          "id": "q-19",
+          "question": "Amina saves $\\frac{1}{3}$ of her pocket money on Monday and $\\frac{1}{4}$ on Tuesday. What fraction of her pocket money has she saved in total?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{7}{12}$",
+            "$\\frac{2}{7}$",
+            "$\\frac{1}{7}$",
+            "$\\frac{5}{12}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Common denominator 12: $\\frac{4}{12}+\\frac{3}{12}=\\frac{7}{12}$.",
+          "optionExplanations": [
+            "Common denominator 12: $\\frac{4}{12}+\\frac{3}{12}=\\frac{7}{12}$.",
+            "Added numerators and denominators directly",
+            "Subtracted instead of adding fractions",
+            "Used wrong common denominator conversion"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added numerators and denominators directly"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Subtracted instead of adding fractions"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Used wrong common denominator conversion"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Find common denominator: 12",
+            "Convert: $\\frac{1}{3}=\\frac{4}{12}$, $\\frac{1}{4}=\\frac{3}{12}$",
+            "Add: $\\frac{4}{12}+\\frac{3}{12}=\\frac{7}{12}$"
+          ]
+        },
+        {
+          "id": "q-20",
+          "question": "A water tank is $\\frac{5}{6}$ full. A leak drains $\\frac{1}{3}$ of the tank's capacity overnight. What fraction of the tank remains full?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{4}{6}$",
+            "$\\frac{3}{4}$",
+            "$\\frac{1}{3}$"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{1}{3}$ to $\\frac{2}{6}$, subtract: $\\frac{5}{6}-\\frac{2}{6}=\\frac{1}{2}$.",
+          "optionExplanations": [
+            "Convert $\\frac{1}{3}$ to $\\frac{2}{6}$, subtract: $\\frac{5}{6}-\\frac{2}{6}=\\frac{1}{2}$.",
+            "Subtracted numerators without converting denominator first",
+            "Used incorrect common denominator",
+            "Gave amount drained, not amount remaining"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted numerators without converting denominator first"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Used incorrect common denominator"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Gave amount drained, not amount remaining"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Convert $\\frac{1}{3}$ to sixths: $\\frac{2}{6}$",
+            "Subtract: $\\frac{5}{6}-\\frac{2}{6}=\\frac{3}{6}$",
+            "Simplify: $\\frac{3}{6}=\\frac{1}{2}$"
+          ]
+        },
+        {
+          "id": "q-21",
+          "question": "A dairy mixes $\\frac{2}{5}$ litre of milk from one cow with $\\frac{3}{10}$ litre from another. The bars show fifths and tenths shaded. What is the total milk?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{7}{10}$ litre",
+            "$\\frac{5}{15}$ litre",
+            "$\\frac{1}{2}$ litre",
+            "$\\frac{6}{10}$ litre"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{2}{5}$ to $\\frac{4}{10}$, add: $\\frac{4}{10}+\\frac{3}{10}=\\frac{7}{10}$.",
+          "optionExplanations": [
+            "Convert $\\frac{2}{5}$ to $\\frac{4}{10}$, add: $\\frac{4}{10}+\\frac{3}{10}=\\frac{7}{10}$.",
+            "Added denominators together",
+            "Estimated instead of using common denominator",
+            "Forgot to convert $\\frac{2}{5}$ to tenths"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added denominators together"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Estimated instead of using common denominator"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to convert $\\frac{2}{5}$ to tenths"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-22",
+          "question": "A bus journey takes $\\frac{3}{4}$ hour. After $\\frac{1}{2}$ hour has passed, how much time remains?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{1}{4}$ hour",
+            "$\\frac{1}{2}$ hour",
+            "$\\frac{1}{3}$ hour",
+            "$\\frac{2}{4}$ hour"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{1}{2}$ to $\\frac{2}{4}$, subtract: $\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$.",
+          "optionExplanations": [
+            "Convert $\\frac{1}{2}$ to $\\frac{2}{4}$, subtract: $\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$.",
+            "Subtracted wrong numerator value",
+            "Used unrelated denominator in subtraction",
+            "Forgot to convert $\\frac{1}{2}$ to quarters first"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted wrong numerator value"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Used unrelated denominator in subtraction"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to convert $\\frac{1}{2}$ to quarters first"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-23",
+          "question": "Peter wants to combine two mobile money transactions, $\\frac{1}{6}$ and $\\frac{1}{4}$ of his savings, to check if the total is more than half. What should he do first?",
+          "type": "multiple-choice",
+          "options": [
+            "Convert both fractions to a common denominator before adding",
+            "Add the numerators and denominators directly",
+            "Estimate using decimals only",
+            "Assume the total is more than half without calculating"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "A common denominator makes the pieces equal so they can be added correctly.",
+          "optionExplanations": [
+            "A common denominator makes the pieces equal so they can be added correctly.",
+            "Adds numerators and denominators incorrectly",
+            "Skips exact fraction calculation needed",
+            "Guesses without any calculation"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Adds numerators and denominators incorrectly"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Skips exact fraction calculation needed"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Guesses without any calculation"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-24",
+          "question": "A car's fuel tank is $\\frac{7}{8}$ full. After a trip using $\\frac{3}{4}$ of the tank, will there be more, less, or exactly $\\frac{1}{8}$ remaining?",
+          "type": "multiple-choice",
+          "options": [
+            "Less than $\\frac{1}{8}$ remains",
+            "Exactly $\\frac{1}{8}$ remains",
+            "More than $\\frac{1}{8}$ remains",
+            "The tank is empty"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "Convert $\\frac{3}{4}$ to $\\frac{6}{8}$: $\\frac{7}{8}-\\frac{6}{8}=\\frac{1}{8}$.",
+          "optionExplanations": [
+            "Underestimated the remaining fuel amount",
+            "Convert $\\frac{3}{4}$ to $\\frac{6}{8}$: $\\frac{7}{8}-\\frac{6}{8}=\\frac{1}{8}$.",
+            "Overestimated fuel remaining after trip",
+            "Assumed all fuel was used up"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Underestimated the remaining fuel amount"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Overestimated fuel remaining after trip"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Assumed all fuel was used up"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-25",
+          "question": "Without finding the exact answer, will $\\frac{3}{5}+\\frac{1}{10}$ be more or less than $\\frac{1}{2}$?",
+          "type": "multiple-choice",
+          "options": [
+            "More than $\\frac{1}{2}$",
+            "Less than $\\frac{1}{2}$",
+            "Exactly $\\frac{1}{2}$",
+            "Cannot be determined"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Since $\\frac{3}{5}=\\frac{6}{10}$ alone exceeds $\\frac{1}{2}$, the sum is more.",
+          "optionExplanations": [
+            "Since $\\frac{3}{5}=\\frac{6}{10}$ alone exceeds $\\frac{1}{2}$, the sum is more.",
+            "Underestimated the size of $\\frac{3}{5}$",
+            "Assumed fractions cancel to a half",
+            "Believes unlike denominators cannot be compared"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Underestimated the size of $\\frac{3}{5}$"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Assumed fractions cancel to a half"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Believes unlike denominators cannot be compared"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-26",
+          "question": "A tailor has $\\frac{9}{10}$ m of cloth and needs to cut a piece of $\\frac{3}{5}$ m for a sleeve. Which method correctly finds the cloth left?",
+          "type": "multiple-choice",
+          "options": [
+            "Convert $\\frac{3}{5}$ to tenths, then subtract from $\\frac{9}{10}$",
+            "Subtract $\\frac{3}{5}$ directly from $\\frac{9}{10}$ without converting",
+            "Add the two fractions instead",
+            "Round both fractions to the nearest whole number"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Converting to tenths gives equal-sized pieces before subtracting correctly.",
+          "optionExplanations": [
+            "Converting to tenths gives equal-sized pieces before subtracting correctly.",
+            "Fails to use a common denominator before subtracting",
+            "Confuses subtraction with addition operation",
+            "Loses accuracy by rounding fractions"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Fails to use a common denominator before subtracting"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses subtraction with addition operation"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Loses accuracy by rounding fractions"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-27",
+          "question": "Two neighbouring farms measure $\\frac{3}{8}$ hectare and $\\frac{1}{4}$ hectare, as shown in the bar model. What is their combined area?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{5}{8}$ hectare",
+            "$\\frac{4}{12}$ hectare",
+            "$\\frac{1}{2}$ hectare",
+            "$\\frac{4}{8}$ hectare"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert $\\frac{1}{4}$ to $\\frac{2}{8}$, add: $\\frac{3}{8}+\\frac{2}{8}=\\frac{5}{8}$.",
+          "optionExplanations": [
+            "Convert $\\frac{1}{4}$ to $\\frac{2}{8}$, add: $\\frac{3}{8}+\\frac{2}{8}=\\frac{5}{8}$.",
+            "Added denominators together instead of converting",
+            "Estimated without finding exact common denominator",
+            "Forgot to convert $\\frac{1}{4}$ to eighths correctly"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Added denominators together instead of converting"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Estimated without finding exact common denominator"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to convert $\\frac{1}{4}$ to eighths correctly"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-28",
+          "question": "A study plan allocates $\\frac{5}{8}$ hour to Maths. The number line shows $\\frac{2}{8}$ hour has already passed. How much study time remains?",
+          "type": "multiple-choice",
+          "options": [
+            "$\\frac{3}{8}$ hour",
+            "$\\frac{1}{2}$ hour",
+            "$\\frac{4}{8}$ hour",
+            "$\\frac{1}{4}$ hour"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Subtract: $\\frac{5}{8}-\\frac{2}{8}=\\frac{3}{8}$ hour remains.",
+          "optionExplanations": [
+            "Subtract: $\\frac{5}{8}-\\frac{2}{8}=\\frac{3}{8}$ hour remains.",
+            "Miscalculated the subtraction result",
+            "Did not simplify the fraction correctly",
+            "Confused elapsed time with remaining time"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "65784b9b0787a651",
+          "skillFocus": "add fractions in different situations",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscalculated the subtraction result"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Did not simplify the fraction correctly"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Confused elapsed time with remaining time"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-29",
+          "question": "A shopkeeper had $\\frac{5}{6}$ kg of sugar. She sold $\\frac{1}{3}$ kg to a customer. How much sugar remains?",
+          "type": "multiple-choice",
+          "options": [
+            "1/2",
+            "1/3",
+            "2/3",
+            "1/6"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert to sixths: 5/6−2/6=3/6=1/2.",
+          "optionExplanations": [
+            "Convert to sixths: 5/6−2/6=3/6=1/2.",
+            "Subtracted numerators without common denominator",
+            "Added instead of subtracting fractions",
+            "Miscalculated equivalent fraction for 1/3"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 2,
+          "learningOutcomeKey": "ef058074c7bfe860",
+          "skillFocus": "subtract fractions in different situations",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted numerators without common denominator"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added instead of subtracting fractions"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Miscalculated equivalent fraction for 1/3"
+            }
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-30",
+          "question": "A community borehole tank was $\\frac{7}{10}$ full in the morning. By evening it dropped to $\\frac{2}{5}$ full. What fraction of water was used?",
+          "type": "multiple-choice",
+          "options": [
+            "3/10",
+            "5/10",
+            "1/10",
+            "4/10"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Convert 2/5 to 4/10, then 7/10−4/10=3/10.",
+          "optionExplanations": [
+            "Convert 2/5 to 4/10, then 7/10−4/10=3/10.",
+            "Subtracted incorrectly using original denominators",
+            "Forgot to convert 2/5 to tenths",
+            "Used numerator of 2/5 without converting"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 2,
+          "learningOutcomeKey": "ef058074c7bfe860",
+          "skillFocus": "subtract fractions in different situations",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Subtracted incorrectly using original denominators"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Forgot to convert 2/5 to tenths"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Used numerator of 2/5 without converting"
+            }
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": []
+        }
+      ],
+      "passingScore": 65,
+      "timeLimit": 12,
+      "bankStats": {
+        "total": 30,
+        "byBloom": {
+          "recall": 4,
+          "understand": 5,
+          "apply": 11,
+          "reason": 10
+        },
+        "byModality": {
+          "visual": 6,
+          "text_steps": 10,
+          "practice": 14
+        },
+        "byOutcome": {
+          "1": {
+            "total": 26,
+            "visual": 6,
+            "text_steps": 7,
+            "practice": 13
+          },
+          "2": {
+            "total": 4,
+            "visual": 0,
+            "text_steps": 3,
+            "practice": 1
+          }
+        }
+      },
+      "coverageReport": {
+        "realCovered": [
+          1,
+          2
+        ],
+        "remapped": [],
+        "stillMissing": [],
+        "outcomes": [
+          "add fractions in different situations",
+          "subtract fractions in different situations"
+        ]
+      },
+      "visualBriefs": [
+        {
+          "id": "vb-1",
+          "skillFocus": "adding fractions with different denominators",
+          "outcomeKey": "92bf169abffdf187",
+          "brief": "Show three stacked fraction bars: 1/2 shaded, 1/3 shaded, and 5/6 shaded, all converted to sixths to show how 3/6 + 2/6 = 5/6.",
+          "diagramType": "fraction_bars",
+          "params": {
+            "parts": 4,
+            "shaded": 1,
+            "label": "1/4",
+            "title": "Fertilizer used: 1/2 + 1/3 = 5/6",
+            "fractions": [
+              {
+                "numerator": 1,
+                "denominator": 2,
+                "label": "Monday: 1/2"
+              },
+              {
+                "numerator": 1,
+                "denominator": 3,
+                "label": "Tuesday: 1/3"
+              },
+              {
+                "numerator": 5,
+                "denominator": 6,
+                "label": "Total: 5/6"
+              }
+            ]
+          },
+          "scope": "teaching"
+        },
+        {
+          "id": "vb-2",
+          "skillFocus": "subtracting fractions with different denominators",
+          "outcomeKey": "dd2e3f185976260c",
+          "brief": "Show three fraction bars divided into fourths: 3/4 shaded, 1/2 (shown as 2/4) shaded and removed, leaving 1/4 shaded to represent the remaining cloth.",
+          "diagramType": "fraction_bars",
+          "params": {
+            "parts": 4,
+            "shaded": 1,
+            "label": "1/4",
+            "title": "Cloth remaining: 3/4 - 1/2 = 1/4",
+            "fractions": [
+              {
+                "numerator": 3,
+                "denominator": 4,
+                "label": "Cloth had: 3/4"
+              },
+              {
+                "numerator": 1,
+                "denominator": 2,
+                "label": "Used: 1/2"
+              },
+              {
+                "numerator": 1,
+                "denominator": 4,
+                "label": "Left: 1/4"
+              }
+            ]
+          },
+          "scope": "teaching"
+        },
+        {
+          "id": "qvb-q-1",
+          "skillFocus": "add fractions in different situations",
+          "outcomeKey": "65784b9b0787a651",
+          "brief": "Number line from 0 to 1 marking a jump back from 3/4 to 1/4.",
+          "diagramType": "number_line",
+          "params": {
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "highlight": 3,
+            "label": "Number line",
+            "start": 0,
+            "end": 1,
+            "marks": [
+              0,
+              0.25,
+              0.5,
+              0.75,
+              1
+            ]
+          },
+          "scope": "question",
+          "questionId": "q-1"
+        },
+        {
+          "id": "qvb-q-5",
+          "skillFocus": "add fractions in different situations",
+          "outcomeKey": "65784b9b0787a651",
+          "brief": "Figure for: Why do we find a common denominator before adding or subtracting fractions?",
+          "diagramType": "fraction_bars",
+          "params": {
+            "parts": 4,
+            "shaded": 1,
+            "label": "1/4"
+          },
+          "scope": "question",
+          "questionId": "q-5"
+        },
+        {
+          "id": "qvb-q-8",
+          "skillFocus": "add fractions in different situations",
+          "outcomeKey": "65784b9b0787a651",
+          "brief": "Figure for: Subtract $\\frac{4}{7}-\\frac{2}{7}$.",
+          "diagramType": "fraction_bars",
+          "params": {
+            "parts": 7,
+            "shaded": 4,
+            "label": "4/7"
+          },
+          "scope": "question",
+          "questionId": "q-8"
+        },
+        {
+          "id": "qvb-q-11",
+          "skillFocus": "add fractions in different situations",
+          "outcomeKey": "65784b9b0787a651",
+          "brief": "Two bars split into 5 equal parts; first bar has 1 part shaded, second has 3 parts shaded.",
+          "diagramType": "fraction_bars",
+          "params": {
+            "parts": 5,
+            "shaded": 1,
+            "label": "1/5",
+            "bar1": {
+              "numerator": 1,
+              "denominator": 5
+            },
+            "bar2": {
+              "numerator": 3,
+              "denominator": 5
+            }
+          },
+          "scope": "question",
+          "questionId": "q-11"
+        },
+        {
+          "id": "qvb-q-15",
+          "skillFocus": "add fractions in different situations",
+          "outcomeKey": "65784b9b0787a651",
+          "brief": "Number line from 0 to 1 marked in eighths, points shown at 7/8 and 2/8.",
+          "diagramType": "number_line",
+          "params": {
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "highlight": 7,
+            "label": "Number line",
+            "denominator": 8,
+            "points": [
+              0.875,
+              0.25
+            ],
+            "labels": [
+              "7/8",
+              "2/8"
+            ]
+          },
+          "scope": "question",
+          "questionId": "q-15"
+        },
+        {
+          "id": "qvb-q-18",
+          "skillFocus": "add fractions in different situations",
+          "outcomeKey": "65784b9b0787a651",
+          "brief": "Figure for: Grace has $\\frac{3}{4}$ of her allowance. She uses $\\frac{1}{2}$ of her allowance for bus fare. What",
+          "diagramType": "fraction_bars",
+          "params": {
+            "parts": 4,
+            "shaded": 3,
+            "label": "3/4"
+          },
+          "scope": "question",
+          "questionId": "q-18"
+        }
+      ],
+      "contentBlocks": [
+        {
+          "id": "cb-1",
+          "type": "text",
+          "text": "A fraction shows part of a whole, like the amount of a chapati or a length of rope. To add or subtract fractions with different denominators, we first find a {{term:common denominator}} so the pieces are the same size."
+        },
+        {
+          "id": "cb-2",
+          "type": "diagram",
+          "briefId": "vb-1"
+        },
+        {
+          "id": "cb-3",
+          "type": "text",
+          "text": "Example: A farmer used $\\frac{1}{2}$ of a bag of fertilizer on Monday and $\\frac{1}{3}$ of a bag on Tuesday. Total used = $\\frac{1}{2}+\\frac{1}{3}=\\frac{3}{6}+\\frac{2}{6}=\\frac{5}{6}$ of a bag."
+        },
+        {
+          "id": "cb-4",
+          "type": "diagram",
+          "briefId": "vb-2"
+        },
+        {
+          "id": "cb-5",
+          "type": "text",
+          "text": "Example: A tailor had $\\frac{3}{4}$ metre of cloth and used $\\frac{1}{2}$ metre for a pocket. Cloth remaining = $\\frac{3}{4}-\\frac{1}{2}=\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$ metre. Now try this: A pupil drank $\\frac{2}{5}$ of a bottle of juice in the morning and $\\frac{1}{5}$ in the afternoon. How much juice did the pupil drink in total?"
+        }
+      ],
+      "visualAssets": []
+    },
+    "visualBriefs": [
+      {
+        "id": "vb-1",
+        "skillFocus": "adding fractions with different denominators",
+        "outcomeKey": "92bf169abffdf187",
+        "brief": "Show three stacked fraction bars: 1/2 shaded, 1/3 shaded, and 5/6 shaded, all converted to sixths to show how 3/6 + 2/6 = 5/6.",
+        "diagramType": "fraction_bars",
+        "params": {
+          "parts": 4,
+          "shaded": 1,
+          "label": "1/4",
+          "title": "Fertilizer used: 1/2 + 1/3 = 5/6",
+          "fractions": [
+            {
+              "numerator": 1,
+              "denominator": 2,
+              "label": "Monday: 1/2"
+            },
+            {
+              "numerator": 1,
+              "denominator": 3,
+              "label": "Tuesday: 1/3"
+            },
+            {
+              "numerator": 5,
+              "denominator": 6,
+              "label": "Total: 5/6"
+            }
+          ]
+        },
+        "scope": "teaching"
+      },
+      {
+        "id": "vb-2",
+        "skillFocus": "subtracting fractions with different denominators",
+        "outcomeKey": "dd2e3f185976260c",
+        "brief": "Show three fraction bars divided into fourths: 3/4 shaded, 1/2 (shown as 2/4) shaded and removed, leaving 1/4 shaded to represent the remaining cloth.",
+        "diagramType": "fraction_bars",
+        "params": {
+          "parts": 4,
+          "shaded": 1,
+          "label": "1/4",
+          "title": "Cloth remaining: 3/4 - 1/2 = 1/4",
+          "fractions": [
+            {
+              "numerator": 3,
+              "denominator": 4,
+              "label": "Cloth had: 3/4"
+            },
+            {
+              "numerator": 1,
+              "denominator": 2,
+              "label": "Used: 1/2"
+            },
+            {
+              "numerator": 1,
+              "denominator": 4,
+              "label": "Left: 1/4"
+            }
+          ]
+        },
+        "scope": "teaching"
+      },
+      {
+        "id": "qvb-q-1",
+        "skillFocus": "add fractions in different situations",
+        "outcomeKey": "65784b9b0787a651",
+        "brief": "Number line from 0 to 1 marking a jump back from 3/4 to 1/4.",
+        "diagramType": "number_line",
+        "params": {
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "highlight": 3,
+          "label": "Number line",
+          "start": 0,
+          "end": 1,
+          "marks": [
+            0,
+            0.25,
+            0.5,
+            0.75,
+            1
+          ]
+        },
+        "scope": "question",
+        "questionId": "q-1"
+      },
+      {
+        "id": "qvb-q-5",
+        "skillFocus": "add fractions in different situations",
+        "outcomeKey": "65784b9b0787a651",
+        "brief": "Figure for: Why do we find a common denominator before adding or subtracting fractions?",
+        "diagramType": "fraction_bars",
+        "params": {
+          "parts": 4,
+          "shaded": 1,
+          "label": "1/4"
+        },
+        "scope": "question",
+        "questionId": "q-5"
+      },
+      {
+        "id": "qvb-q-8",
+        "skillFocus": "add fractions in different situations",
+        "outcomeKey": "65784b9b0787a651",
+        "brief": "Figure for: Subtract $\\frac{4}{7}-\\frac{2}{7}$.",
+        "diagramType": "fraction_bars",
+        "params": {
+          "parts": 7,
+          "shaded": 4,
+          "label": "4/7"
+        },
+        "scope": "question",
+        "questionId": "q-8"
+      },
+      {
+        "id": "qvb-q-11",
+        "skillFocus": "add fractions in different situations",
+        "outcomeKey": "65784b9b0787a651",
+        "brief": "Two bars split into 5 equal parts; first bar has 1 part shaded, second has 3 parts shaded.",
+        "diagramType": "fraction_bars",
+        "params": {
+          "parts": 5,
+          "shaded": 1,
+          "label": "1/5",
+          "bar1": {
+            "numerator": 1,
+            "denominator": 5
+          },
+          "bar2": {
+            "numerator": 3,
+            "denominator": 5
+          }
+        },
+        "scope": "question",
+        "questionId": "q-11"
+      },
+      {
+        "id": "qvb-q-15",
+        "skillFocus": "add fractions in different situations",
+        "outcomeKey": "65784b9b0787a651",
+        "brief": "Number line from 0 to 1 marked in eighths, points shown at 7/8 and 2/8.",
+        "diagramType": "number_line",
+        "params": {
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "highlight": 7,
+          "label": "Number line",
+          "denominator": 8,
+          "points": [
+            0.875,
+            0.25
+          ],
+          "labels": [
+            "7/8",
+            "2/8"
+          ]
+        },
+        "scope": "question",
+        "questionId": "q-15"
+      },
+      {
+        "id": "qvb-q-18",
+        "skillFocus": "add fractions in different situations",
+        "outcomeKey": "65784b9b0787a651",
+        "brief": "Figure for: Grace has $\\frac{3}{4}$ of her allowance. She uses $\\frac{1}{2}$ of her allowance for bus fare. What",
+        "diagramType": "fraction_bars",
+        "params": {
+          "parts": 4,
+          "shaded": 3,
+          "label": "3/4"
+        },
+        "scope": "question",
+        "questionId": "q-18"
+      }
+    ],
+    "contentBlocks": [
+      {
+        "id": "cb-1",
+        "type": "text",
+        "text": "A fraction shows part of a whole, like the amount of a chapati or a length of rope. To add or subtract fractions with different denominators, we first find a {{term:common denominator}} so the pieces are the same size."
+      },
+      {
+        "id": "cb-2",
+        "type": "diagram",
+        "briefId": "vb-1"
+      },
+      {
+        "id": "cb-3",
+        "type": "text",
+        "text": "Example: A farmer used $\\frac{1}{2}$ of a bag of fertilizer on Monday and $\\frac{1}{3}$ of a bag on Tuesday. Total used = $\\frac{1}{2}+\\frac{1}{3}=\\frac{3}{6}+\\frac{2}{6}=\\frac{5}{6}$ of a bag."
+      },
+      {
+        "id": "cb-4",
+        "type": "diagram",
+        "briefId": "vb-2"
+      },
+      {
+        "id": "cb-5",
+        "type": "text",
+        "text": "Example: A tailor had $\\frac{3}{4}$ metre of cloth and used $\\frac{1}{2}$ metre for a pocket. Cloth remaining = $\\frac{3}{4}-\\frac{1}{2}=\\frac{3}{4}-\\frac{2}{4}=\\frac{1}{4}$ metre. Now try this: A pupil drank $\\frac{2}{5}$ of a bottle of juice in the morning and $\\frac{1}{5}$ in the afternoon. How much juice did the pupil drink in total?"
+      }
+    ]
+  }
+}

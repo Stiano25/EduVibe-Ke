@@ -11,6 +11,8 @@ import userRoutes from './user.js';
 import analyticsRoutes from './analytics.js';
 import uploadRoutes from './upload.js';
 import knowledgeRoutes from './knowledge.js';
+import questionBankRoutes from './questionBank.js';
+import layer2PrerequisiteRoutes from './layer2Prerequisite.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 
 const router = express.Router();
@@ -29,6 +31,8 @@ router.use('/users', userRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/knowledge', knowledgeRoutes);
+router.use('/question-bank', questionBankRoutes);
+router.use('/prerequisite-edges', layer2PrerequisiteRoutes);
 
 export default router;
 

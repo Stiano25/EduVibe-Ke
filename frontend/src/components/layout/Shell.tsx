@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { adminNavItems, isAdminNavActive } from '@/config/adminNav'
+import { usesQuestNavigation } from '@/lib/complexityBands'
 
 interface ShellProps {
   children: ReactNode
@@ -31,6 +32,10 @@ export const Shell = ({ children }: ShellProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const isAdmin = user?.role === 'admin'
+  const questNav = !isAdmin && usesQuestNavigation(user?.grade)
+  const visibleLearnerNav = questNav
+    ? learnerNavItems.filter((item) => item.path === '/learner')
+    : learnerNavItems
 
   const handleLogout = () => {
     logout()
@@ -85,7 +90,7 @@ export const Shell = ({ children }: ShellProps) => {
                     </Link>
                   )
                 })
-              : learnerNavItems.map((item) => {
+              : visibleLearnerNav.map((item) => {
                   const active = item.exact
                     ? location.pathname === item.path
                     : location.pathname === item.path ||
@@ -111,7 +116,7 @@ export const Shell = ({ children }: ShellProps) => {
 
           {/* Tablet: scrollable chip nav */}
           <nav className="hidden md:flex lg:hidden items-center gap-1 flex-1 overflow-x-auto no-scrollbar mx-1">
-            {(isAdmin ? adminNavItems : learnerNavItems).map((item) => {
+            {(isAdmin ? adminNavItems : visibleLearnerNav).map((item) => {
               const active = isAdmin
                 ? isAdminNavActive(location.pathname, item as (typeof adminNavItems)[0])
                 : (item as (typeof learnerNavItems)[0]).exact
@@ -236,7 +241,7 @@ export const Shell = ({ children }: ShellProps) => {
                       </Link>
                     )
                   })
-                : learnerNavItems.map((item) => {
+                : visibleLearnerNav.map((item) => {
                     const active = item.exact
                       ? location.pathname === item.path
                       : location.pathname.startsWith(item.path)

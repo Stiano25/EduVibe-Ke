@@ -13,6 +13,9 @@ import { CurriculumDesign } from '../models/CurriculumDesign.js';
 import { Subject } from '../models/Subject.js';
 import { Strand } from '../models/Strand.js';
 import { SubStrand } from '../models/SubStrand.js';
+import { parseCurriculumSequence } from '../utils/curriculumSequence.js';
+import { rebuildLayer1Graph } from '../admin/services/prerequisiteGraphService.js';
+import { Unit, PrerequisiteEdge } from '../models/CurriculumGraph.js';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = resolve(SCRIPT_DIR, '../data/grade1-3-mathematics-curriculum.json');
@@ -218,6 +221,8 @@ async function ensureSubStrand(subjectId, strandId, sourceSubStrand) {
     subjectId,
     learningOutcomes: sourceSubStrand.specificLearningOutcomes,
     keyInquiryQuestions: sourceSubStrand.keyInquiryQuestions,
+    lessonsAllocated: sourceSubStrand.lessonsAllocated,
+    sequenceNumber: parseCurriculumSequence(sourceSubStrand.subStrand),
     isAIGenerated: false
   };
   return matches[0] ? SubStrand.update(matches[0].id, values) : SubStrand.create(values);
@@ -295,6 +300,17 @@ async function verify(curriculum) {
           arraysEqual(subStrand.keyInquiryQuestions, sourceSubStrand.keyInquiryQuestions),
           `${subStrand.name} key inquiry questions do not match the source`
         );
+        assert(
+          subStrand.lessonsAllocated === sourceSubStrand.lessonsAllocated,
+          `${subStrand.name} lessonsAllocated does not match the source`
+        );
+        assert(
+          subStrand.sequenceNumber === parseCurriculumSequence(sourceSubStrand.subStrand),
+          `${subStrand.name} sequenceNumber does not match the source`
+        );
+        const unit = await Unit.findBySubStrandId(subStrand.id);
+        assert(unit, `${subStrand.name} is missing its 1:1 unit`);
+        assert(unit.lessonsAllocated === sourceSubStrand.lessonsAllocated, `${subStrand.name} unit lessonsAllocated mismatch`);
         actual.subStrands += 1;
         actual.learningOutcomes += subStrand.learningOutcomes.length;
         actual.keyInquiryQuestions += subStrand.keyInquiryQuestions.length;
@@ -327,10 +343,15 @@ async function verify(curriculum) {
 
 export async function runGrade1To3MathematicsSeed({ verifyOnly = false } = {}) {
   const curriculum = await loadAndValidateCurriculum();
-  if (!verifyOnly) await seed(curriculum);
+  if (!verifyOnly) {
+    await seed(curriculum);
+    await rebuildLayer1Graph();
+  }
+  const graph = await PrerequisiteEdge.countByType();
   return {
     mode: verifyOnly ? 'verify-only' : 'seed-and-verify',
-    ...(await verify(curriculum))
+    ...(await verify(curriculum)),
+    prerequisiteEdges: graph
   };
 }
 

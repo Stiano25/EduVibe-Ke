@@ -13,6 +13,7 @@ type SubStrandWithProgress = SubStrand & {
   progressPercent?: number
   lessonCount?: number
   estimatedMinutes?: number
+  isUnlocked?: boolean
 }
 
 export const SubjectNavigation = () => {

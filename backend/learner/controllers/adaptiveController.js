@@ -111,7 +111,7 @@ export const submitSkillAttempts = async (req, res) => {
       });
       created.push(row);
 
-      const mastery = await SkillMastery.upsertFromAttempt({
+      await SkillMastery.upsertFromAttempt({
         userId,
         learningOutcomeKey,
         skillFocus: question.skillFocus || outcomeText,
@@ -120,6 +120,26 @@ export const submitSkillAttempts = async (req, res) => {
         consecutiveFails: correct ? 0 : attemptInSkillStreak,
         modalityShown: modalityShown || profile.preferredModality
       });
+      await SkillMastery.recomputeBkt({
+        userId,
+        learningOutcomeKey,
+        skillFocus: question.skillFocus || outcomeText,
+        gradeLevel: lesson.grade
+      });
+
+      try {
+        const { recordRemediationFollowup } = await import(
+          '../../admin/services/layer2PrerequisiteService.js'
+        );
+        await recordRemediationFollowup({
+          userId,
+          learningOutcomeKey,
+          correct,
+          isTwin: false
+        });
+      } catch (err) {
+        console.warn('Layer 2 follow-up log skipped:', err.message || err);
+      }
 
       if (!correct) {
         missedSkills.push({
@@ -136,6 +156,15 @@ export const submitSkillAttempts = async (req, res) => {
             gradeLevel: lesson.grade,
             lessonId
           });
+          const { maybeQueueLayer2Proposal } = await import(
+            '../../admin/services/layer2PrerequisiteService.js'
+          );
+          void maybeQueueLayer2Proposal({
+            userId,
+            learningOutcomeKey,
+            grade: lesson.grade,
+            consecutiveFails: attemptInSkillStreak
+          }).catch((err) => console.warn('Layer 2 queue skipped:', err.message || err));
         }
       }
     }
@@ -334,7 +363,7 @@ const recordOneAttempt = async ({
     questionParams
   });
 
-  // Twin results are diagnostic evidence only in Phase 1.
+  // Twin results stay out of the 3-of-4 heuristic; they still update BKT (5.3 / 5.4).
   if (!isTwin) {
     await SkillMastery.upsertFromAttempt({
       userId,
@@ -345,6 +374,38 @@ const recordOneAttempt = async ({
       consecutiveFails: correct ? 0 : attemptInSkillStreak,
       modalityShown: shown
     });
+  }
+  await SkillMastery.recomputeBkt({
+    userId,
+    learningOutcomeKey,
+    skillFocus: question.skillFocus || learningOutcomeKey,
+    gradeLevel: lesson.grade
+  });
+
+  try {
+    const { recordRemediationFollowup } = await import(
+      '../../admin/services/layer2PrerequisiteService.js'
+    );
+    await recordRemediationFollowup({
+      userId,
+      learningOutcomeKey,
+      correct,
+      isTwin
+    });
+  } catch (err) {
+    console.warn('Layer 2 follow-up log skipped:', err.message || err);
+  }
+
+  if (!isTwin && !correct && attemptInSkillStreak >= (profile.scaffoldTolerance || 2)) {
+    const { maybeQueueLayer2Proposal } = await import(
+      '../../admin/services/layer2PrerequisiteService.js'
+    );
+    void maybeQueueLayer2Proposal({
+      userId,
+      learningOutcomeKey,
+      grade: lesson.grade,
+      consecutiveFails: attemptInSkillStreak
+    }).catch((err) => console.warn('Layer 2 queue skipped:', err.message || err));
   }
 
   return { attemptInSkillStreak, distractor };
@@ -392,6 +453,20 @@ export const startAdaptiveQuiz = async (req, res) => {
       });
     }
 
+    if (lesson.subStrandId) {
+      const { SubStrand } = await import('../../models/SubStrand.js');
+      const { loadStrandUnitUnlock } = await import('../services/unitGatingService.js');
+      const substrand = await SubStrand.findById(lesson.subStrandId);
+      if (substrand) {
+        const { flagsById } = await loadStrandUnitUnlock(userId, substrand.strandId);
+        if (flagsById.get(substrand.id) === false) {
+          return res.status(403).json({
+            error: 'This unit is locked. Finish the previous unit first.'
+          });
+        }
+      }
+    }
+
     const { createAdaptiveSession } = await import('../services/adaptiveQuizService.js');
     const modalitySuccessMap = await loadModalitySuccessMap(userId, lesson);
     const result = createAdaptiveSession({
@@ -400,6 +475,18 @@ export const startAdaptiveQuiz = async (req, res) => {
       masteryRows,
       modalitySuccessMap
     });
+
+    if (result.question?.bankEntryId) {
+      const { recordLearnerBankServe } = await import(
+        '../../admin/services/questionBankService.js'
+      );
+      await recordLearnerBankServe({
+        bankEntryId: result.question.bankEntryId,
+        lessonId,
+        learnerId: userId,
+        questionId: result.question.id
+      });
+    }
 
     res.json({
       mode: 'adaptive',
@@ -420,9 +507,13 @@ export const nextAdaptiveQuiz = async (req, res) => {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const lessonId = req.params.lessonId;
-    const { session, selectedOptionIndex, responseTimeMs } = req.body || {};
-    if (!session || selectedOptionIndex === undefined || selectedOptionIndex === null) {
-      return res.status(400).json({ error: 'session and selectedOptionIndex are required' });
+    const { session, selectedOptionIndex, placedCount, responseTimeMs } = req.body || {};
+    if (
+      !session ||
+      (selectedOptionIndex === undefined || selectedOptionIndex === null) &&
+        (placedCount === undefined || placedCount === null)
+    ) {
+      return res.status(400).json({ error: 'session and an answer are required' });
     }
     if (session.lessonId && session.lessonId !== lessonId) {
       return res.status(400).json({ error: 'session lesson mismatch' });
@@ -448,7 +539,8 @@ export const nextAdaptiveQuiz = async (req, res) => {
     const result = advanceAdaptiveSession({
       session: stripSignature(session),
       lesson,
-      selectedOptionIndex,
+      selectedOptionIndex: selectedOptionIndex ?? placedCount,
+      placedCount,
       responseTimeMs,
       masteryRows,
       modalitySuccessMap
@@ -475,6 +567,26 @@ export const nextAdaptiveQuiz = async (req, res) => {
         twinTriggerReason: attemptContext.twinTriggerReason,
         sourceQuestionId: attemptContext.sourceQuestionId,
         questionParams: attemptContext.questionParams
+      });
+    }
+
+    const { recordLearnerBankServe } = await import(
+      '../../admin/services/questionBankService.js'
+    );
+    if (attemptContext?.bankEntryId) {
+      await recordLearnerBankServe({
+        bankEntryId: attemptContext.bankEntryId,
+        lessonId,
+        learnerId: userId,
+        questionId: attemptContext.questionId
+      });
+    }
+    if (result.question?.bankEntryId) {
+      await recordLearnerBankServe({
+        bankEntryId: result.question.bankEntryId,
+        lessonId,
+        learnerId: userId,
+        questionId: result.question.id
       });
     }
 

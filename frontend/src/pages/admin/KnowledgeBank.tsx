@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { KnowledgeBankPanel } from '@/components/admin/KnowledgeBankPanel'
+import { QuestionBankQueue } from '@/components/admin/QuestionBankQueue'
+import { PrerequisiteEdgeQueue } from '@/components/admin/PrerequisiteEdgeQueue'
 import { useSubjectStore } from '@/store/useSubjectStore'
 import { Library, ArrowRight, BookOpen } from 'lucide-react'
 
@@ -46,6 +48,8 @@ export const AdminKnowledgeBank = () => {
               </div>
 
               <KnowledgeBankPanel subjects={subjects} />
+              <QuestionBankQueue />
+              <PrerequisiteEdgeQueue />
             </div>
           </StaggeredEntry>
         </div>

@@ -1,11 +1,13 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, Navigate } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
 import { ArrowLeft, Play, Clock, Lock } from 'lucide-react'
 import { api } from '@/lib/api'
 import { LazyLottie } from '@/components/ui/LazyLottie'
 import { animationKeyForSubjectId, type AnimationKey } from '@/lib/lottieAnimations'
 import type { Lesson, Subject, Strand, SubStrand } from '@/types'
+import { useAuthStore } from '@/store/useAuthStore'
+import { usesQuestNavigation } from '@/lib/complexityBands'
 
 interface LessonWithUnlock extends Lesson {
   isUnlocked: boolean
@@ -24,6 +26,7 @@ const extractThemeNumber = (theme: string | null | undefined): number | null => 
 
 export const LearnerLessons = () => {
   const [searchParams] = useSearchParams()
+  const questNav = usesQuestNavigation(useAuthStore((s) => s.user)?.grade)
   const subjectId = searchParams.get('subject')
   const strandId = searchParams.get('strand')
   const substrandId = searchParams.get('substrand')
@@ -171,6 +174,10 @@ export const LearnerLessons = () => {
   }, [lessons])
 
   const iconColor = subject?.color || 'bg-primary-600'
+
+  if (questNav) {
+    return <Navigate to="/learner" replace />
+  }
 
   if (loading) {
     return (

@@ -12,7 +12,9 @@ export class SubStrand {
       subjectId,
       learningOutcomes,
       keyInquiryQuestions,
-      isAIGenerated
+      isAIGenerated,
+      lessonsAllocated,
+      sequenceNumber
     } = data;
 
     const { data: subStrand, error } = await getDbClient()
@@ -25,6 +27,8 @@ export class SubStrand {
         learning_outcomes: learningOutcomes || [],
         key_inquiry_questions: keyInquiryQuestions || [],
         is_ai_generated: isAIGenerated ?? true,
+        lessons_allocated: lessonsAllocated ?? null,
+        sequence_number: sequenceNumber ?? null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -44,6 +48,8 @@ export class SubStrand {
       learning_outcomes: data.learningOutcomes || [],
       key_inquiry_questions: data.keyInquiryQuestions || [],
       is_ai_generated: data.isAIGenerated ?? true,
+      lessons_allocated: data.lessonsAllocated ?? null,
+      sequence_number: data.sequenceNumber ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }));
@@ -72,6 +78,7 @@ export class SubStrand {
       .from(this.tableName)
       .select('*')
       .eq('strand_id', strandId)
+      .order('sequence_number', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -139,6 +146,14 @@ export class SubStrand {
       updateData.is_ai_generated = updates.isAIGenerated;
       delete updateData.isAIGenerated;
     }
+    if (updates.lessonsAllocated !== undefined) {
+      updateData.lessons_allocated = updates.lessonsAllocated;
+      delete updateData.lessonsAllocated;
+    }
+    if (updates.sequenceNumber !== undefined) {
+      updateData.sequence_number = updates.sequenceNumber;
+      delete updateData.sequenceNumber;
+    }
 
     const { data, error } = await getDbClient()
       .from(this.tableName)
@@ -171,6 +186,8 @@ export class SubStrand {
       learningOutcomes: data.learning_outcomes || [],
       keyInquiryQuestions: data.key_inquiry_questions || [],
       isAIGenerated: data.is_ai_generated,
+      lessonsAllocated: data.lessons_allocated ?? null,
+      sequenceNumber: data.sequence_number ?? null,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };

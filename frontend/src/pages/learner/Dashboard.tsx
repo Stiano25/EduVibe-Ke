@@ -6,9 +6,12 @@ import { WelcomeHeader } from '@/components/learner/WelcomeHeader'
 import { SearchBar } from '@/components/learner/SearchBar'
 import { SubjectNavigation } from '@/components/learner/SubjectNavigation'
 import { DailyExerciseCard } from '@/components/learner/DailyExerciseCard'
+import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
 import { ModalityPreferencePrompt } from '@/components/learner/ModalityPreferencePrompt'
 import { useLessonStore } from '@/store/useLessonStore'
+import { useAuthStore } from '@/store/useAuthStore'
 import { api } from '@/lib/api'
+import { usesQuestNavigation } from '@/lib/complexityBands'
 
 type ProgressReport = {
   learner: { name?: string | null; grade?: string | null; email?: string | null }
@@ -37,12 +40,20 @@ type ProgressReport = {
 
 export const LearnerDashboard = () => {
   const { lessons } = useLessonStore()
+  const user = useAuthStore((s) => s.user)
+  const questNav = usesQuestNavigation(user?.grade)
   const [searchQuery, setSearchQuery] = useState('')
   const [report, setReport] = useState<ProgressReport | null>(null)
   const [reportError, setReportError] = useState<string | null>(null)
   const [loadingReport, setLoadingReport] = useState(true)
+  const [nextTask, setNextTask] = useState<NextTaskResponse | null>(null)
+  const [loadingNextTask, setLoadingNextTask] = useState(questNav)
 
   useEffect(() => {
+    if (questNav) {
+      setLoadingReport(false)
+      return
+    }
     let cancelled = false
     const load = async () => {
       setLoadingReport(true)
@@ -64,6 +75,26 @@ export const LearnerDashboard = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (!questNav) return
+    let cancelled = false
+    const load = async () => {
+      setLoadingNextTask(true)
+      try {
+        const data = (await api.learner.getNextTask()) as NextTaskResponse
+        if (!cancelled) setNextTask(data)
+      } catch {
+        if (!cancelled) setNextTask(null)
+      } finally {
+        if (!cancelled) setLoadingNextTask(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [questNav])
+
   const filteredLessons = lessons.filter((lesson) => {
     const matchesSearch =
       !searchQuery ||
@@ -84,11 +115,18 @@ export const LearnerDashboard = () => {
           <StaggeredEntry>
             <div className="print:hidden">
               <WelcomeHeader />
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
-              <SubjectNavigation />
-              <DailyExerciseCard />
+              {questNav ? (
+                <QuestNextCard data={nextTask} loading={loadingNextTask} />
+              ) : (
+                <>
+                  <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                  <SubjectNavigation />
+                  <DailyExerciseCard />
+                </>
+              )}
             </div>
 
+            {!questNav && (
             <div
               id="learner-progress-report"
               className="mt-6 bg-white/90 rounded-[24px] border-2 border-slate-200 p-5 sm:p-6 print:border-0 print:p-0"
@@ -229,6 +267,7 @@ export const LearnerDashboard = () => {
                 </div>
               ) : null}
             </div>
+            )}
           </StaggeredEntry>
         </div>
       </div>

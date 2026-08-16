@@ -1,5 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { twistAdditionQuestion } from '../../utils/additionTemplate.js';
+import { resolveInteractionType } from '../../utils/interactionTypes.js';
+import {
+  expectedCountForQuestion,
+  isCountIntoBoxQuestion,
+  twistCountIntoBoxQuestion
+} from '../../utils/countIntoBox.js';
 
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
@@ -120,6 +126,8 @@ const publicQuestion = (q, indexInBank, session = null) => {
     id,
     question: q.question,
     type: q.type || 'multiple-choice',
+    interactionType: resolveInteractionType(q.interactionType || q.type),
+    activity: q.activity || undefined,
     options: shuffled.options,
     points: q.points || 15,
     skillFocus: q.skillFocus,
@@ -129,6 +137,12 @@ const publicQuestion = (q, indexInBank, session = null) => {
     steps: q.steps || undefined,
     learningOutcomeIndex: q.learningOutcomeIndex,
     learningOutcomeKey: q.learningOutcomeKey,
+    ...(resolveInteractionType(q.interactionType || q.type) === 'drag_to_target'
+      ? {
+          objectPool: Number(q.params?.objectPool) || 8
+        }
+      : {}),
+    ...(q.bankEntryId ? { bankEntryId: q.bankEntryId } : {}),
     ...(q.isTwistedVariant
       ? {
           isTwistedVariant: true,
@@ -145,6 +159,28 @@ const targetMainLength = (bankSize) => {
   if (bankSize <= 10) return bankSize;
   // Prefer 10, stretch to 12 when bank allows
   return Math.min(12, Math.max(10, Math.min(bankSize, 12)));
+};
+
+/**
+ * Honest session completion 0–100. 100 only when the session is done.
+ * Remaining is known work only (leftover main items, queued twins, fail-queue
+ * retries). The current twin is already spliced out of twinQueue, so it is
+ * counted separately; the current retry is still in failQueue, so it is not.
+ */
+export const sessionProgressPct = (session = {}) => {
+  if (session.phase === 'done') return 100;
+  const itemsDone = Array.isArray(session.answered) ? session.answered.length : 0;
+  const remainingMain = Math.max(
+    0,
+    (Number(session.mainTarget) || 0) - (Number(session.mainAnswered) || 0)
+  );
+  const twinQueued = Array.isArray(session.twinQueue) ? session.twinQueue.length : 0;
+  const twinCurrent = session.phase === 'twin' ? 1 : 0;
+  const failQueued = Array.isArray(session.failQueue) ? session.failQueue.length : 0;
+  const itemsRemaining = remainingMain + twinQueued + twinCurrent + failQueued;
+  const total = itemsDone + itemsRemaining;
+  if (total <= 0) return 0;
+  return Math.round((100 * itemsDone) / total);
 };
 
 const masteryByKey = (masteryRows = []) => {
@@ -351,7 +387,9 @@ const fastAnswerTrigger = (session, responseTimeMs) => {
 };
 
 const scheduleTwin = ({ session, lesson, question, questionId, correct, responseTimeMs }) => {
-  if (String(lesson?.grade) !== '1' || !isAdditionTemplateQuestion(question)) return null;
+  if (String(lesson?.grade) !== '1') return null;
+  const drag = isCountIntoBoxQuestion(question);
+  if (!drag && !isAdditionTemplateQuestion(question)) return null;
   const triggerReason = !correct
     ? 'incorrect'
     : fastAnswerTrigger(session, responseTimeMs)
@@ -359,7 +397,7 @@ const scheduleTwin = ({ session, lesson, question, questionId, correct, response
       : null;
   if (!triggerReason) return null;
 
-  const twisted = twistAdditionQuestion(question);
+  const twisted = drag ? twistCountIntoBoxQuestion(question) : twistAdditionQuestion(question);
   if (!twisted.ok) {
     console.warn(`[twin-consistency] ${questionId}: ${twisted.reason}`);
     return null;
@@ -374,8 +412,11 @@ const scheduleTwin = ({ session, lesson, question, questionId, correct, response
     twinPairId: pairId,
     twinOf: questionId,
     diagramBriefId: null,
-    modality: 'practice',
-    steps: undefined
+    modality: drag ? 'visual' : 'practice',
+    steps: undefined,
+    ...(drag
+      ? { interactionType: 'drag_to_target', activity: 'count_into_box' }
+      : {})
   };
   const entry = {
     pairId,
@@ -477,10 +518,16 @@ export const createAdaptiveSession = ({
     modalitySuccessMap
   );
   if (!first) {
+    const doneSession = { ...session, phase: 'done' };
     return {
-      session: { ...session, phase: 'done' },
+      session: doneSession,
       question: null,
-      meta: { phase: 'done', progressLabel: 'No questions', done: true }
+      meta: {
+        phase: 'done',
+        progressLabel: 'No questions',
+        done: true,
+        progressPct: sessionProgressPct(doneSession)
+      }
     };
   }
 
@@ -496,6 +543,7 @@ export const createAdaptiveSession = ({
       failQueued: 0,
       progressLabel: `Question 1 of ${mainTarget}`,
       done: false,
+      progressPct: sessionProgressPct(session),
       modalitySignal: first.modalitySignal || { source: 'none', modality: null }
     }
   };
@@ -509,6 +557,7 @@ export const advanceAdaptiveSession = ({
   session: rawSession,
   lesson,
   selectedOptionIndex,
+  placedCount: rawPlacedCount,
   responseTimeMs: rawResponseTimeMs,
   masteryRows = [],
   modalitySuccessMap = new Map()
@@ -543,18 +592,35 @@ export const advanceAdaptiveSession = ({
   const question = isTwin ? session.twistedQuestions[currentId] : bank[idx];
   if (!question) throw new Error('Current question payload not found');
   const responseTimeMs = asResponseTimeMs(rawResponseTimeMs);
-  const selectedDisplay = Number(selectedOptionIndex);
+  const interactionType = resolveInteractionType(question.interactionType || question.type);
+  const isDrag = interactionType === 'drag_to_target';
   const order = session.optionOrders?.[currentId];
-  const selectedOriginal =
-    Array.isArray(order) && order[selectedDisplay] !== undefined
-      ? Number(order[selectedDisplay])
-      : selectedDisplay;
-  const bankCorrect = Number(question.correctAnswerIndex);
-  const correct = selectedOriginal === bankCorrect;
-  const displayCorrect =
-    Array.isArray(order) && order.length > 0
-      ? order.indexOf(bankCorrect)
-      : bankCorrect;
+  let selectedDisplay = Number(selectedOptionIndex);
+  let selectedOriginal = selectedDisplay;
+  let correct = false;
+  let displayCorrect = 0;
+  let expectedCount = null;
+
+  if (isDrag) {
+    expectedCount = expectedCountForQuestion(question);
+    const placed =
+      rawPlacedCount != null && Number.isFinite(Number(rawPlacedCount))
+        ? Number(rawPlacedCount)
+        : selectedDisplay;
+    selectedDisplay = placed;
+    selectedOriginal = placed;
+    correct = expectedCount != null && placed === expectedCount;
+    displayCorrect = expectedCount;
+  } else {
+    selectedOriginal =
+      Array.isArray(order) && order[selectedDisplay] !== undefined
+        ? Number(order[selectedDisplay])
+        : selectedDisplay;
+    const bankCorrect = Number(question.correctAnswerIndex);
+    correct = selectedOriginal === bankCorrect;
+    displayCorrect =
+      Array.isArray(order) && order.length > 0 ? order.indexOf(bankCorrect) : bankCorrect;
+  }
   const learningOutcomeKey = outcomeKeyOf(question, lesson);
   const bloomLevel = question.bloomLevel || 'understand';
   const phase = isTwin ? 'twin' : session.phase === 'retry' ? 'retry' : 'main';
@@ -767,7 +833,8 @@ export const advanceAdaptiveSession = ({
       ...answerRecord,
       correctAnswerIndex: displayCorrect,
       explanation: question.explanation,
-      optionExplanations: applyStoredOrder(question, order).optionExplanations
+      optionExplanations: applyStoredOrder(question, order).optionExplanations,
+      ...(isDrag ? { expectedCount, placedCount: selectedOriginal } : {})
     },
     meta: {
       phase: session.phase,
@@ -776,6 +843,7 @@ export const advanceAdaptiveSession = ({
       failQueued: session.failQueue.length,
       progressLabel,
       done,
+      progressPct: sessionProgressPct(session),
       score: finalScore,
       modalitySignal,
       twinPending: session.twinQueue.length
@@ -794,7 +862,8 @@ export const advanceAdaptiveSession = ({
       twinRole: twinPairId ? (isTwin ? 'twist' : 'original') : null,
       twinTriggerReason: twinPair?.triggerReason || scheduledTwin?.triggerReason || null,
       sourceQuestionId: isTwin ? question.twinOf : currentId,
-      questionParams: question.params || null
+      questionParams: question.params || null,
+      bankEntryId: question.bankEntryId || null
     }
   };
 };
@@ -831,6 +900,11 @@ export const buildReviewView = (lesson, sessionReview) => {
       diagramBriefId: q.diagramBriefId,
       skillFocus: q.skillFocus,
       bloomLevel: q.bloomLevel,
+      interactionType: resolveInteractionType(q.interactionType || q.type),
+      activity: q.activity || undefined,
+      objectPool: q.params?.objectPool != null ? Number(q.params.objectPool) : undefined,
+      expectedCount: isCountIntoBoxQuestion(q) ? expectedCountForQuestion(q) : undefined,
+      placedCount: isCountIntoBoxQuestion(q) ? a.selectedOptionIndex : undefined,
       phase: a.phase
     });
   }

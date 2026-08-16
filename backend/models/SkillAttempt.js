@@ -7,6 +7,15 @@ const isMissingTwinColumn = (error) =>
     error.code === 'PGRST204' ||
     /twin_role|twin_pair_id|response_time_ms|question_params/i.test(error.message || ''));
 
+const isMissingBktColumn = (error) =>
+  error &&
+  (error.code === '42703' ||
+    error.code === 'PGRST204' ||
+    error.code === '42P01' ||
+    /bkt_p_know|bkt_n_observations|bkt_updated_at|bkt_skill_params/i.test(
+      error.message || ''
+    ));
+
 const baseAttemptRow = (row) => ({
   user_id: row.userId,
   lesson_id: row.lessonId,
@@ -128,6 +137,33 @@ export class SkillAttempt {
         .eq('user_id', userId)
         .eq('learning_outcome_key', learningOutcomeKey)
         .order('created_at', { ascending: false })
+        .limit(limit));
+    }
+    if (error) throw error;
+    return (data || []).map((row) => this.mapToModel(row));
+  }
+
+  /**
+   * Full history for BKT replay, oldest first, including twin twists.
+   * Heuristic 3-of-4 still uses listByUserOutcome (twists excluded).
+   */
+  static async listByUserOutcomeAll(userId, learningOutcomeKey, { limit = 500 } = {}) {
+    const db = getDbClient();
+    let { data, error } = await db
+      .from(this.tableName)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('learning_outcome_key', learningOutcomeKey)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (error && isMissingTwinColumn(error)) {
+      ({ data, error } = await db
+        .from(this.tableName)
+        .select('*')
+        .eq('user_id', userId)
+        .eq('learning_outcome_key', learningOutcomeKey)
+        .order('created_at', { ascending: true })
         .limit(limit));
     }
     if (error) throw error;
@@ -327,14 +363,77 @@ export class SkillMastery {
       current_grade_level: gradeLevel,
       last_success_grade: lastSuccessGrade,
       preferred_modality_observed: preferredModalityObserved,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Preserve BKT columns — this upsert is the 3-of-4 heuristic only (Part 5.4).
+      bkt_p_know: existing?.bktPKnow ?? null,
+      bkt_n_observations: existing?.bktNObservations ?? null,
+      bkt_updated_at: existing?.bktUpdatedAt ?? null
     };
 
-    const { data, error } = await getDbClient()
+    let { data, error } = await getDbClient()
       .from(this.tableName)
       .upsert(payload, { onConflict: 'user_id,learning_outcome_key' })
       .select()
       .single();
+
+    if (error && isMissingBktColumn(error)) {
+      const heuristicOnly = { ...payload };
+      delete heuristicOnly.bkt_p_know;
+      delete heuristicOnly.bkt_n_observations;
+      delete heuristicOnly.bkt_updated_at;
+      ({ data, error } = await getDbClient()
+        .from(this.tableName)
+        .upsert(heuristicOnly, { onConflict: 'user_id,learning_outcome_key' })
+        .select()
+        .single());
+    }
+
+    if (error) throw error;
+    return this.mapToModel(data);
+  }
+
+  /**
+   * Replay BKT from full attempt history (including twins) and store p(Know).
+   * Does not change heuristic `status`. Creates a row with status unknown if needed.
+   */
+  static async recomputeBkt({
+    userId,
+    learningOutcomeKey,
+    skillFocus = null,
+    gradeLevel = null
+  }) {
+    const { replayBkt } = await import('../utils/bkt.js');
+    const params = await BktSkillParams.getOrCreate(learningOutcomeKey);
+    const attempts = await SkillAttempt.listByUserOutcomeAll(userId, learningOutcomeKey);
+    const { pKnow, observations } = replayBkt(attempts, params);
+    const existing = await this.findByUserAndOutcome(userId, learningOutcomeKey);
+    const now = new Date().toISOString();
+
+    const payload = {
+      user_id: userId,
+      learning_outcome_key: learningOutcomeKey,
+      skill_focus: skillFocus || existing?.skillFocus || null,
+      status: existing?.status || 'unknown',
+      consecutive_fails_at_level: existing?.consecutiveFailsAtLevel ?? 0,
+      current_grade_level: gradeLevel || existing?.currentGradeLevel || null,
+      last_success_grade: existing?.lastSuccessGrade || null,
+      preferred_modality_observed: existing?.preferredModalityObserved || null,
+      updated_at: existing?.updatedAt || now,
+      bkt_p_know: pKnow,
+      bkt_n_observations: observations,
+      bkt_updated_at: now
+    };
+
+    let { data, error } = await getDbClient()
+      .from(this.tableName)
+      .upsert(payload, { onConflict: 'user_id,learning_outcome_key' })
+      .select()
+      .single();
+
+    if (error && isMissingBktColumn(error)) {
+      console.warn('BKT columns missing; heuristic status stored without p(Know)');
+      return existing || this.mapToModel({ ...payload, id: null });
+    }
 
     if (error) throw error;
     return this.mapToModel(data);
@@ -351,8 +450,64 @@ export class SkillMastery {
       currentGradeLevel: data.current_grade_level,
       lastSuccessGrade: data.last_success_grade,
       preferredModalityObserved: data.preferred_modality_observed,
+      bktPKnow: data.bkt_p_know == null ? null : Number(data.bkt_p_know),
+      bktNObservations: data.bkt_n_observations == null ? null : Number(data.bkt_n_observations),
+      bktUpdatedAt: data.bkt_updated_at || null,
       updatedAt: data.updated_at,
       createdAt: data.created_at
+    };
+  }
+}
+
+/** Per-skill BKT parameters. Missing keys get the Part 5.2 defaults. */
+export class BktSkillParams {
+  static tableName = 'bkt_skill_params';
+
+  static async getOrCreate(learningOutcomeKey) {
+    const key = String(learningOutcomeKey || '').trim();
+    if (!key) {
+      return { pL0: 0.3, pT: 0.3, pS: 0.1, pG: 0.2 };
+    }
+    const db = getDbClient();
+    const { data: existing, error: readErr } = await db
+      .from(this.tableName)
+      .select('*')
+      .eq('learning_outcome_key', key)
+      .maybeSingle();
+    if (readErr && isMissingBktColumn(readErr)) {
+      return { pL0: 0.3, pT: 0.3, pS: 0.1, pG: 0.2 };
+    }
+    if (readErr) throw readErr;
+    if (existing) {
+      return {
+        pL0: Number(existing.p_l0),
+        pT: Number(existing.p_t),
+        pS: Number(existing.p_s),
+        pG: Number(existing.p_g)
+      };
+    }
+
+    const { data, error } = await db
+      .from(this.tableName)
+      .upsert(
+        {
+          learning_outcome_key: key,
+          p_l0: 0.3,
+          p_t: 0.3,
+          p_s: 0.1,
+          p_g: 0.2,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'learning_outcome_key' }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      pL0: Number(data.p_l0),
+      pT: Number(data.p_t),
+      pS: Number(data.p_s),
+      pG: Number(data.p_g)
     };
   }
 }

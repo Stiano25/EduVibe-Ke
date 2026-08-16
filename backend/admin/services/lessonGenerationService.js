@@ -3,6 +3,7 @@ import { SubStrand } from '../../models/SubStrand.js';
 import { Strand } from '../../models/Strand.js';
 import { Subject } from '../../models/Subject.js';
 import { outcomeKey, normalizeOutcomeText } from '../../utils/outcomeKey.js';
+import { resolveInteractionType } from '../../utils/interactionTypes.js';
 import {
   isGradeOneAdditionContext,
   normalizeAdditionTemplateQuestion
@@ -24,6 +25,105 @@ import { getSubjectProfile } from './subjectProfiles.js';
 const BLOOM_LEVELS = new Set(['recall', 'understand', 'apply', 'reason']);
 const QUESTION_MODALITIES = new Set(['visual', 'text_steps', 'practice']);
 const CANONICAL_DIFFICULTIES = new Set(['easy', 'intermediate', 'advanced']);
+
+/**
+ * Grade-banded stem complexity ceilings.
+ *
+ * These are the concrete form of "age-appropriate". The generation prompt, the
+ * reasoning band's own instructions and the QA pass all quote the same numbers,
+ * so an over-long stem can be flagged against a stated standard instead of an
+ * implied one. Grades 6+ keep the existing behaviour — no new ceiling.
+ */
+const COMPLEXITY_BANDS = [
+  {
+    key: 'very_young',
+    maxGradeNumber: 2,
+    ageGroup: 'very young children (ages 5-7)',
+    constrained: true,
+    maxWords: 12,
+    maxSentences: 1,
+    rules: [
+      'ONE sentence per question stem — never two.',
+      'At most 12 words in the stem.',
+      'No subordinate, temporal or comparative clauses. Never join ideas with "while", "after", "before", "since", "because", "although" or "whereas".',
+      'One situation only: no multi-part scenarios, no two cases to compare, no chain of events.',
+      'Prefer direct concrete phrasing — "How many ... ?", "Which one ... ?", "What is ... ?".',
+      'The stem must still ASK something. End it with a question mark, or with a direct instruction such as "Find the sum." Never leave it as a bare statement of a situation: "A girl has 61 shillings, finds 7 more." asks nothing and is not acceptable — write "A girl has 61 shillings and finds 7 more. How many now?" as one sentence: "A girl has 61 shillings and finds 7 more — how many?"',
+      'Short does not mean ungrammatical. No comma splices, no dropped verbs, no telegraphic phrasing.',
+      'Keep the options short too: a number, a word, or a very short phrase.'
+    ]
+  },
+  {
+    key: 'young',
+    maxGradeNumber: 5,
+    ageGroup: 'young children (ages 8-10)',
+    constrained: true,
+    maxWords: 20,
+    maxSentences: 2,
+    rules: [
+      'At most 2 short sentences per question stem.',
+      'At most 20 words in the stem in total.',
+      'At most ONE simple connector (and, but, then). No nested or stacked clauses.',
+      'One scenario only — never two cases to compare, never a multi-step story.',
+      'Prefer concrete, familiar situations over abstract framing.',
+      'The stem must still ASK something, and must stay grammatical — no comma splices, no dropped verbs, no telegraphic phrasing.'
+    ]
+  },
+  {
+    key: 'pre_teen',
+    maxGradeNumber: 8,
+    ageGroup: 'pre-teens (ages 11-13)',
+    constrained: false
+  },
+  {
+    key: 'teen',
+    maxGradeNumber: Infinity,
+    ageGroup: 'teens (ages 14+)',
+    constrained: false
+  }
+];
+
+const TEEN_BAND = COMPLEXITY_BANDS[COMPLEXITY_BANDS.length - 1];
+
+/** Resolve the complexity ceiling for a numeric grade (K = 0). */
+export const getComplexityBand = (gradeNumber) => {
+  const n = Number(gradeNumber);
+  if (!Number.isFinite(n)) return TEEN_BAND;
+  return COMPLEXITY_BANDS.find((band) => n <= band.maxGradeNumber) || TEEN_BAND;
+};
+
+/** Grade 3 and below read concrete pictures far better than abstract flow boxes. */
+export const prefersConcreteDiagrams = (gradeNumber) => {
+  const n = Number(gradeNumber);
+  return Number.isFinite(n) && n <= 3;
+};
+
+/** One-line shorthand for the ceiling, reused in band text and QA. */
+const bandLimitsText = (band) =>
+  band?.constrained ? `${band.maxSentences}-sentence / ${band.maxWords}-word` : '';
+
+/**
+ * Stem length counters. The QA model is given these numbers rather than being
+ * asked to count words itself, so the ceiling check is mechanical.
+ */
+export const countStemWords = (stem = '') =>
+  String(stem).trim().split(/\s+/).filter(Boolean).length;
+
+export const countStemSentences = (stem = '') =>
+  String(stem)
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean).length;
+
+/** The ceiling as prompt text. Unconstrained grades get a plain reading-level line. */
+const buildComplexityBlock = (grade, band, ageGroup) => {
+  if (!band?.constrained) {
+    return `READING LEVEL: write for ${ageGroup} (Grade ${grade}). Keep stems clear and free of padding.`;
+  }
+  return `GRADE COMPLEXITY CEILING — Grade ${grade}, ${ageGroup}. Applies to EVERY question in this part, at EVERY Bloom level:
+${band.rules.map((rule) => `- ${rule}`).join('\n')}
+This ceiling overrides any style guidance above that would make a stem longer. A stem that is too wordy for this grade is a defect, exactly like a factually wrong one.`;
+};
 
 /**
  * Map Gemini difficulty drift onto easy | intermediate | advanced before storage.
@@ -186,7 +286,12 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
  * Build a dedicated brief per visual question (never reuse teaching vb-1/vb-2).
  * Returns { questions, questionBriefs, title, passingScore, timeLimit }.
  */
-export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = false } = {}) => {
+export const normalizeQuiz = (
+  quiz,
+  outcomes,
+  profile,
+  { additionTemplates = false, gradeNumber = null } = {}
+) => {
   if (!quiz || !Array.isArray(quiz.questions)) {
     return {
       title: 'Quiz Challenge',
@@ -198,6 +303,7 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
   }
 
   const questionBriefs = [];
+  const downgradedVisuals = [];
 
   const questions = quiz.questions.map((rawQuestion, qi) => {
     let q = rawQuestion || {};
@@ -254,6 +360,15 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
       );
     });
 
+    // Admin-review-only detail, one entry per option. Deliberately separate from
+    // optionExplanations/misconception, which stay terse because learners see them.
+    const suppliedRationales = Array.isArray(q.reviewRationale) ? q.reviewRationale : [];
+    const reviewRationale = options.map((_, optIndex) => {
+      const entry = suppliedRationales.find((r) => Number(r?.optionIndex) === optIndex);
+      return String(entry?.text || entry?.rationale || '').trim();
+    });
+    const hasReviewRationale = reviewRationale.some(Boolean);
+
     const qid = q.id || `q-${qi + 1}`;
     const difficulty = normalizeDifficulty(q.difficulty, {
       questionId: qid,
@@ -274,9 +389,20 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
     }
 
     let diagramBriefId = null;
+    const embeddedDiagram = q.diagram && typeof q.diagram === 'object' ? q.diagram : null;
+    const authoredBrief = normalizeOutcomeText(embeddedDiagram?.brief || q.diagramBrief || '');
+
+    if (modality === 'visual' && !authoredBrief) {
+      // The model claimed a visual but never designed one. Shipping the old
+      // `Figure for: <stem>` placeholder made the question overclaim a figure it
+      // does not have, so demote it to a plain practice question instead.
+      console.warn(`Question ${qid}: tagged visual with no diagram brief — downgraded to practice`);
+      modality = 'practice';
+      downgradedVisuals.push(qid);
+    }
 
     if (modality === 'visual') {
-      const embedded = q.diagram && typeof q.diagram === 'object' ? q.diagram : null;
+      const embedded = embeddedDiagram;
       const skillFocus = (q.skillFocus || outcomeText || 'core skill').slice(0, 120);
       const stem = String(q.question || '');
       let diagramType = String(
@@ -285,7 +411,8 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
       if (!DIAGRAM_TYPES.has(diagramType)) {
         diagramType = inferDiagramType(
           `${embedded?.brief || ''} ${stem} ${skillFocus}`,
-          skillFocus
+          skillFocus,
+          { youngGrade: prefersConcreteDiagrams(gradeNumber) }
         );
       }
       // Never use comparison boxes for graph/gradient topics
@@ -324,9 +451,7 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
         id: briefId,
         skillFocus,
         outcomeKey: outcomeKey(skillFocus),
-        brief:
-          normalizeOutcomeText(embedded?.brief || q.diagramBrief || '') ||
-          `Figure for: ${stem.slice(0, 100)}`,
+        brief: authoredBrief,
         diagramType,
         params,
         scope: 'question',
@@ -345,6 +470,7 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
       id: qid,
       question: q.question || `Question ${qi + 1}`,
       type: 'multiple-choice',
+      interactionType: resolveInteractionType(q.interactionType || q.type),
       options,
       correctAnswerIndex,
       explanation: q.explanation || '',
@@ -361,6 +487,7 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
       skillFocus: (q.skillFocus || outcomeText || 'core skill').slice(0, 120),
       bloomLevel: bloom,
       distractors,
+      ...(hasReviewRationale ? { reviewRationale } : {}),
       modality,
       diagramBriefId: modality === 'visual' ? diagramBriefId : null,
       steps: modality === 'text_steps' ? steps || [] : undefined,
@@ -377,7 +504,12 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
         : {}),
       ...(q.flagged_near_duplicate ? { flagged_near_duplicate: true } : {}),
       ...(q.coverage_remapped ? { coverage_remapped: true } : {}),
-      ...(q.qa_flagged ? { qa_flagged: true, qa_issue: q.qa_issue || null } : {})
+      ...(q.qa_flagged ? { qa_flagged: true, qa_issue: q.qa_issue || null } : {}),
+      ...(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        String(q.bankEntryId || '')
+      )
+        ? { bankEntryId: String(q.bankEntryId) }
+        : {})
     };
   });
 
@@ -396,12 +528,19 @@ export const normalizeQuiz = (quiz, outcomes, profile, { additionTemplates = fal
     });
   }
 
+  if (downgradedVisuals.length > 0) {
+    console.warn(
+      `normalizeQuiz: ${downgradedVisuals.length} question(s) downgraded visual→practice for missing diagram data [${downgradedVisuals.join(', ')}]`
+    );
+  }
+
   return {
     title: quiz.title || 'Quiz Challenge',
     questions,
     passingScore: Number(quiz.passingScore) || 65,
     timeLimit: Number(quiz.timeLimit) || 12,
-    questionBriefs
+    questionBriefs,
+    downgradedVisuals
   };
 };
 
@@ -560,35 +699,55 @@ const MIN_CHUNK_QUESTIONS = 6;
  * Phase-specific output budgets. The previous blanket 8,192-token allowance
  * let quiz chunks run to the cap and then repeat the entire expensive call.
  */
+/**
+ * Phase-specific output budgets. The previous blanket 8,192-token allowance
+ * let quiz chunks run to the cap and then repeat the entire expensive call.
+ *
+ * Re-measured after per-option reviewRationale was added: on real runs the
+ * application chunk reached 19,388/20,000 and the coverage-gap call hit its
+ * 2,200 cap exactly, truncating the JSON so the gap fill was lost. Each budget
+ * below now carries roughly 40% headroom over the worst observed usage.
+ */
 export const GENERATION_TOKEN_LIMITS = Object.freeze({
   lessonShell: 2500,
-  quizChunk: 20000,
-  coverageGap: 2200,
-  quizQa: 3000
+  quizChunk: 28000,
+  coverageGap: 4000,
+  quizQa: 4000
 });
 
+/**
+ * Where a visual question is worth asking. Replaces the old flat "at least 1
+ * visual per outcome" quota, which forced a visual tag onto purely verbal
+ * outcomes and produced placeholder briefs.
+ */
+const VISUAL_FIT_RULE =
+  'Use the visual modality ONLY where that outcome\'s content is genuinely visual, spatial or concrete — counting, quantities, shapes, position, parts of a thing, a comparison a learner could actually see drawn. Do NOT tag a question visual to satisfy a quota when the content is purely verbal or abstract.';
+
 /** Bloom-banded chunk specs — together they form the outcome × bloom × modality matrix. */
-const QUIZ_CHUNKS = [
+export const QUIZ_CHUNKS = [
   {
     label: 'foundation',
-    bloomFocus:
+    bloomFocus: () =>
       'bloomLevel "recall" and "understand" ONLY. Foundation checks of the basic facts and meanings.',
-    matrixRule:
-      'For EACH outcome include at least 1 visual question and at least 1 text_steps question (with steps[]).'
+    matrixRule: () =>
+      `For EACH outcome include at least 1 text_steps question (with steps[]). ${VISUAL_FIT_RULE}`
   },
   {
     label: 'application',
-    bloomFocus:
-      'bloomLevel "apply" ONLY. Learners use the skill on new values/situations.',
-    matrixRule:
-      'For EACH outcome include at least 1 text_steps scaffold (steps[] showing the working) and at least 1 visual question.'
+    bloomFocus: () => 'bloomLevel "apply" ONLY. Learners use the skill on new values/situations.',
+    matrixRule: () =>
+      `For EACH outcome include at least 1 text_steps scaffold (steps[] showing the working). ${VISUAL_FIT_RULE}`
   },
   {
     label: 'reasoning',
-    bloomFocus:
-      'bloomLevel "reason" ONLY. Real-life reasoning, predict-the-outcome and best-choice decisions.',
-    matrixRule:
-      'Mostly practice modality; include at least 1 text_steps scaffold per outcome for learners who need the reasoning broken down.'
+    bloomFocus: (band) =>
+      band?.constrained
+        ? `bloomLevel "reason" ONLY. Real-life reasoning, predict-the-outcome and best-choice decisions.
+The difficulty in this part must come from the IDEA being tested, never from the sentence. The ${bandLimitsText(band)} ceiling above applies to every stem here with no exception — the reasoning band is NOT an exemption from it.
+At this grade "real-life reasoning" means ONE short, concrete, familiar situation. It does not mean a multi-clause scenario, two cases to compare, a chain of events, or a stem that sets up a story before asking the question.`
+        : 'bloomLevel "reason" ONLY. Real-life reasoning, predict-the-outcome and best-choice decisions.',
+    matrixRule: () =>
+      `Mostly practice modality; include at least 1 text_steps scaffold per outcome for learners who need the reasoning broken down. ${VISUAL_FIT_RULE}`
   }
 ];
 
@@ -688,7 +847,7 @@ const extractJsonText = (text = '') => {
   return candidate;
 };
 
-const parseOneLessonJson = (text, ctx, index) => {
+export const parseOneLessonJson = (text, ctx, index) => {
   try {
     const jsonText = extractJsonText(text);
     let data = JSON.parse(jsonText);
@@ -732,7 +891,7 @@ const mergeShellAndQuiz = (shell, quizPayload) => {
   };
 };
 
-const loadGenerationContext = async (subStrandId) => {
+export const loadGenerationContext = async (subStrandId) => {
   const subStrand = await SubStrand.findById(subStrandId);
   if (!subStrand) throw new Error('Sub-strand not found');
 
@@ -748,14 +907,8 @@ const loadGenerationContext = async (subStrandId) => {
 
   const grade = subject.grade;
   const gradeNumber = grade === 'K' ? 0 : parseInt(grade, 10);
-  const ageGroup =
-    gradeNumber <= 2
-      ? 'very young children (ages 5-7)'
-      : gradeNumber <= 5
-        ? 'young children (ages 8-10)'
-        : gradeNumber <= 8
-          ? 'pre-teens (ages 11-13)'
-          : 'teens (ages 14+)';
+  const complexityBand = getComplexityBand(gradeNumber);
+  const ageGroup = complexityBand.ageGroup;
 
   const outcomesBlock =
     outcomes.length > 0
@@ -782,7 +935,9 @@ const loadGenerationContext = async (subStrandId) => {
     subject,
     outcomes,
     grade,
+    gradeNumber,
     ageGroup,
+    complexityBand,
     outcomesBlock,
     exemplarsBlock,
     queryText,
@@ -846,7 +1001,7 @@ Return ONLY one JSON object (no quiz questions):
 }`;
 };
 
-const buildQuizChunkPrompt = (
+export const buildQuizChunkPrompt = (
   ctx,
   shell,
   lessonIndex,
@@ -861,6 +1016,8 @@ const buildQuizChunkPrompt = (
     .map((o, i) => `${i + 1}. ${o}`)
     .join('\n');
   const { profile } = ctx;
+  const band = ctx.complexityBand || getComplexityBand(ctx.gradeNumber);
+  const ageGroup = ctx.ageGroup || band.ageGroup;
   const diagramTypeList = profile.allowedDiagramTypes.join('|');
   const avoidBlock =
     avoidStems.length > 0
@@ -869,9 +1026,17 @@ const buildQuizChunkPrompt = (
           .map((s) => `- ${s.slice(0, 80)}`)
           .join('\n')}\n`
       : '';
+  const concreteDiagramLine = prefersConcreteDiagrams(ctx.gradeNumber)
+    ? `\nAt this grade prefer concrete figure types a child can literally count or point at — counting_circles, labeled_boxes, number_line, fraction_bars — over abstract flow or comparison boxes.`
+    : '';
   const additionTemplateBlock = isGradeOneAdditionContext(ctx)
     ? `
 GRADE 1 ADDITION TEMPLATE SLICE:
+- The GRADE COMPLEXITY CEILING above applies in full to every template question: the rendered
+  "question" and the "questionText" pattern must both fit inside it. So a template stem is ONE
+  short sentence — "Amina has {a} beads and gets {b} more. How many now?" breaks the one-sentence
+  rule; write "What is {a} + {b}?" or "Amina has {a} beads and gets {b} more — how many?" instead.
+  A real-life word problem at this grade is still one sentence.
 - For every TWO-OPERAND addition question, set template:true and include:
   questionText with both {a} and {b}; params:{a,b}; constraints; answerFormula:"a + b";
   distractorFormulas with at least 3 {id,formula,misconception} entries.
@@ -888,7 +1053,7 @@ GRADE 1 ADDITION TEMPLATE SLICE:
 - Include at least 4 valid template:true questions in this chunk when the selected outcomes permit it.
 `
     : '';
-  return `Create PART "${chunk.label}" of the adaptive QUIZ BANK for Kenyan CBC lesson "${title}" (lesson ${lessonIndex} of ${totalLessons}, Grade ${ctx.grade}).
+  return `Create PART "${chunk.label}" of the adaptive QUIZ BANK for Kenyan CBC lesson "${title}" (lesson ${lessonIndex} of ${totalLessons}, Grade ${ctx.grade}, for ${ageGroup}).
 
 Outcomes:
 ${objectives}
@@ -897,8 +1062,11 @@ Teaching summary: ${String(shell?.content || '').slice(0, 400)}
 
 ${profile.quizStyle}
 
-THIS PART: ${chunk.bloomFocus}
-${chunk.matrixRule}
+${buildComplexityBlock(ctx.grade, band, ageGroup)}
+
+THIS PART: ${chunk.bloomFocus(band)}
+${chunk.matrixRule(band)}
+MODALITY MIX for ${ctx.subject.name}: ${profile.modalityMixText} Treat that as the intended overall balance for the whole bank, not a target to exceed.
 ${avoidBlock}${quizExemplarsBlock ? `\n${quizExemplarsBlock}\n` : ''}
 Return ONLY one JSON object:
 {
@@ -911,19 +1079,30 @@ COMPACT QUESTION SHAPE — include ONLY:
 - question, options (3-4), correctAnswerIndex
 - explanation (max 16 words)
 - distractors:[{"optionIndex":number,"misconception":"max 8 words"}] for wrong options
+- reviewRationale:[{"optionIndex":number,"text":"..."}] for EVERY option, correct and wrong
 - learningOutcomeIndex, bloomLevel, modality, difficulty
 Do NOT include id, type, points, skillFocus, optionExplanations, feedbackCorrect or feedbackIncorrect; the server adds them.
-Visual questions MUST include "diagram": { "diagramType": one of ${diagramTypeList}, "params":{}, "brief":"..." }.
+
+reviewRationale is ADMIN-REVIEW-ONLY and is never shown to a learner, so write it for an adult
+reviewer: 1-2 full sentences, 20-30 words per option. For the correct option say precisely why it
+is right; for each wrong option say exactly which wrong step, rule or misunderstanding produces it.
+"explanation" (16 words) and each "misconception" (8 words) are the learner-facing strings and MUST
+stay that short — put the longer reasoning in reviewRationale only, never in them.
+
+Visual questions MUST include "diagram": { "diagramType": one of ${diagramTypeList}, "params":{...}, "brief":"..." }.
+- "params" must hold real, specific values for THIS question — never {} and never generic placeholders.
+- "brief" must describe the actual figure to draw, in your own words. Never restate the question as the brief.
+- If you cannot design a genuine figure for a question, do NOT tag it visual — use practice or text_steps.${concreteDiagramLine}
 text_steps questions MUST include steps[] (max 3 short steps).
 NEVER reuse vb-1/vb-2 for quiz diagrams.
 Match diagram type to topic. Diagram content must match the question exactly (same numbers, words, steps).
 ${additionTemplateBlock}
 ${profile.mathRule}
-Keep every string concise. Return complete valid JSON only — do not truncate. No markdown fences.`;
+Keep every learner-facing string concise. Return complete valid JSON only — do not truncate. No markdown fences.`;
 };
 
 /** Flag generated questions that are near-verbatim copies of injected exemplars. */
-const flagNearDuplicateQuestions = (questions, exemplars, contextLabel = '') => {
+export const flagNearDuplicateQuestions = (questions, exemplars, contextLabel = '') => {
   if (!Array.isArray(questions) || questions.length === 0) return questions || [];
   if (!Array.isArray(exemplars) || exemplars.length === 0) return questions;
 
@@ -946,7 +1125,7 @@ const flagNearDuplicateQuestions = (questions, exemplars, contextLabel = '') => 
 };
 
 /** Extract questions[] from a parsed chunk payload (tolerates both shapes). */
-const chunkQuestions = (payload) => {
+export const chunkQuestions = (payload) => {
   if (Array.isArray(payload?.quiz?.questions)) return payload.quiz.questions;
   if (Array.isArray(payload?.questions)) return payload.questions;
   return [];
@@ -995,7 +1174,9 @@ const buildCoverageGapPrompt = (ctx, shell, targetOutcomes, uncoveredIndices, av
           .join('\n')}\n`
       : '';
   const count = Math.min(3, Math.max(2, uncoveredIndices.length));
-  return `Create ${count} multiple-choice quiz questions for Kenyan CBC lesson "${title}" (Grade ${ctx.grade}).
+  const band = ctx.complexityBand || getComplexityBand(ctx.gradeNumber);
+  const ageGroup = ctx.ageGroup || band.ageGroup;
+  return `Create ${count} multiple-choice quiz questions for Kenyan CBC lesson "${title}" (Grade ${ctx.grade}, for ${ageGroup}).
 
 These learning outcomes currently have NO questions — you MUST cover them (use the exact learningOutcomeIndex shown):
 ${uncoveredBlock}
@@ -1003,9 +1184,13 @@ ${uncoveredBlock}
 All lesson outcomes (for index reference):
 ${allOutcomes}
 Topic: ${ctx.subject.name} · ${ctx.strand.name} · ${ctx.subStrand.name}
+
+${buildComplexityBlock(ctx.grade, band, ageGroup)}
 ${avoidBlock}
 Use bloomLevel "understand" or "apply" (mix). Use the same COMPACT shape as the main bank:
-question, options(3-4), correctAnswerIndex, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}], learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+question, options(3-4), correctAnswerIndex, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}], reviewRationale[{optionIndex,text}] for EVERY option, learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+reviewRationale is admin-review-only: 1-2 sentences, 20-30 words per option, saying precisely why that option is right or exactly what mistake produces it. Keep "explanation" and "misconception" as short as stated — they are learner-facing.
+Only tag a question visual when its content is genuinely visual, and then include a real "diagram" object with specific params. Otherwise use practice or text_steps.
 Do NOT include id, type, points, skillFocus, optionExplanations or feedback fields; the server adds them.
 Return ONLY one JSON object:
 { "quiz": { "questions": [ /* exactly ${count} items */ ] } }
@@ -1061,25 +1246,48 @@ export const isQuizQaEnabled = () =>
 
 export const runQuizQAPass = async (
   questions,
-  { label = '', generateContentFn = null } = {}
+  { label = '', generateContentFn = null, ctx = null } = {}
 ) => {
   if (!Array.isArray(questions) || questions.length === 0) return questions;
   if (!isQuizQaEnabled()) return questions;
 
+  const band = ctx?.complexityBand || getComplexityBand(ctx?.gradeNumber);
+  const grade = ctx?.grade ?? 'unspecified';
+  const ageGroup = ctx?.ageGroup || band.ageGroup;
+  const subjectName = ctx?.subject?.name || 'unspecified';
+
+  const complexityCheck = band.constrained
+    ? `5. Is the question too complex for Grade ${grade}? At this grade the ceiling is:
+${band.rules.map((rule) => `   - ${rule}`).join('\n')}
+   Each question below carries "w" (word count of the stem) and "s" (sentence count), already counted for you.
+   A stem with w > ${band.maxWords}, or s > ${band.maxSentences}, or one of the clause structures listed above, EXCEEDS the ceiling.
+6. Has the stem been over-compressed? Flag it as "does not ask a question" if it is a bare statement or a comma splice that never actually asks anything, e.g. "A girl has 61 shillings, finds 7 more."`
+    : `5. Is the question text unnecessarily wordy or convoluted for ${ageGroup}? Each question carries "w" (stem word count) and "s" (sentence count).`;
+
+  const complexityInstruction = band.constrained
+    ? `DO fail a question that is too complex for Grade ${grade}: over ${band.maxWords} words, over ${band.maxSentences} sentence${band.maxSentences === 1 ? '' : 's'}, a forbidden clause structure, a multi-part scenario, two cases to compare, or vocabulary above the grade. Start the issue text with "too complex for grade" and then give the specific reason, e.g. "too complex for grade: 26 words, 3 sentences".`
+    : `DO fail a question that is genuinely too wordy or convoluted for ${ageGroup}. Start the issue text with "too complex for grade" and give the specific reason.`;
+
   const qaPrompt = `
 You are QA-checking a set of multiple-choice questions for a children's CBC learning app.
+
+GRADE: ${grade} (${ageGroup}). SUBJECT: ${subjectName}.
+
 For each question below, check:
 1. Does it have EXACTLY ONE unambiguously correct answer given the options provided?
 2. Are the distractors (wrong options) plausible but clearly incorrect — not accidentally also defensible as correct?
-3. Is the question text clear and age-appropriate, with no ambiguous wording?
+3. Is the question text clear and age-appropriate for Grade ${grade}, with no ambiguous wording?
 4. Is there any factual error in the question or the marked correct answer?
+${complexityCheck}
 
 Return ONLY a compact JSON array, one entry per question in the same order:
 {"i":number,"ok":boolean} for a passing question.
 {"i":number,"ok":false,"issue":"max 18 words"} for a genuine problem.
 
-Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording).
+Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording, over-complexity for the grade).
 Do not fail a question just for being easy or simple — that's expected for some Bloom levels.
+${complexityInstruction}
+Judge complexity against the stated grade only, never against what would suit an older learner.
 
 QUESTIONS:
 ${JSON.stringify(
@@ -1087,7 +1295,10 @@ ${JSON.stringify(
     i,
     q: q.question,
     o: q.options,
-    a: q.correctAnswerIndex
+    a: q.correctAnswerIndex,
+    b: q.bloomLevel || null,
+    w: countStemWords(q.question),
+    s: countStemSentences(q.question)
   }))
 )}
 `;
@@ -1150,10 +1361,10 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     lesson.quiz,
     learningObjectives.length ? learningObjectives : sourceOutcomes,
     ctx.profile,
-    { additionTemplates: isGradeOneAdditionContext(ctx) }
+    { additionTemplates: isGradeOneAdditionContext(ctx), gradeNumber: ctx.gradeNumber }
   );
   const outcomesForQuiz = learningObjectives.length ? learningObjectives : sourceOutcomes;
-  const { questionBriefs, ...quizNormalized } = quizResult;
+  const { questionBriefs, downgradedVisuals: _downgraded, ...quizNormalized } = quizResult;
   const visualBriefs = [...teachingBriefs, ...questionBriefs];
   const contentBlocks = normalizeContentBlocks(
     lesson.contentBlocks,
@@ -1267,7 +1478,28 @@ export const generateLessonsFromSubStrand = async (
         return added;
       };
 
+      if (!isGradeOneAdditionContext(ctx)) {
+        try {
+          const { pullApprovedBankQuestions } = await import('./questionBankService.js');
+          const pulled = await pullApprovedBankQuestions({
+            subStrandId: ctx.subStrand.id,
+            grade: ctx.grade,
+            count: BANK_SIZE
+          });
+          const added = appendChunkQuestions(pulled, 'bank');
+          console.log(
+            `Lesson ${i + 1}: pulled ${added} approved question-bank entries (${pulled.length} candidates)`
+          );
+        } catch (bankErr) {
+          console.warn(
+            `Lesson ${i + 1}: question-bank pull skipped:`,
+            bankErr.message || bankErr
+          );
+        }
+      }
+
       for (let c = 0; c < QUIZ_CHUNKS.length; c++) {
+        if (bankQuestions.length >= BANK_SIZE) break;
         const chunk = QUIZ_CHUNKS[c];
         reportProgress(
           onProgress,
@@ -1298,11 +1530,10 @@ export const generateLessonsFromSubStrand = async (
           await sleep(AI_CALL_GAP_MS);
           let chunkText;
           try {
+            const remaining = Math.max(0, BANK_SIZE - bankQuestions.length);
+            if (remaining < 1) break;
+            const targetCount = Math.min(CHUNK_SIZE, remaining);
             const attemptAvoidStems = bankQuestions.map((q) => String(q.question || ''));
-            const targetCount = Math.max(
-              MIN_CHUNK_QUESTIONS,
-              CHUNK_SIZE - chunkAdded
-            );
             const chunkResult = await generateContent({
               prompt: buildQuizChunkPrompt(
                 ctx,
@@ -1429,7 +1660,7 @@ export const generateLessonsFromSubStrand = async (
       // ——— Batched QA pass (QUIZ_QA_ENABLED, default on) ———
       if (isQuizQaEnabled() && (mapped.quiz?.questions || []).length > 0) {
         reportProgress(onProgress, start + span * 0.93, `Lesson ${i + 1}: running quiz QA…`);
-        await runQuizQAPass(mapped.quiz.questions, { label: `lesson ${i + 1}` });
+        await runQuizQAPass(mapped.quiz.questions, { label: `lesson ${i + 1}`, ctx });
       }
 
       lessons.push(mapped);
@@ -1477,8 +1708,30 @@ export const topUpLessonQuizBank = async (lessonId) => {
 
   const seenStems = new Set(existing.map((q) => normalizeStemKey(q.question)));
   const existingIds = new Set(existing.map((q) => q.id).filter(Boolean));
+  const existingBankIds = existing.map((q) => q.bankEntryId).filter(Boolean);
   const newRaw = [];
   const needed = BANK_SIZE - existing.length;
+
+  if (!isGradeOneAdditionContext(ctx)) {
+    try {
+      const { pullApprovedBankQuestions } = await import('./questionBankService.js');
+      const pulled = await pullApprovedBankQuestions({
+        subStrandId: ctx.subStrand.id,
+        grade: ctx.grade,
+        count: needed,
+        excludeBankEntryIds: existingBankIds
+      });
+      for (const q of pulled) {
+        const stemKey = normalizeStemKey(q?.question);
+        if (!stemKey || seenStems.has(stemKey)) continue;
+        seenStems.add(stemKey);
+        newRaw.push(q);
+      }
+      console.log(`Top-up: pulled ${newRaw.length} approved question-bank entries`);
+    } catch (bankErr) {
+      console.warn('Top-up: question-bank pull skipped:', bankErr.message || bankErr);
+    }
+  }
 
   for (const chunk of QUIZ_CHUNKS) {
     if (newRaw.length >= needed) break;
@@ -1563,13 +1816,15 @@ export const topUpLessonQuizBank = async (lessonId) => {
   });
 
   const normalized = normalizeQuiz({ questions: rawWithIds }, outcomes, ctx.profile, {
-    additionTemplates: isGradeOneAdditionContext(ctx)
+    additionTemplates: isGradeOneAdditionContext(ctx),
+    gradeNumber: ctx.gradeNumber
   });
 
   // QA only the newly added batch (existing questions already reviewed / flagged)
   if (isQuizQaEnabled() && normalized.questions.length > 0) {
     await runQuizQAPass(normalized.questions, {
-      label: `top-up ${lessonId.slice(0, 8)}`
+      label: `top-up ${lessonId.slice(0, 8)}`,
+      ctx
     });
   }
 
@@ -1610,6 +1865,13 @@ export const topUpLessonQuizBank = async (lessonId) => {
   console.log(
     `Top-up: lesson ${lessonId} bank ${existing.length} → ${mergedQuestions.length} questions`
   );
+
+  try {
+    const { recordLessonBankServes } = await import('./questionBankService.js');
+    await recordLessonBankServes([updated]);
+  } catch (serveErr) {
+    console.warn('Top-up bank-serve log skipped:', serveErr.message || serveErr);
+  }
 
   return {
     lesson: updated,

@@ -1,4 +1,5 @@
 import { LessonContentRenderer } from '@/components/learner/LessonContentRenderer'
+import { LiveDiagram, isLiveDiagramType } from '@/components/learner/diagrams/LiveDiagram'
 import type { Lesson, LessonContentBlock, LessonVisualAsset, LessonVisualBrief } from '@/types'
 
 interface LessonTeachingBlocksProps {
@@ -58,6 +59,16 @@ export const LessonTeachingBlocks = ({
         if (block.type === 'diagram' && showDiagrams) {
           const asset = resolveAsset(block.briefId, visualBriefs, visualAssets, images)
           const brief = visualBriefs.find((b) => b.id === block.briefId)
+          if (brief && isLiveDiagramType(brief.diagramType) && brief.params) {
+            return (
+              <figure
+                key={block.id || `d-${i}`}
+                className="rounded-[16px] overflow-hidden border-2 border-slate-200 bg-slate-50"
+              >
+                <LiveDiagram diagramType={brief.diagramType} params={brief.params} />
+              </figure>
+            )
+          }
           if (!asset?.url) {
             return (
               <div

@@ -9,6 +9,8 @@ import { LazyLottie } from '@/components/ui/LazyLottie'
 import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlocks'
 import { AdaptiveQuizPanel } from '@/components/learner/AdaptiveQuizPanel'
 import { modalityLabel } from '@/lib/modalityQuiz'
+import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
+import { usesQuestNavigation } from '@/lib/complexityBands'
 
 export const LessonView = () => {
   const { id } = useParams()
@@ -41,6 +43,8 @@ export const LessonView = () => {
   } | null>(null)
   const [preferredModality, setPreferredModality] = useState<string>('mixed')
   const [topicMastered, setTopicMastered] = useState(false)
+  const [questNext, setQuestNext] = useState<NextTaskResponse | null>(null)
+  const [loadingQuestNext, setLoadingQuestNext] = useState(false)
 
   const getFailedLessonKey = (key: string) => {
     const userId = user?.id || 'anonymous'
@@ -232,8 +236,18 @@ export const LessonView = () => {
     }
 
     const performanceCategory = getPerformanceCategory(pct)
+    const questNav = usesQuestNavigation(lesson.grade)
 
-    if (passed && user?.id) {
+    if (questNav) {
+      setLoadingQuestNext(true)
+      try {
+        setQuestNext((await api.learner.getNextTask()) as NextTaskResponse)
+      } catch {
+        setQuestNext(null)
+      } finally {
+        setLoadingQuestNext(false)
+      }
+    } else if (passed && user?.id) {
       const storedFailed = localStorage.getItem(getFailedLessonKey('failed_lesson_id'))
       if (storedFailed === id) {
         localStorage.removeItem(getFailedLessonKey('failed_lesson_id'))
@@ -388,6 +402,7 @@ export const LessonView = () => {
   const performanceMessage = performanceCategory
     ? getPerformanceMessage(performanceCategory, quizScore!.percentage, topicMastered)
     : null
+  const questNav = usesQuestNavigation(lesson.grade)
 
   return (
     <div className="min-h-screen premium-mesh">
@@ -396,7 +411,7 @@ export const LessonView = () => {
           <StaggeredEntry>
             <div className="max-w-4xl mx-auto">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => (questNav ? navigate('/learner') : navigate(-1))}
                 className="mb-6 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
                  
                 onMouseDown={(e) => {
@@ -573,7 +588,14 @@ export const LessonView = () => {
                           </div>
                         )}
 
-                        {(performanceCategory === 'below' || performanceCategory === 'approaching' || (quizScore && quizScore.percentage < 60)) && (
+                        {questNav && (
+                          <QuestNextCard data={questNext} loading={loadingQuestNext} />
+                        )}
+
+                        {!questNav &&
+                          (performanceCategory === 'below' ||
+                            performanceCategory === 'approaching' ||
+                            (quizScore && quizScore.percentage < 60)) && (
                           <div className="space-y-4">
                             <h4 className="text-lg font-bold text-[#0F172A]"  >
                               Practice from a lower grade
@@ -646,7 +668,9 @@ export const LessonView = () => {
                           </div>
                         )}
 
-                        {(performanceCategory === 'meeting' || performanceCategory === 'exceeding') && !showRetakePrompt && (
+                        {!questNav &&
+                          (performanceCategory === 'meeting' || performanceCategory === 'exceeding') &&
+                          !showRetakePrompt && (
                           <div className="space-y-4">
                             <h4 className="text-lg font-bold text-[#0F172A]"  >
                               What's Next?

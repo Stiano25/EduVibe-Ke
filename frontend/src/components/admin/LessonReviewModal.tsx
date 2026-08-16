@@ -1081,6 +1081,7 @@ export const LessonReviewModal = ({
                       const isCorrect = optIdx === q.correctAnswerIndex
                       const optExplanation = q.optionExplanations?.[optIdx]
                       const misconception = q.distractors?.find((d) => d.optionIndex === optIdx)?.misconception
+                      const rationale = q.reviewRationale?.[optIdx]?.trim()
                       return (
                         <div
                           key={optIdx}
@@ -1119,6 +1120,15 @@ export const LessonReviewModal = ({
                           {!isCorrect && misconception && (
                             <p className="mt-1 text-[11px] text-amber-800" style={{ fontFamily: 'Manrope, sans-serif' }}>
                               Diagnoses: <MathText text={misconception} />
+                            </p>
+                          )}
+                          {rationale && (
+                            <p
+                              className="mt-1 text-[11px] text-slate-600"
+                              style={{ fontFamily: 'Manrope, sans-serif' }}
+                              title="Full reasoning for reviewers — not shown to learners"
+                            >
+                              Reviewer note: <MathText text={rationale} />
                             </p>
                           )}
                         </div>

@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useRef, type RefObject } from 'react'
 import { MathText } from '@/components/ui/MathText'
+import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
 
 export type TapSelection = {
   optionIndex: number
@@ -14,6 +15,8 @@ interface TapSelectOptionsProps {
   feedback?: { correct: boolean; correctAnswerIndex?: number } | null
   onSelect: (selection: TapSelection) => void
   className?: string
+  /** Observe this element (stem + options) instead of the option list alone. */
+  visibilityRootRef?: RefObject<Element | null>
 }
 
 /** Generic accessible tap-target answers with per-question response timing. */
@@ -25,23 +28,27 @@ export const TapSelectOptions = ({
   feedback = null,
   onSelect,
   className = '',
+  visibilityRootRef,
 }: TapSelectOptionsProps) => {
-  const shownAtRef = useRef(performance.now())
-
-  useEffect(() => {
-    shownAtRef.current = performance.now()
-  }, [questionKey])
+  const ownRootRef = useRef<HTMLDivElement>(null)
+  const targetRef = visibilityRootRef ?? ownRootRef
+  const { measureResponseTimeMs } = useVisibleResponseTimer(questionKey, targetRef)
 
   const select = (optionIndex: number) => {
     if (disabled) return
     onSelect({
       optionIndex,
-      responseTimeMs: Math.max(0, Math.round(performance.now() - shownAtRef.current)),
+      responseTimeMs: measureResponseTimeMs(),
     })
   }
 
   return (
-    <div className={`space-y-2 ${className}`} role="group" aria-label="Answer choices">
+    <div
+      ref={visibilityRootRef ? undefined : ownRootRef}
+      className={`space-y-2 ${className}`}
+      role="group"
+      aria-label="Answer choices"
+    >
       {options.map((option, optionIndex) => {
         const selected = selectedIndex === optionIndex
         const showFeedback = feedback && selected

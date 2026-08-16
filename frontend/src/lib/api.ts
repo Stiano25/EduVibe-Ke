@@ -129,11 +129,62 @@ class ApiClient {
     deleteKnowledge: (id: string) =>
       this.request(`/admin/knowledge/${id}`, { method: 'DELETE' }),
 
+    listQuestionBank: (params?: { status?: string; subStrandId?: string; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.status) qs.set('status', params.status)
+      if (params?.subStrandId) qs.set('subStrandId', params.subStrandId)
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const suffix = qs.toString() ? `?${qs.toString()}` : ''
+      return this.request(`/admin/question-bank${suffix}`)
+    },
+    generateQuestionBank: (subStrandId: string, count?: number) =>
+      this.request('/admin/question-bank/generate', {
+        method: 'POST',
+        body: JSON.stringify({ subStrandId, count }),
+      }),
+    approveQuestionBankEntry: (id: string) =>
+      this.request(`/admin/question-bank/${id}/approve`, { method: 'PATCH' }),
+    rejectQuestionBankEntry: (id: string, rejectReason?: string) =>
+      this.request(`/admin/question-bank/${id}/reject`, {
+        method: 'PATCH',
+        body: JSON.stringify({ rejectReason }),
+      }),
+    editQuestionBankEntry: (id: string, question: Record<string, unknown>) =>
+      this.request(`/admin/question-bank/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ question }),
+      }),
+
+    listPrerequisiteEdges: (params?: { status?: string; limit?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.status) qs.set('status', params.status)
+      if (params?.limit) qs.set('limit', String(params.limit))
+      const suffix = qs.toString() ? `?${qs.toString()}` : ''
+      return this.request(`/admin/prerequisite-edges${suffix}`)
+    },
+    approvePrerequisiteEdge: (id: string) =>
+      this.request(`/admin/prerequisite-edges/${id}/approve`, { method: 'PATCH' }),
+    rejectPrerequisiteEdge: (id: string, rejectReason?: string) =>
+      this.request(`/admin/prerequisite-edges/${id}/reject`, {
+        method: 'PATCH',
+        body: JSON.stringify({ rejectReason }),
+      }),
+    editPrerequisiteEdge: (
+      id: string,
+      payload: { reason?: string; confidence?: number; prerequisiteOutcomeId?: string }
+    ) =>
+      this.request(`/admin/prerequisite-edges/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      }),
+
     // Strands
     getStrands: () => this.request('/admin/strands'),
     getStrand: (id: string) => this.request(`/admin/strands/${id}`),
     getStrandsBySubject: (subjectId: string) => 
       this.request(`/admin/strands/subject/${subjectId}`),
+    getUnitsByStrand: (strandId: string) =>
+      this.request(`/admin/strands/${strandId}/units`),
     createStrand: (data: any) => 
       this.request('/admin/strands', { method: 'POST', body: JSON.stringify(data) }),
     updateStrand: (id: string, data: any) => 
@@ -425,6 +476,7 @@ class ApiClient {
       data: {
         session: Record<string, unknown>
         selectedOptionIndex: number
+        placedCount?: number
         responseTimeMs: number
       }
     ) =>
@@ -435,6 +487,7 @@ class ApiClient {
     getAdaptiveReview: (lessonId: string) =>
       this.request(`/learner/lessons/${lessonId}/adaptive-review`),
     getProgressReport: () => this.request('/learner/progress-report'),
+    getNextTask: () => this.request('/learner/next-task'),
     getSkillMastery: () => this.request('/learner/skill-mastery'),
   };
 }

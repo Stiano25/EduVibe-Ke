@@ -42,9 +42,9 @@ assert(
 );
 assert(
   GENERATION_TOKEN_LIMITS.lessonShell === 2500 &&
-    GENERATION_TOKEN_LIMITS.quizChunk === 20000 &&
-    GENERATION_TOKEN_LIMITS.coverageGap === 2200 &&
-    GENERATION_TOKEN_LIMITS.quizQa === 3000 &&
+    GENERATION_TOKEN_LIMITS.quizChunk === 28000 &&
+    GENERATION_TOKEN_LIMITS.coverageGap === 4000 &&
+    GENERATION_TOKEN_LIMITS.quizQa === 4000 &&
     GENERATION_TOKEN_LIMITS.quizQa < GENERATION_TOKEN_LIMITS.quizChunk,
   'generation phases use evidence-based token budgets'
 );
@@ -188,6 +188,14 @@ const session = createAdaptiveSession({
   ]
 });
 assert(session?.question && session?.session, 'adaptive session created with a question');
+assert(
+  oldShape.questions.every((q) => q.interactionType === 'multiple_choice'),
+  'normalizeQuiz stamps interactionType multiple_choice'
+);
+assert(
+  session.question.interactionType === 'multiple_choice',
+  'publicQuestion threads interactionType'
+);
 console.log('verify-quiz-quality: OK', {
   qaEnabled: isQuizQaEnabled(),
   coverageReport: report,

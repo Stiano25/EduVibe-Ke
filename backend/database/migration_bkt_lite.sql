@@ -1,0 +1,18 @@
+-- Part 5: BKT-lite runs alongside the 3-of-4 heuristic. Does not replace status.
+
+CREATE TABLE IF NOT EXISTS bkt_skill_params (
+  learning_outcome_key TEXT PRIMARY KEY,
+  p_l0 DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+  p_t DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+  p_s DOUBLE PRECISION NOT NULL DEFAULT 0.1,
+  p_g DOUBLE PRECISION NOT NULL DEFAULT 0.2,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE skill_mastery
+  ADD COLUMN IF NOT EXISTS bkt_p_know DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS bkt_n_observations INTEGER,
+  ADD COLUMN IF NOT EXISTS bkt_updated_at TIMESTAMPTZ;
+
+ALTER TABLE bkt_skill_params ENABLE ROW LEVEL SECURITY;

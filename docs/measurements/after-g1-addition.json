@@ -1,0 +1,3691 @@
+{
+  "report": {
+    "label": "after-g1-addition",
+    "subStrandId": "6566c510-80af-4ff9-a159-cd23a6ca70dc",
+    "generatedAt": "2026-08-11T08:14:18.463Z",
+    "elapsedSeconds": 438,
+    "lessonTitle": "Adding a 2-digit Number to a 1-digit Number",
+    "grade": "1",
+    "questionCount": 30,
+    "overall": {
+      "n": 30,
+      "avgWords": 5.83,
+      "maxWords": 10,
+      "avgSentences": 1.17,
+      "maxSentences": 2,
+      "stemsWithSubordinator": 5,
+      "stemsWithComparative": 7,
+      "stemsOver20Words": 0,
+      "stemsOver12Words": 0,
+      "stemsOver2Sentences": 0
+    },
+    "byBloom": {
+      "recall": {
+        "n": 3,
+        "avgWords": 3,
+        "maxWords": 3,
+        "avgSentences": 1,
+        "maxSentences": 1,
+        "stemsWithSubordinator": 0,
+        "stemsWithComparative": 0,
+        "stemsOver20Words": 0,
+        "stemsOver12Words": 0,
+        "stemsOver2Sentences": 0
+      },
+      "understand": {
+        "n": 6,
+        "avgWords": 6.33,
+        "maxWords": 8,
+        "avgSentences": 1.17,
+        "maxSentences": 2,
+        "stemsWithSubordinator": 1,
+        "stemsWithComparative": 1,
+        "stemsOver20Words": 0,
+        "stemsOver12Words": 0,
+        "stemsOver2Sentences": 0
+      },
+      "apply": {
+        "n": 11,
+        "avgWords": 5.73,
+        "maxWords": 10,
+        "avgSentences": 1.36,
+        "maxSentences": 2,
+        "stemsWithSubordinator": 1,
+        "stemsWithComparative": 2,
+        "stemsOver20Words": 0,
+        "stemsOver12Words": 0,
+        "stemsOver2Sentences": 0
+      },
+      "reason": {
+        "n": 10,
+        "avgWords": 6.5,
+        "maxWords": 9,
+        "avgSentences": 1,
+        "maxSentences": 1,
+        "stemsWithSubordinator": 3,
+        "stemsWithComparative": 4,
+        "stemsOver20Words": 0,
+        "stemsOver12Words": 0,
+        "stemsOver2Sentences": 0
+      }
+    },
+    "modality": {
+      "practice": 15,
+      "text_steps": 7,
+      "visual": 8
+    },
+    "visualQuestions": 8,
+    "visualWithBrief": 8,
+    "questionBriefs": 8,
+    "placeholderBriefs": 0,
+    "placeholderRatio": 0,
+    "qaFlagged": 5,
+    "qaIssues": [
+      {
+        "id": "q-12",
+        "issue": "too complex for grade: 2 sentences"
+      },
+      {
+        "id": "q-13",
+        "issue": "too complex for grade: 2 sentences"
+      },
+      {
+        "id": "q-16",
+        "issue": "too complex for grade: 2 sentences"
+      },
+      {
+        "id": "q-17",
+        "issue": "too complex for grade: 2 sentences"
+      },
+      {
+        "id": "q-30",
+        "issue": "too complex for grade: 2 sentences"
+      }
+    ],
+    "optionsTotal": 120,
+    "rationalesPresent": 120,
+    "rationaleAvgWords": 15.47,
+    "learnerFacingLengths": {
+      "explanationAvgWords": 8.7,
+      "explanationMaxWords": 10,
+      "explanationsOver16Words": 0,
+      "misconceptionMaxWords": 6,
+      "misconceptionsOver8Words": 0
+    },
+    "tokens": {
+      "calls": 6,
+      "inputTokens": 13367,
+      "outputTokens": 47588,
+      "byLabel": [
+        {
+          "provider": "claude",
+          "label": "lesson 1 shell",
+          "inputTokens": 1509,
+          "outputTokens": 1755,
+          "maxTokens": 2500,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz foundation",
+          "inputTokens": 2391,
+          "outputTokens": 11489,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz application",
+          "inputTokens": 2549,
+          "outputTokens": 16298,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz reasoning",
+          "inputTokens": 2885,
+          "outputTokens": 14032,
+          "maxTokens": 20000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 coverage gap",
+          "inputTokens": 1400,
+          "outputTokens": 1308,
+          "maxTokens": 2200,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "claude",
+          "label": "lesson 1 quiz QA",
+          "inputTokens": 2633,
+          "outputTokens": 2706,
+          "maxTokens": 3000,
+          "stopReason": "end_turn",
+          "reachedTokenLimit": false
+        }
+      ],
+      "estimatedUsd": 0.7539,
+      "pricing": {
+        "inputPerM": 3,
+        "outputPerM": 15
+      }
+    },
+    "reasoningStems": [
+      {
+        "id": "q-19",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A girl has 61 shillings, finds 7 more."
+      },
+      {
+        "id": "q-20",
+        "words": 9,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A pole is 82 cm, grows 6 more cm."
+      },
+      {
+        "id": "q-21",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A show lasts 45 minutes, adds 3 more."
+      },
+      {
+        "id": "q-22",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "stem": "A farmer has 43 hens, gets 4 more."
+      },
+      {
+        "id": "q-23",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "What is $63+4$?"
+      },
+      {
+        "id": "q-24",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "How many toys in all for $31+6$?"
+      },
+      {
+        "id": "q-25",
+        "words": 5,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "Which digit changes in $41+3$?"
+      },
+      {
+        "id": "q-26",
+        "words": 6,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "Which sum is correct for $27+2$?"
+      },
+      {
+        "id": "q-27",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "stem": "In $72+6$, what is new ones digit?"
+      },
+      {
+        "id": "q-28",
+        "words": 4,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "stem": "Which block matches $54+3$?"
+      }
+    ],
+    "allRows": [
+      {
+        "id": "q-1",
+        "bloom": "recall",
+        "modality": "practice",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          20,
+          16,
+          16,
+          16
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          4,
+          4,
+          3
+        ],
+        "stem": "What is $45+3$?"
+      },
+      {
+        "id": "q-2",
+        "bloom": "recall",
+        "modality": "practice",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          16,
+          17,
+          14
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          4,
+          4,
+          3
+        ],
+        "stem": "What is $54+5$?"
+      },
+      {
+        "id": "q-3",
+        "bloom": "understand",
+        "modality": "practice",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          22,
+          16,
+          15,
+          14
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          6,
+          6
+        ],
+        "stem": "Amina has 42 shillings, gets 5 more."
+      },
+      {
+        "id": "q-4",
+        "bloom": "understand",
+        "modality": "practice",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          22,
+          15,
+          13,
+          14
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          6,
+          6
+        ],
+        "stem": "A rope is 63 cm, add 4 cm."
+      },
+      {
+        "id": "q-5",
+        "bloom": "understand",
+        "modality": "text_steps",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          15,
+          14,
+          15
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          4,
+          4,
+          3
+        ],
+        "stem": "What is $71+8$?"
+      },
+      {
+        "id": "q-6",
+        "bloom": "understand",
+        "modality": "visual",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          21,
+          16,
+          14,
+          15
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          4,
+          4,
+          3
+        ],
+        "stem": "How many dots in all for $24+3$?"
+      },
+      {
+        "id": "q-7",
+        "bloom": "understand",
+        "modality": "visual",
+        "words": 5,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          19,
+          19,
+          16,
+          16
+        ],
+        "explanationWords": 10,
+        "misconceptionWords": [
+          5,
+          5,
+          5
+        ],
+        "stem": "In $56+3$, which digit changes?"
+      },
+      {
+        "id": "q-8",
+        "bloom": "recall",
+        "modality": "practice",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          15,
+          14,
+          14
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          4,
+          4,
+          3
+        ],
+        "stem": "What is $83+6$?"
+      },
+      {
+        "id": "q-9",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          20,
+          20,
+          20,
+          14
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          4,
+          4,
+          4
+        ],
+        "stem": "What is $12+7$?"
+      },
+      {
+        "id": "q-10",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          19,
+          17,
+          15,
+          15
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          4,
+          4,
+          4
+        ],
+        "stem": "What is $26+3$?"
+      },
+      {
+        "id": "q-11",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          19,
+          15,
+          15,
+          13
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          6,
+          5,
+          4
+        ],
+        "stem": "What is $48+1$?"
+      },
+      {
+        "id": "q-12",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 10,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": true,
+        "qaFlagged": true,
+        "qaIssue": "too complex for grade: 2 sentences",
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          16,
+          15,
+          14
+        ],
+        "explanationWords": 10,
+        "misconceptionWords": [
+          5,
+          4,
+          5
+        ],
+        "stem": "There are 34 mangoes, 5 more come. How many now?"
+      },
+      {
+        "id": "q-13",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 8,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": true,
+        "qaIssue": "too complex for grade: 2 sentences",
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          19,
+          15,
+          15,
+          15
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          4,
+          4,
+          4
+        ],
+        "stem": "Wanjiru has 52 shillings, finds 6 more. Total?"
+      },
+      {
+        "id": "q-14",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          19,
+          13,
+          14,
+          12
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          4,
+          4,
+          4
+        ],
+        "stem": "What is $63+2$?"
+      },
+      {
+        "id": "q-15",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          20,
+          16,
+          16,
+          14
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          4,
+          4,
+          4
+        ],
+        "stem": "What is $82+7$?"
+      },
+      {
+        "id": "q-16",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 10,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": true,
+        "qaIssue": "too complex for grade: 2 sentences",
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          21,
+          14,
+          13,
+          14
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          4,
+          4
+        ],
+        "stem": "A ribbon is 56 cm, add 2 cm. New length?"
+      },
+      {
+        "id": "q-17",
+        "bloom": "apply",
+        "modality": "text_steps",
+        "words": 10,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": true,
+        "qaIssue": "too complex for grade: 2 sentences",
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          22,
+          14,
+          15,
+          12
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          4,
+          4
+        ],
+        "stem": "A clock shows 61 minutes, add 8 minutes. New time?"
+      },
+      {
+        "id": "q-18",
+        "bloom": "apply",
+        "modality": "visual",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          19,
+          16,
+          16,
+          15
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          6,
+          6,
+          5
+        ],
+        "stem": "Which number stays the same in $47+1$?"
+      },
+      {
+        "id": "q-19",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          16,
+          12,
+          14,
+          12
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          4,
+          4
+        ],
+        "stem": "A girl has 61 shillings, finds 7 more."
+      },
+      {
+        "id": "q-20",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 9,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          16,
+          14,
+          13,
+          15
+        ],
+        "explanationWords": 10,
+        "misconceptionWords": [
+          4,
+          4,
+          5
+        ],
+        "stem": "A pole is 82 cm, grows 6 more cm."
+      },
+      {
+        "id": "q-21",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          13,
+          14,
+          14,
+          14
+        ],
+        "explanationWords": 10,
+        "misconceptionWords": [
+          4,
+          4,
+          4
+        ],
+        "stem": "A show lasts 45 minutes, adds 3 more."
+      },
+      {
+        "id": "q-22",
+        "bloom": "reason",
+        "modality": "visual",
+        "words": 8,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 1,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          14,
+          12,
+          13,
+          12
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          4,
+          5
+        ],
+        "stem": "A farmer has 43 hens, gets 4 more."
+      },
+      {
+        "id": "q-23",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          11,
+          13,
+          15
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          5,
+          6,
+          6
+        ],
+        "stem": "What is $63+4$?"
+      },
+      {
+        "id": "q-24",
+        "bloom": "reason",
+        "modality": "visual",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          14,
+          12,
+          13,
+          14
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          4,
+          4
+        ],
+        "stem": "How many toys in all for $31+6$?"
+      },
+      {
+        "id": "q-25",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 5,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          15,
+          15,
+          15,
+          13
+        ],
+        "explanationWords": 7,
+        "misconceptionWords": [
+          6,
+          5,
+          5
+        ],
+        "stem": "Which digit changes in $41+3$?"
+      },
+      {
+        "id": "q-26",
+        "bloom": "reason",
+        "modality": "practice",
+        "words": 6,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          16,
+          12,
+          12,
+          15
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          5,
+          5,
+          5
+        ],
+        "stem": "Which sum is correct for $27+2$?"
+      },
+      {
+        "id": "q-27",
+        "bloom": "reason",
+        "modality": "text_steps",
+        "words": 7,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          16,
+          15,
+          14,
+          13
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          6,
+          6
+        ],
+        "stem": "In $72+6$, what is new ones digit?"
+      },
+      {
+        "id": "q-28",
+        "bloom": "reason",
+        "modality": "visual",
+        "words": 4,
+        "sentences": 1,
+        "subordinators": 1,
+        "comparatives": 0,
+        "hasDiagramBrief": true,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          13,
+          13,
+          16
+        ],
+        "explanationWords": 9,
+        "misconceptionWords": [
+          5,
+          5,
+          5
+        ],
+        "stem": "Which block matches $54+3$?"
+      },
+      {
+        "id": "q-29",
+        "bloom": "apply",
+        "modality": "practice",
+        "words": 3,
+        "sentences": 1,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": false,
+        "qaIssue": null,
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          18,
+          19,
+          17,
+          14
+        ],
+        "explanationWords": 8,
+        "misconceptionWords": [
+          5,
+          6,
+          4
+        ],
+        "stem": "What is $35+4$?"
+      },
+      {
+        "id": "q-30",
+        "bloom": "understand",
+        "modality": "practice",
+        "words": 8,
+        "sentences": 2,
+        "subordinators": 0,
+        "comparatives": 0,
+        "hasDiagramBrief": false,
+        "qaFlagged": true,
+        "qaIssue": "too complex for grade: 2 sentences",
+        "optionCount": 4,
+        "rationaleCount": 4,
+        "rationaleWords": [
+          16,
+          14,
+          17,
+          16
+        ],
+        "explanationWords": 7,
+        "misconceptionWords": [
+          5,
+          5,
+          6
+        ],
+        "stem": "Add 40 and 6. What is the total?"
+      }
+    ]
+  },
+  "lesson": {
+    "title": "Adding a 2-digit Number to a 1-digit Number",
+    "description": "Learners add a 2-digit number and a 1-digit number without regrouping using place value.",
+    "strandId": "b3bf41ce-2c76-4eb9-9ef5-32c28d7912ab",
+    "subStrandId": "6566c510-80af-4ff9-a159-cd23a6ca70dc",
+    "subjectId": "235311d3-d8b1-42cc-9c3d-ee503ffadca9",
+    "grade": "1",
+    "contentType": "interactive",
+    "difficulty": "beginner",
+    "tags": [
+      "practice"
+    ],
+    "duration": 10,
+    "content": "When we add a 2-digit number and a 1-digit number, we only add the {{term:ones}}. The {{term:tens}} digit stays the same because we are not adding anything to the tens. For example, in $23+4$, the tens digit $2$ stays the same, and we add the ones: $3+4=7$, giving $23+4=27$.\n\nLet's look at another {{example:worked example}}: $45+3$. The tens digit $4$ does not change. We add the ones: $5+3=8$. So $45+3=48$.\n\nNow you try. What is $32+6$? Think about the tens and add only the ones.",
+    "learningObjectives": [
+      "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100"
+    ],
+    "keyConcepts": [],
+    "examples": [],
+    "summary": "",
+    "isAIGenerated": true,
+    "status": "pending",
+    "lessonOrder": 1,
+    "quiz": {
+      "title": "Quiz Challenge",
+      "questions": [
+        {
+          "id": "q-1",
+          "question": "What is $45+3$?",
+          "type": "multiple-choice",
+          "options": [
+            "48",
+            "47",
+            "49",
+            "50"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: 5+3=8, tens stay 4, so 48.",
+          "optionExplanations": [
+            "Add ones: 5+3=8, tens stay 4, so 48.",
+            "counted one too few",
+            "counted one too many",
+            "recounted two objects"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "counted one too few"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "counted one too many"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "recounted two objects"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because the tens digit 4 stays fixed, and adding the ones digits 5 and 3 gives 8, forming 48.",
+            "This comes from an off-by-one mistake when adding the ones digits, giving 7 instead of 8.",
+            "This comes from adding one too many onto the ones sum, giving 9 instead of 8.",
+            "This is just the number 45 with no addition applied, showing the learner skipped the ones."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 45,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "off_by_one_low",
+              "formula": "a + b - 1",
+              "misconception": "counted one too few"
+            },
+            {
+              "id": "off_by_one_high",
+              "formula": "a + b + 1",
+              "misconception": "counted one too many"
+            },
+            {
+              "id": "recounted_extra",
+              "formula": "a + b + 2",
+              "misconception": "recounted two objects"
+            }
+          ]
+        },
+        {
+          "id": "q-2",
+          "question": "What is $54+5$?",
+          "type": "multiple-choice",
+          "options": [
+            "59",
+            "58",
+            "60",
+            "61"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: 4+5=9, tens stay 5, so 59.",
+          "optionExplanations": [
+            "Add ones: 4+5=9, tens stay 5, so 59.",
+            "counted one too few",
+            "counted one too many",
+            "recounted two objects"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "counted one too few"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "counted one too many"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "recounted two objects"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because tens digit 5 remains unchanged, and adding ones digits 4 and 5 gives 9, forming 59.",
+            "This comes from an off-by-one slip in adding the ones digits, giving 8 instead of 9.",
+            "This comes from adding one too many to the ones sum, giving 10 which forces regrouping wrongly.",
+            "This is the starting number 54 unchanged, meaning the ones digit was never added."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 54,
+            "b": 5
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "off_by_one_low",
+              "formula": "a + b - 1",
+              "misconception": "counted one too few"
+            },
+            {
+              "id": "off_by_one_high",
+              "formula": "a + b + 1",
+              "misconception": "counted one too many"
+            },
+            {
+              "id": "recounted_extra",
+              "formula": "a + b + 2",
+              "misconception": "recounted two objects"
+            }
+          ]
+        },
+        {
+          "id": "q-3",
+          "question": "Amina has 42 shillings, gets 5 more.",
+          "type": "multiple-choice",
+          "options": [
+            "47",
+            "46",
+            "48",
+            "42"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: 2+5=7, tens stay 4, so 47 shillings.",
+          "optionExplanations": [
+            "Add ones: 2+5=7, tens stay 4, so 47 shillings.",
+            "Miscounted ones sum by one",
+            "Added one extra to the sum",
+            "Forgot to add the new shillings"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones sum by one"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra to the sum"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to add the new shillings"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because the tens digit 4 stays the same, and the ones digits 2 and 5 add to 7, giving 47 shillings.",
+            "This comes from an off-by-one error in adding the ones, giving 6 instead of 7 shillings.",
+            "This comes from adding one extra shilling beyond the correct total, an easy counting slip.",
+            "This is the original 42 shillings, showing the extra 5 shillings were never added."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-4",
+          "question": "A rope is 63 cm, add 4 cm.",
+          "type": "multiple-choice",
+          "options": [
+            "67",
+            "66",
+            "68",
+            "63"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: 3+4=7, tens stay 6, so 67 cm.",
+          "optionExplanations": [
+            "Add ones: 3+4=7, tens stay 6, so 67 cm.",
+            "Miscounted ones sum by one",
+            "Added one extra to the sum",
+            "Forgot to add the extra length"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted ones sum by one"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra to the sum"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Forgot to add the extra length"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because the tens digit 6 is unchanged, and the ones digits 3 and 4 add up to 7, giving 67 cm.",
+            "This comes from an off-by-one slip while adding ones, giving 6 instead of 7 cm.",
+            "This comes from adding one extra centimetre beyond the correct total by mistake.",
+            "This is the starting length 63 cm, showing the added 4 cm was ignored."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-5",
+          "question": "What is $71+8$?",
+          "type": "multiple-choice",
+          "options": [
+            "79",
+            "78",
+            "80",
+            "81"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: 1+8=9, tens stay 7, so 79.",
+          "optionExplanations": [
+            "Add ones: 1+8=9, tens stay 7, so 79.",
+            "counted one too few",
+            "counted one too many",
+            "recounted two objects"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "counted one too few"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "counted one too many"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "recounted two objects"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because tens digit 7 stays fixed, and adding ones digits 1 and 8 gives 9, forming 79.",
+            "This comes from an off-by-one mistake when adding the ones, giving 8 instead of 9.",
+            "This comes from adding one too many to the ones sum, giving 10 wrongly.",
+            "This is just the number 71 with no addition, showing the ones digit was skipped."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Tens digit 7 stays the same.",
+            "Add ones: 1 + 8 = 9.",
+            "Answer is 79."
+          ],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 71,
+            "b": 8
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "off_by_one_low",
+              "formula": "a + b - 1",
+              "misconception": "counted one too few"
+            },
+            {
+              "id": "off_by_one_high",
+              "formula": "a + b + 1",
+              "misconception": "counted one too many"
+            },
+            {
+              "id": "recounted_extra",
+              "formula": "a + b + 2",
+              "misconception": "recounted two objects"
+            }
+          ]
+        },
+        {
+          "id": "q-6",
+          "question": "How many dots in all for $24+3$?",
+          "type": "multiple-choice",
+          "options": [
+            "27",
+            "26",
+            "28",
+            "29"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Ones 4+3=7, tens 2 stays same, total 27 dots.",
+          "optionExplanations": [
+            "Ones 4+3=7, tens 2 stays same, total 27 dots.",
+            "counted one too few",
+            "counted one too many",
+            "recounted two objects"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "counted one too few"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "counted one too many"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "recounted two objects"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because the tens dots stay as 2 groups, and the ones dots 4 and 3 combine to 7, giving 27.",
+            "This comes from miscounting the ones dots by one less, giving 6 instead of 7 ones.",
+            "This comes from counting one extra dot beyond the correct ones total, giving 8.",
+            "This is just the starting 24 dots, showing the extra 3 dots were never counted."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-6",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "How many dots in all for ${a}+{b}$?",
+          "params": {
+            "a": 24,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "off_by_one_low",
+              "formula": "a + b - 1",
+              "misconception": "counted one too few"
+            },
+            {
+              "id": "off_by_one_high",
+              "formula": "a + b + 1",
+              "misconception": "counted one too many"
+            },
+            {
+              "id": "recounted_extra",
+              "formula": "a + b + 2",
+              "misconception": "recounted two objects"
+            }
+          ]
+        },
+        {
+          "id": "q-7",
+          "question": "In $56+3$, which digit changes?",
+          "type": "multiple-choice",
+          "options": [
+            "Ones digit",
+            "Tens digit",
+            "Both digits",
+            "No digit"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Only the ones digit changes; tens digit 5 stays same.",
+          "optionExplanations": [
+            "Only the ones digit changes; tens digit 5 stays same.",
+            "Thinks tens digit also changes",
+            "Confuses this with regrouping addition",
+            "Thinks addition changes no digit"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks tens digit also changes"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses this with regrouping addition"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks addition changes no digit"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because adding a 1-digit number without regrouping only affects the ones place; the tens digit 5 remains 5.",
+            "This wrongly assumes the tens digit changes too, which only happens when the ones total reaches ten or more.",
+            "This confuses the situation with regrouping addition, where both digits can change; here no regrouping occurs.",
+            "This wrongly assumes nothing changes, ignoring that the ones digit does increase from 6 to 9."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-7"
+        },
+        {
+          "id": "q-8",
+          "question": "What is $83+6$?",
+          "type": "multiple-choice",
+          "options": [
+            "89",
+            "88",
+            "90",
+            "91"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones: 3+6=9, tens stay 8, so 89.",
+          "optionExplanations": [
+            "Add ones: 3+6=9, tens stay 8, so 89.",
+            "counted one too few",
+            "counted one too many",
+            "recounted two objects"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "recall",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "counted one too few"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "counted one too many"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "recounted two objects"
+            }
+          ],
+          "reviewRationale": [
+            "Correct because tens digit 8 stays fixed, and adding ones digits 3 and 6 gives 9, forming 89.",
+            "This comes from an off-by-one error in the ones addition, giving 8 instead of 9.",
+            "This comes from adding one too many to the ones sum, giving 10 wrongly.",
+            "This is just the number 83 unchanged, showing the ones digit was never added."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 83,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "off_by_one_low",
+              "formula": "a + b - 1",
+              "misconception": "counted one too few"
+            },
+            {
+              "id": "off_by_one_high",
+              "formula": "a + b + 1",
+              "misconception": "counted one too many"
+            },
+            {
+              "id": "recounted_extra",
+              "formula": "a + b + 2",
+              "misconception": "recounted two objects"
+            }
+          ]
+        },
+        {
+          "id": "q-9",
+          "question": "What is $12+7$?",
+          "type": "multiple-choice",
+          "options": [
+            "19",
+            "18",
+            "20",
+            "21"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 1 stays; ones 2+7=9, so 19.",
+          "optionExplanations": [
+            "Tens digit 1 stays; ones 2+7=9, so 19.",
+            "Counted ones one short",
+            "Counted one extra one",
+            "Counted two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted ones one short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra ones"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens digit 1 is unchanged, and adding the ones 2+7 gives 9, so the full sum is 19.",
+            "Learner likely miscounted the ones and stopped one number too early, producing a sum that is one less than correct.",
+            "Learner likely counted one number too far when adding the ones, giving a result one more than the true sum.",
+            "Learner likely double-counted or added extra, moving two numbers past the correct ones total."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 12,
+            "b": 7
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Counted ones one short"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Counted one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Counted two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-10",
+          "question": "What is $26+3$?",
+          "type": "multiple-choice",
+          "options": [
+            "29",
+            "28",
+            "30",
+            "31"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 2 stays; add ones 6+3=9, giving 29.",
+          "optionExplanations": [
+            "Tens digit 2 stays; add ones 6+3=9, giving 29.",
+            "Counted ones one short",
+            "Counted one extra one",
+            "Counted two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted ones one short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra ones"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: tens digit 2 does not change, and adding the ones 6+3 gives 9, so the total is 29.",
+            "Learner likely undercounted the ones by one, arriving at a sum one less than the correct answer.",
+            "Learner likely overcounted the ones by one step, giving a sum one more than correct.",
+            "Learner likely made a larger counting slip, adding two more than the actual ones total."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Tens digit 2 stays the same.",
+            "Add ones: 6+3=9.",
+            "Answer: 29."
+          ],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 26,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Counted ones one short"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Counted one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Counted two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-11",
+          "question": "What is $48+1$?",
+          "type": "multiple-choice",
+          "options": [
+            "49",
+            "48",
+            "50",
+            "47"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "4 tens stay the same; ones 8+1=9, giving 49.",
+          "optionExplanations": [
+            "4 tens stay the same; ones 8+1=9, giving 49.",
+            "Forgot to add the extra one",
+            "Added one extra ones dot",
+            "Subtracted instead of adding"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to add the extra one"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra ones dot"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Subtracted instead of adding"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens block of 4 is unchanged, and the ones dots 8+1 combine to 9, giving 49 total.",
+            "Learner likely ignored the new dot added, simply repeating the starting ones count without adding.",
+            "Learner likely miscounted the ones dots and added one too many, overshooting the true sum.",
+            "Learner likely subtracted the ones instead of adding them, reversing the required operation."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-11"
+        },
+        {
+          "id": "q-12",
+          "question": "There are 34 mangoes, 5 more come. How many now?",
+          "type": "multiple-choice",
+          "options": [
+            "39",
+            "38",
+            "40",
+            "34"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "3 tens stay; ones 4+5=9, so there are 39 mangoes.",
+          "optionExplanations": [
+            "3 tens stay; ones 4+5=9, so there are 39 mangoes.",
+            "Missed counting one new mango",
+            "Counted one mango twice",
+            "Ignored the new mangoes entirely"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Missed counting one new mango"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one mango twice"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Ignored the new mangoes entirely"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the 3 tens groups stay fixed, and the ones 4+5 combine to 9, giving 39 mangoes total.",
+            "Learner likely missed counting one of the new dots, giving a total one less than correct.",
+            "Learner likely double-counted one dot when combining groups, giving one more than the actual total.",
+            "Learner likely repeated the starting number, forgetting to add the new mangoes at all."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-12",
+          "qa_flagged": true,
+          "qa_issue": "too complex for grade: 2 sentences"
+        },
+        {
+          "id": "q-13",
+          "question": "Wanjiru has 52 shillings, finds 6 more. Total?",
+          "type": "multiple-choice",
+          "options": [
+            "58",
+            "57",
+            "59",
+            "60"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 5 stays; ones 2+6=8, so 58 shillings.",
+          "optionExplanations": [
+            "Tens digit 5 stays; ones 2+6=8, so 58 shillings.",
+            "Counted shillings one short",
+            "Counted one extra shilling",
+            "Counted two extra shillings"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted shillings one short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra shilling"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra shillings"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens digit 5 is unchanged, and adding the ones 2+6 gives 8, so Wanjiru has 58 shillings.",
+            "Learner likely undercounted the found shillings by one, landing one short of the true total.",
+            "Learner likely overcounted by one shilling when adding, giving a total one more than correct.",
+            "Learner likely made a bigger counting error, adding two more shillings than were actually found."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "Wanjiru has {a} shillings, finds {b} more. Total?",
+          "params": {
+            "a": 52,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Counted shillings one short"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Counted one extra shilling"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Counted two extra shillings"
+            }
+          ],
+          "qa_flagged": true,
+          "qa_issue": "too complex for grade: 2 sentences"
+        },
+        {
+          "id": "q-14",
+          "question": "What is $63+2$?",
+          "type": "multiple-choice",
+          "options": [
+            "65",
+            "64",
+            "66",
+            "67"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 6 stays; add ones 3+2=5, giving 65.",
+          "optionExplanations": [
+            "Tens digit 6 stays; add ones 3+2=5, giving 65.",
+            "Counted ones one short",
+            "Counted one extra one",
+            "Counted two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted ones one short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra ones"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens digit 6 remains fixed, and adding the ones 3+2 gives 5, so the sum is 65.",
+            "Learner likely undercounted the ones step, landing one number below the true sum.",
+            "Learner likely overcounted by one when adding the ones digits, exceeding the correct sum.",
+            "Learner likely miscounted further, adding two extra beyond the actual ones total."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Tens digit 6 stays the same.",
+            "Add ones: 3+2=5.",
+            "Answer: 65."
+          ],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 63,
+            "b": 2
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Counted ones one short"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Counted one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Counted two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-15",
+          "question": "What is $82+7$?",
+          "type": "multiple-choice",
+          "options": [
+            "89",
+            "88",
+            "90",
+            "91"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 8 stays; ones 2+7=9, so 89.",
+          "optionExplanations": [
+            "Tens digit 8 stays; ones 2+7=9, so 89.",
+            "Counted ones one short",
+            "Counted one extra one",
+            "Counted two extra ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted ones one short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra ones"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens digit 8 is unchanged, and the ones 2+7 add to 9, giving a final sum of 89.",
+            "Learner likely undercounted the ones by one, resulting in a sum one below the true value.",
+            "Learner likely overcounted the ones by one, resulting in a sum one above the true value.",
+            "Learner likely made a larger slip, counting two extra beyond the correct ones total."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "What is ${a}+{b}$?",
+          "params": {
+            "a": 82,
+            "b": 7
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Counted ones one short"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Counted one extra one"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Counted two extra ones"
+            }
+          ]
+        },
+        {
+          "id": "q-16",
+          "question": "A ribbon is 56 cm, add 2 cm. New length?",
+          "type": "multiple-choice",
+          "options": [
+            "58 cm",
+            "57 cm",
+            "59 cm",
+            "60 cm"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 5 stays; ones 6+2=8, so 58 cm.",
+          "optionExplanations": [
+            "Tens digit 5 stays; ones 6+2=8, so 58 cm.",
+            "Counted the extra cm short",
+            "Counted one extra cm",
+            "Counted two extra cm"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted the extra cm short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra cm"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra cm"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens digit 5 stays fixed, and adding the ones 6+2 gives 8, so the ribbon is now 58 cm.",
+            "Learner likely undercounted the added length, giving a result one centimetre short of correct.",
+            "Learner likely overcounted by one centimetre when adding, exceeding the true new length.",
+            "Learner likely made a bigger counting slip, adding two centimetres more than actually added."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "qa_flagged": true,
+          "qa_issue": "too complex for grade: 2 sentences"
+        },
+        {
+          "id": "q-17",
+          "question": "A clock shows 61 minutes, add 8 minutes. New time?",
+          "type": "multiple-choice",
+          "options": [
+            "69 minutes",
+            "68 minutes",
+            "70 minutes",
+            "71 minutes"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Tens digit 6 stays; ones 1+8=9, so 69 minutes.",
+          "optionExplanations": [
+            "Tens digit 6 stays; ones 1+8=9, so 69 minutes.",
+            "Counted the minutes one short",
+            "Counted one extra minute",
+            "Counted two extra minutes"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Counted the minutes one short"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one extra minute"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two extra minutes"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: the tens digit 6 remains the same, and adding the ones 1+8 gives 9, so the new time is 69 minutes.",
+            "Learner likely undercounted the added minutes, arriving at a value one minute below correct.",
+            "Learner likely overcounted by one minute, giving a value one more than the true answer.",
+            "Learner likely miscounted further, adding two extra minutes beyond the correct total."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Tens digit 6 stays the same.",
+            "Add ones: 1+8=9.",
+            "Answer: 69 minutes."
+          ],
+          "qa_flagged": true,
+          "qa_issue": "too complex for grade: 2 sentences"
+        },
+        {
+          "id": "q-18",
+          "question": "Which number stays the same in $47+1$?",
+          "type": "multiple-choice",
+          "options": [
+            "4 tens",
+            "7 ones",
+            "48",
+            "1"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Adding ones only changes ones; tens digit 4 stays.",
+          "optionExplanations": [
+            "Adding ones only changes ones; tens digit 4 stays.",
+            "Thinks the ones digit is fixed",
+            "Confuses the sum with unchanged part",
+            "Picks the added number itself"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Thinks the ones digit is fixed"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Confuses the sum with unchanged part"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Picks the added number itself"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: since only a 1-digit number is added, the tens digit 4 never changes; only the ones digit changes.",
+            "Learner likely reversed the rule, wrongly believing the ones digit stays while the tens digit changes.",
+            "Learner likely confused the final total 48 with the unchanged part, missing the place value idea.",
+            "Learner likely picked the number being added rather than identifying which existing digit stays fixed."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-18"
+        },
+        {
+          "id": "q-19",
+          "question": "A girl has 61 shillings, finds 7 more.",
+          "type": "multiple-choice",
+          "options": [
+            "68",
+            "67",
+            "69",
+            "70"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Add ones 1+7=8, tens stay 6. Total is 68.",
+          "optionExplanations": [
+            "Add ones 1+7=8, tens stay 6. Total is 68.",
+            "Forgot to add one unit",
+            "Added one extra unit",
+            "Added two extra units"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to add one unit"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra unit"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra units"
+            }
+          ],
+          "reviewRationale": [
+            "67 is a+b-1; the learner undercounted the ones, likely miscounting 1+7 as 7 instead of 8.",
+            "Correct: ones 1+7=8, tens digit 6 stays unchanged, giving 68 shillings total.",
+            "69 is a+b+1; the learner added an extra shilling beyond the correct ones sum.",
+            "70 is a+b+2; the learner likely rounded up or double-counted while adding."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A girl has {a} shillings, finds {b} more.",
+          "params": {
+            "a": 61,
+            "b": 7
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Forgot to add one unit"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Added one extra unit"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Added two extra units"
+            }
+          ]
+        },
+        {
+          "id": "q-20",
+          "question": "A pole is 82 cm, grows 6 more cm.",
+          "type": "multiple-choice",
+          "options": [
+            "88",
+            "87",
+            "89",
+            "90"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Ones 2+6=8, tens stay 8. New height is 88 cm.",
+          "optionExplanations": [
+            "Ones 2+6=8, tens stay 8. New height is 88 cm.",
+            "Undercounted the ones sum",
+            "Overcounted the ones sum",
+            "Added extra centimeters by mistake"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Undercounted the ones sum"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Overcounted the ones sum"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added extra centimeters by mistake"
+            }
+          ],
+          "reviewRationale": [
+            "87 comes from a+b-1; the learner made a small subtraction error while adding the ones digits.",
+            "Correct: ones 2+6=8, tens digit 8 unchanged, so the new height is 88 cm.",
+            "89 is a+b+1; the learner added one too many when combining the ones.",
+            "90 is a+b+2; the learner may have rounded the growth up to a whole ten."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Look at ones: 2+6=8",
+            "Tens stay 8",
+            "So 82+6=88"
+          ],
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A pole is {a} cm, grows {b} more cm.",
+          "params": {
+            "a": 82,
+            "b": 6
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Undercounted the ones sum"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Overcounted the ones sum"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Added extra centimeters by mistake"
+            }
+          ]
+        },
+        {
+          "id": "q-21",
+          "question": "A show lasts 45 minutes, adds 3 more.",
+          "type": "multiple-choice",
+          "options": [
+            "48",
+            "47",
+            "49",
+            "50"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Ones 5+3=8, tens stay 4. New time is 48 minutes.",
+          "optionExplanations": [
+            "Ones 5+3=8, tens stay 4. New time is 48 minutes.",
+            "Missed adding one minute",
+            "Added one extra minute",
+            "Added two extra minutes"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Missed adding one minute"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one extra minute"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two extra minutes"
+            }
+          ],
+          "reviewRationale": [
+            "47 is a+b-1; the learner likely mis-added the ones and lost a minute.",
+            "Correct: ones 5+3=8, tens digit 4 unchanged, so the show lasts 48 minutes total.",
+            "49 is a+b+1; the learner added one extra minute past the correct ones sum.",
+            "50 is a+b+2; the learner may have rounded to the nearest ten in error."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A show lasts {a} minutes, adds {b} more.",
+          "params": {
+            "a": 45,
+            "b": 3
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Missed adding one minute"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Added one extra minute"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Added two extra minutes"
+            }
+          ]
+        },
+        {
+          "id": "q-22",
+          "question": "A farmer has 43 hens, gets 4 more.",
+          "type": "multiple-choice",
+          "options": [
+            "47",
+            "46",
+            "48",
+            "49"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Ones 3+4=7, tens stay 4. Total is 47 hens.",
+          "optionExplanations": [
+            "Ones 3+4=7, tens stay 4. Total is 47 hens.",
+            "Forgot to count one hen",
+            "Counted one hen twice",
+            "Counted two hens too many"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to count one hen"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one hen twice"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two hens too many"
+            }
+          ],
+          "reviewRationale": [
+            "46 is a+b-1; the learner undercounted the new hens by one when combining ones.",
+            "Correct: ones 3+4=7, tens digit 4 stays, giving 47 hens in total.",
+            "48 is a+b+1; the learner added one extra hen beyond the correct sum.",
+            "49 is a+b+2; the learner likely double counted some hens while adding."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-22",
+          "template": true,
+          "templateVersion": 1,
+          "questionText": "A farmer has {a} hens, gets {b} more.",
+          "params": {
+            "a": 43,
+            "b": 4
+          },
+          "constraints": {
+            "a": [
+              10,
+              99
+            ],
+            "b": [
+              1,
+              9
+            ],
+            "sumMax": 100,
+            "operation": "addition",
+            "noRegrouping": true
+          },
+          "answerFormula": "a + b",
+          "distractorFormulas": [
+            {
+              "id": "d1",
+              "formula": "a+b-1",
+              "misconception": "Forgot to count one hen"
+            },
+            {
+              "id": "d2",
+              "formula": "a+b+1",
+              "misconception": "Counted one hen twice"
+            },
+            {
+              "id": "d3",
+              "formula": "a+b+2",
+              "misconception": "Counted two hens too many"
+            }
+          ]
+        },
+        {
+          "id": "q-23",
+          "question": "What is $63+4$?",
+          "type": "multiple-choice",
+          "options": [
+            "66",
+            "67",
+            "68",
+            "69"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "Ones 3+4=7, tens stay 6. Answer is 67.",
+          "optionExplanations": [
+            "Miscounted the ones by one",
+            "Ones 3+4=7, tens stay 6. Answer is 67.",
+            "Added one too many to ones",
+            "Added two too many to ones"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Miscounted the ones by one"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added one too many to ones"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added two too many to ones"
+            }
+          ],
+          "reviewRationale": [
+            "66 shows a small subtraction slip; the learner added the ones digits incorrectly, getting 6 instead of 7.",
+            "Correct: ones 3+4=7, tens digit 6 unchanged, so 63+4 equals 67.",
+            "68 suggests the learner added one extra to the ones sum by mistake.",
+            "69 suggests the learner added two extra to the ones sum, overshooting the correct total."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Ones: 3+4=7",
+            "Tens stay 6",
+            "Answer: 67"
+          ]
+        },
+        {
+          "id": "q-24",
+          "question": "How many toys in all for $31+6$?",
+          "type": "multiple-choice",
+          "options": [
+            "36",
+            "37",
+            "38",
+            "39"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "Ones 1+6=7, tens stay 3. Total is 37 toys.",
+          "optionExplanations": [
+            "Left out one toy counted",
+            "Ones 1+6=7, tens stay 3. Total is 37 toys.",
+            "Counted one toy extra",
+            "Counted two toys extra"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Left out one toy counted"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Counted one toy extra"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Counted two toys extra"
+            }
+          ],
+          "reviewRationale": [
+            "36 shows the learner undercounted the ones digits, missing one toy in the addition.",
+            "Correct: ones 1+6=7, tens digit 3 stays, giving 37 toys in total.",
+            "38 shows the learner added one extra toy beyond the correct ones sum.",
+            "39 shows the learner added two extra toys, likely by double counting some circles."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-24"
+        },
+        {
+          "id": "q-25",
+          "question": "Which digit changes in $41+3$?",
+          "type": "multiple-choice",
+          "options": [
+            "Tens digit",
+            "Ones digit",
+            "Both digits",
+            "Neither digit"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "Only ones add: 1+3=4, tens stay same.",
+          "optionExplanations": [
+            "Thinks tens change with ones added",
+            "Only ones add: 1+3=4, tens stay same.",
+            "Thinks both digits always change",
+            "Thinks no digit changes ever"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Thinks tens change with ones added"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Thinks both digits always change"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Thinks no digit changes ever"
+            }
+          ],
+          "reviewRationale": [
+            "Wrong: the learner thinks adding a one-digit number changes the tens, confusing place value rules.",
+            "Correct: only the ones digit changes, since 1+3=4 while the tens digit 4 stays fixed.",
+            "Wrong: the learner assumes every addition changes both digits, ignoring how place value works here.",
+            "Wrong: the learner assumes nothing changes, missing that the ones digit does increase."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-26",
+          "question": "Which sum is correct for $27+2$?",
+          "type": "multiple-choice",
+          "options": [
+            "28",
+            "29",
+            "30",
+            "31"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "Ones 7+2=9, tens stay 2. Answer is 29.",
+          "optionExplanations": [
+            "Undercounted the ones by one",
+            "Ones 7+2=9, tens stay 2. Answer is 29.",
+            "Overcounted the ones by one",
+            "Overcounted the ones by two"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "intermediate",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Undercounted the ones by one"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Overcounted the ones by one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Overcounted the ones by two"
+            }
+          ],
+          "reviewRationale": [
+            "28 comes from undercounting the ones sum; the learner treated 7+2 as 8 instead of 9.",
+            "Correct: ones 7+2=9, tens digit 2 unchanged, so the sum is 29.",
+            "30 suggests the learner rounded up, mistakenly regrouping into the tens place.",
+            "31 suggests the learner added an extra amount, going well past the correct ones sum."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-27",
+          "question": "In $72+6$, what is new ones digit?",
+          "type": "multiple-choice",
+          "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+          ],
+          "correctAnswerIndex": 2,
+          "explanation": "Add ones 2+6=8; that becomes the new ones digit.",
+          "optionExplanations": [
+            "Kept the original ones digit",
+            "Added only part of the number",
+            "Add ones 2+6=8; that becomes the new ones digit.",
+            "Added one extra to the sum"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Kept the original ones digit"
+            },
+            {
+              "optionIndex": 1,
+              "misconception": "Added only part of the number"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added one extra to the sum"
+            }
+          ],
+          "reviewRationale": [
+            "6 shows the learner forgot to add at all and just repeated the original ones digit.",
+            "7 shows the learner added only part of the ones, stopping the count too early.",
+            "Correct: 2+6=8, so the new ones digit in 72+6 becomes 8, tens stay 7.",
+            "9 shows the learner overshot the ones sum, adding one more than needed."
+          ],
+          "modality": "text_steps",
+          "diagramBriefId": null,
+          "steps": [
+            "Look at ones: 2+6",
+            "Add: 2+6=8",
+            "Ones digit is 8"
+          ]
+        },
+        {
+          "id": "q-28",
+          "question": "Which block matches $54+3$?",
+          "type": "multiple-choice",
+          "options": [
+            "5 tens, 7 ones",
+            "5 tens, 4 ones",
+            "4 tens, 7 ones",
+            "6 tens, 0 ones"
+          ],
+          "correctAnswerIndex": 0,
+          "explanation": "Ones 4+3=7, tens stay 5: 5 tens, 7 ones.",
+          "optionExplanations": [
+            "Ones 4+3=7, tens stay 5: 5 tens, 7 ones.",
+            "Forgot to add the ones",
+            "Changed the tens digit wrongly",
+            "Regrouped ones into tens wrongly"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "advanced",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "reason",
+          "distractors": [
+            {
+              "optionIndex": 1,
+              "misconception": "Forgot to add the ones"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Changed the tens digit wrongly"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Regrouped ones into tens wrongly"
+            }
+          ],
+          "reviewRationale": [
+            "Correct: ones 4+3=7 and tens digit 5 stays unchanged, matching the block of 5 tens and 7 ones.",
+            "Wrong: this block ignores the added ones entirely, showing the original number unchanged.",
+            "Wrong: the learner mistakenly reduced the tens digit instead of leaving it fixed.",
+            "Wrong: the learner incorrectly regrouped the sum into an extra ten, which is not needed here."
+          ],
+          "modality": "visual",
+          "diagramBriefId": "qvb-q-28"
+        },
+        {
+          "id": "q-29",
+          "question": "What is $35+4$?",
+          "type": "multiple-choice",
+          "options": [
+            "38",
+            "39",
+            "45",
+            "31"
+          ],
+          "correctAnswerIndex": 1,
+          "explanation": "Add 4 to the ones digit of 35.",
+          "optionExplanations": [
+            "Miscounted by one when adding",
+            "Add 4 to the ones digit of 35.",
+            "Added to the tens digit instead",
+            "Subtracted instead of adding"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "apply",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Miscounted by one when adding"
+            },
+            {
+              "optionIndex": 2,
+              "misconception": "Added to the tens digit instead"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Subtracted instead of adding"
+            }
+          ],
+          "reviewRationale": [
+            "Learner counts on from 35 but stops one short, landing on 38 instead of the correct sum 39.",
+            "Correct: adding 4 to the ones digit 5 gives 9, so the sum is 39 with tens digit unchanged.",
+            "Learner mistakenly adds 4 to the tens digit 3 instead of the ones digit 5, giving 45.",
+            "Learner subtracts 4 from 35 instead of adding, showing confusion between addition and subtraction."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null
+        },
+        {
+          "id": "q-30",
+          "question": "Add 40 and 6. What is the total?",
+          "type": "multiple-choice",
+          "options": [
+            "44",
+            "45",
+            "46",
+            "50"
+          ],
+          "correctAnswerIndex": 2,
+          "explanation": "Add the ones digit 6 to 40.",
+          "optionExplanations": [
+            "Miscounted the ones by two",
+            "Miscounted the ones by one",
+            "Add the ones digit 6 to 40.",
+            "Added 6 to the tens digit"
+          ],
+          "feedbackCorrect": "Well done!",
+          "feedbackIncorrect": "Review this skill and try again.",
+          "difficulty": "easy",
+          "points": 15,
+          "learningOutcomeIndex": 1,
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "bloomLevel": "understand",
+          "distractors": [
+            {
+              "optionIndex": 0,
+              "misconception": "Miscounted the ones by two"
+            },
+            {
+              "optionIndex": 1,
+              "misconception": "Miscounted the ones by one"
+            },
+            {
+              "optionIndex": 3,
+              "misconception": "Added 6 to the tens digit"
+            }
+          ],
+          "reviewRationale": [
+            "Learner undercounts by two when adding the ones, arriving at 44 instead of the correct 46.",
+            "Learner undercounts by one when adding, landing on 45 instead of correctly reaching 46.",
+            "Correct: stacking 40 and 6 vertically, the ones column gives 6 and tens stays 4, so 46.",
+            "Learner mistakenly adds 6 to the tens digit 4 instead of the ones column, giving 50."
+          ],
+          "modality": "practice",
+          "diagramBriefId": null,
+          "qa_flagged": true,
+          "qa_issue": "too complex for grade: 2 sentences"
+        }
+      ],
+      "passingScore": 65,
+      "timeLimit": 12,
+      "bankStats": {
+        "total": 30,
+        "byBloom": {
+          "recall": 3,
+          "understand": 6,
+          "apply": 11,
+          "reason": 10
+        },
+        "byModality": {
+          "practice": 15,
+          "text_steps": 7,
+          "visual": 8
+        },
+        "byOutcome": {
+          "1": {
+            "total": 30,
+            "visual": 8,
+            "text_steps": 7,
+            "practice": 15
+          }
+        }
+      },
+      "coverageReport": {
+        "realCovered": [
+          1
+        ],
+        "remapped": [],
+        "stillMissing": [],
+        "outcomes": [
+          "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100"
+        ]
+      },
+      "visualBriefs": [
+        {
+          "id": "vb-1",
+          "skillFocus": "Adding ones while tens stay the same",
+          "outcomeKey": "694f5fe9f4995bc5",
+          "brief": "Show place value blocks for 23 and 4, then combine to show 27, highlighting that only the ones column changes.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 245,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "title": "23 + 4 = 27",
+            "numbers": [
+              {
+                "label": "23",
+                "tens": 2,
+                "ones": 3
+              },
+              {
+                "label": "4",
+                "tens": 0,
+                "ones": 4
+              },
+              {
+                "label": "27",
+                "tens": 2,
+                "ones": 7
+              }
+            ]
+          },
+          "scope": "teaching"
+        },
+        {
+          "id": "vb-2",
+          "skillFocus": "Second worked example of adding a 2-digit and 1-digit number",
+          "outcomeKey": "ab5628c13cf12787",
+          "brief": "Show place value blocks for 45 and 3, then combine to show 48, highlighting that the tens digit 4 stays unchanged.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 245,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "title": "45 + 3 = 48",
+            "numbers": [
+              {
+                "label": "45",
+                "tens": 4,
+                "ones": 5
+              },
+              {
+                "label": "3",
+                "tens": 0,
+                "ones": 3
+              },
+              {
+                "label": "48",
+                "tens": 4,
+                "ones": 8
+              }
+            ]
+          },
+          "scope": "teaching"
+        },
+        {
+          "id": "qvb-q-6",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Show 4 ones dots, add 3 more dots to make 7 ones, tens stay as 2 groups of ten.",
+          "diagramType": "counting_circles",
+          "params": {
+            "title": "Count",
+            "count": 24,
+            "columns": 5,
+            "onesStart": 4,
+            "onesAdd": 3,
+            "tensUnchanged": 2
+          },
+          "scope": "question",
+          "questionId": "q-6"
+        },
+        {
+          "id": "qvb-q-7",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Show tens block 5 staying still, ones 6 dots plus 3 more dots becoming 9 ones.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 56,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "tens": 5,
+            "ones": 6,
+            "addOnes": 3,
+            "resultOnes": 9
+          },
+          "scope": "question",
+          "questionId": "q-7"
+        },
+        {
+          "id": "qvb-q-11",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Place value chart with 4 tens blocks and 8 ones dots, plus 1 new ones dot added.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 48,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "tens": 4,
+            "ones": 8,
+            "addOnes": 1
+          },
+          "scope": "question",
+          "questionId": "q-11"
+        },
+        {
+          "id": "qvb-q-12",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "3 circles of ten dots, 4 loose dots, and 5 new dots joining the mangoes.",
+          "diagramType": "counting_circles",
+          "params": {
+            "title": "Count",
+            "count": 34,
+            "columns": 5,
+            "groupsOfTen": 3,
+            "extraOnes": 4,
+            "addOnes": 5
+          },
+          "scope": "question",
+          "questionId": "q-12"
+        },
+        {
+          "id": "qvb-q-18",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Place value chart with tens box showing 4 and ones box showing 7, tens box highlighted as unchanged.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 47,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "tens": 4,
+            "ones": 7,
+            "addOnes": 1
+          },
+          "scope": "question",
+          "questionId": "q-18"
+        },
+        {
+          "id": "qvb-q-22",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Show 4 groups of ten hen circles, 3 loose hen circles, and 4 more hen circles being added.",
+          "diagramType": "counting_circles",
+          "params": {
+            "title": "Count",
+            "count": 40,
+            "columns": 5,
+            "tensGroups": 4,
+            "onesBefore": 3,
+            "onesAdded": 4
+          },
+          "scope": "question",
+          "questionId": "q-22"
+        },
+        {
+          "id": "qvb-q-24",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Show 3 groups of ten toy circles, 1 loose toy circle, and 6 more toy circles added.",
+          "diagramType": "counting_circles",
+          "params": {
+            "title": "Count",
+            "count": 31,
+            "columns": 5,
+            "tensGroups": 3,
+            "onesBefore": 1,
+            "onesAdded": 6
+          },
+          "scope": "question",
+          "questionId": "q-24"
+        },
+        {
+          "id": "qvb-q-28",
+          "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+          "outcomeKey": "d02489793ffb01e2",
+          "brief": "Show 5 tens blocks and 4 ones blocks, then add 3 more ones blocks to make 7 ones.",
+          "diagramType": "place_value",
+          "params": {
+            "number": 54,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "Place value",
+            "tens": 5,
+            "ones": 4,
+            "addOnes": 3
+          },
+          "scope": "question",
+          "questionId": "q-28"
+        }
+      ],
+      "contentBlocks": [
+        {
+          "id": "cb-1",
+          "type": "text",
+          "text": "When we add a 2-digit number and a 1-digit number, we only add the {{term:ones}}. The {{term:tens}} digit stays the same because we are not adding anything to the tens. For example, in $23+4$, the tens digit $2$ stays the same, and we add the ones: $3+4=7$, giving $23+4=27$."
+        },
+        {
+          "id": "cb-2",
+          "type": "diagram",
+          "briefId": "vb-1"
+        },
+        {
+          "id": "cb-3",
+          "type": "text",
+          "text": "Let's look at another {{example:worked example}}: $45+3$. The tens digit $4$ does not change. We add the ones: $5+3=8$. So $45+3=48$."
+        },
+        {
+          "id": "cb-4",
+          "type": "diagram",
+          "briefId": "vb-2"
+        },
+        {
+          "id": "cb-5",
+          "type": "text",
+          "text": "Now you try. What is $32+6$? Think about the tens and add only the ones."
+        }
+      ],
+      "visualAssets": []
+    },
+    "visualBriefs": [
+      {
+        "id": "vb-1",
+        "skillFocus": "Adding ones while tens stay the same",
+        "outcomeKey": "694f5fe9f4995bc5",
+        "brief": "Show place value blocks for 23 and 4, then combine to show 27, highlighting that only the ones column changes.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 245,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "title": "23 + 4 = 27",
+          "numbers": [
+            {
+              "label": "23",
+              "tens": 2,
+              "ones": 3
+            },
+            {
+              "label": "4",
+              "tens": 0,
+              "ones": 4
+            },
+            {
+              "label": "27",
+              "tens": 2,
+              "ones": 7
+            }
+          ]
+        },
+        "scope": "teaching"
+      },
+      {
+        "id": "vb-2",
+        "skillFocus": "Second worked example of adding a 2-digit and 1-digit number",
+        "outcomeKey": "ab5628c13cf12787",
+        "brief": "Show place value blocks for 45 and 3, then combine to show 48, highlighting that the tens digit 4 stays unchanged.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 245,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "title": "45 + 3 = 48",
+          "numbers": [
+            {
+              "label": "45",
+              "tens": 4,
+              "ones": 5
+            },
+            {
+              "label": "3",
+              "tens": 0,
+              "ones": 3
+            },
+            {
+              "label": "48",
+              "tens": 4,
+              "ones": 8
+            }
+          ]
+        },
+        "scope": "teaching"
+      },
+      {
+        "id": "qvb-q-6",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Show 4 ones dots, add 3 more dots to make 7 ones, tens stay as 2 groups of ten.",
+        "diagramType": "counting_circles",
+        "params": {
+          "title": "Count",
+          "count": 24,
+          "columns": 5,
+          "onesStart": 4,
+          "onesAdd": 3,
+          "tensUnchanged": 2
+        },
+        "scope": "question",
+        "questionId": "q-6"
+      },
+      {
+        "id": "qvb-q-7",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Show tens block 5 staying still, ones 6 dots plus 3 more dots becoming 9 ones.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 56,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "tens": 5,
+          "ones": 6,
+          "addOnes": 3,
+          "resultOnes": 9
+        },
+        "scope": "question",
+        "questionId": "q-7"
+      },
+      {
+        "id": "qvb-q-11",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Place value chart with 4 tens blocks and 8 ones dots, plus 1 new ones dot added.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 48,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "tens": 4,
+          "ones": 8,
+          "addOnes": 1
+        },
+        "scope": "question",
+        "questionId": "q-11"
+      },
+      {
+        "id": "qvb-q-12",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "3 circles of ten dots, 4 loose dots, and 5 new dots joining the mangoes.",
+        "diagramType": "counting_circles",
+        "params": {
+          "title": "Count",
+          "count": 34,
+          "columns": 5,
+          "groupsOfTen": 3,
+          "extraOnes": 4,
+          "addOnes": 5
+        },
+        "scope": "question",
+        "questionId": "q-12"
+      },
+      {
+        "id": "qvb-q-18",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Place value chart with tens box showing 4 and ones box showing 7, tens box highlighted as unchanged.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 47,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "tens": 4,
+          "ones": 7,
+          "addOnes": 1
+        },
+        "scope": "question",
+        "questionId": "q-18"
+      },
+      {
+        "id": "qvb-q-22",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Show 4 groups of ten hen circles, 3 loose hen circles, and 4 more hen circles being added.",
+        "diagramType": "counting_circles",
+        "params": {
+          "title": "Count",
+          "count": 40,
+          "columns": 5,
+          "tensGroups": 4,
+          "onesBefore": 3,
+          "onesAdded": 4
+        },
+        "scope": "question",
+        "questionId": "q-22"
+      },
+      {
+        "id": "qvb-q-24",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Show 3 groups of ten toy circles, 1 loose toy circle, and 6 more toy circles added.",
+        "diagramType": "counting_circles",
+        "params": {
+          "title": "Count",
+          "count": 31,
+          "columns": 5,
+          "tensGroups": 3,
+          "onesBefore": 1,
+          "onesAdded": 6
+        },
+        "scope": "question",
+        "questionId": "q-24"
+      },
+      {
+        "id": "qvb-q-28",
+        "skillFocus": "add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100",
+        "outcomeKey": "d02489793ffb01e2",
+        "brief": "Show 5 tens blocks and 4 ones blocks, then add 3 more ones blocks to make 7 ones.",
+        "diagramType": "place_value",
+        "params": {
+          "number": 54,
+          "headers": [
+            "H",
+            "T",
+            "O"
+          ],
+          "label": "Place value",
+          "tens": 5,
+          "ones": 4,
+          "addOnes": 3
+        },
+        "scope": "question",
+        "questionId": "q-28"
+      }
+    ],
+    "contentBlocks": [
+      {
+        "id": "cb-1",
+        "type": "text",
+        "text": "When we add a 2-digit number and a 1-digit number, we only add the {{term:ones}}. The {{term:tens}} digit stays the same because we are not adding anything to the tens. For example, in $23+4$, the tens digit $2$ stays the same, and we add the ones: $3+4=7$, giving $23+4=27$."
+      },
+      {
+        "id": "cb-2",
+        "type": "diagram",
+        "briefId": "vb-1"
+      },
+      {
+        "id": "cb-3",
+        "type": "text",
+        "text": "Let's look at another {{example:worked example}}: $45+3$. The tens digit $4$ does not change. We add the ones: $5+3=8$. So $45+3=48$."
+      },
+      {
+        "id": "cb-4",
+        "type": "diagram",
+        "briefId": "vb-2"
+      },
+      {
+        "id": "cb-5",
+        "type": "text",
+        "text": "Now you try. What is $32+6$? Think about the tens and add only the ones."
+      }
+    ]
+  }
+}

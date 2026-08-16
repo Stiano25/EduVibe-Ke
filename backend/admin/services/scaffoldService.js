@@ -33,6 +33,34 @@ export const findScaffoldLesson = async (userId, { learningOutcomeKey, skillFocu
     return { needsScaffold: false, scaffoldLesson: null, profile, mastery };
   }
 
+  try {
+    const { tryRouteViaApprovedLayer2Edge } = await import('./layer2PrerequisiteService.js');
+    const viaEdge = await tryRouteViaApprovedLayer2Edge(userId, {
+      learningOutcomeKey,
+      gradeLevel: gradeLevel || mastery?.currentGradeLevel,
+      consecutiveFails: mastery?.consecutiveFailsAtLevel || null
+    });
+    if (viaEdge?.scaffoldLesson) {
+      return {
+        needsScaffold: true,
+        scaffoldLesson: viaEdge.scaffoldLesson,
+        targetGrade: viaEdge.scaffoldLesson.grade,
+        preferredModality:
+          mastery?.preferredModalityObserved || profile.preferredModality || 'mixed',
+        profile,
+        mastery,
+        viaPrerequisiteEdge: {
+          edgeId: viaEdge.edge.id,
+          eventId: viaEdge.event?.id || null,
+          reason: viaEdge.edge.reason,
+          confidence: viaEdge.edge.confidence
+        }
+      };
+    }
+  } catch (err) {
+    console.warn('Layer 2 scaffold route skipped:', err.message || err);
+  }
+
   const targetGrade = lowerGrade(gradeLevel || mastery?.currentGradeLevel);
   if (!targetGrade) {
     return { needsScaffold: true, scaffoldLesson: null, profile, mastery, reason: 'no_lower_grade' };

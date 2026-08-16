@@ -44,11 +44,16 @@ export const generateContent = async ({
 
   const { text, inputTokens, outputTokens, raw } = await generateWithBackoff(
     async () => {
-      const response = await client.messages.create({
+      const payload = {
         model,
         max_tokens: maxTokens,
         messages: [{ role: 'user', content: prompt }]
-      });
+      };
+      // Anthropic requires streaming when the output budget could exceed ~10 minutes.
+      const response =
+        Number(maxTokens) > 8192
+          ? await client.messages.stream(payload).finalMessage()
+          : await client.messages.create(payload);
 
       const textValue = parseTextBlocks(response.content);
       const inputTokens = Number(response.usage?.input_tokens) || 0;

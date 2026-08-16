@@ -69,6 +69,12 @@ export const createAIGeneratedLessons = async (req, res) => {
         );
         send({ type: 'progress', percent: 96, message: 'Saving lessons…' });
         const lessons = await Lesson.createMany(generatedLessons);
+        try {
+          const { recordLessonBankServes } = await import('../services/questionBankService.js');
+          await recordLessonBankServes(lessons);
+        } catch (serveErr) {
+          console.warn('Lesson bank-serve log skipped:', serveErr.message || serveErr);
+        }
         send({
           type: 'done',
           percent: 100,
@@ -91,6 +97,12 @@ export const createAIGeneratedLessons = async (req, res) => {
       generateLessonsFromSubStrand(subStrandId, numberOfLessons)
     );
     const lessons = await Lesson.createMany(generatedLessons);
+    try {
+      const { recordLessonBankServes } = await import('../services/questionBankService.js');
+      await recordLessonBankServes(lessons);
+    } catch (serveErr) {
+      console.warn('Lesson bank-serve log skipped:', serveErr.message || serveErr);
+    }
 
     res.setHeader('X-Generation-Calls', String(usage.calls));
     res.setHeader('X-Generation-Input-Tokens', String(usage.inputTokens));

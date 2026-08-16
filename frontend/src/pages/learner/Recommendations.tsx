@@ -1,10 +1,17 @@
 import { useLessonStore } from '@/store/useLessonStore'
 import { mockRecommendations } from '@/data/mockRecommendations'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/useAuthStore'
+import { usesQuestNavigation } from '@/lib/complexityBands'
 
 export const LearnerRecommendations = () => {
+  const questNav = usesQuestNavigation(useAuthStore((s) => s.user)?.grade)
   const { lessons } = useLessonStore()
+
+  if (questNav) {
+    return <Navigate to="/learner" replace />
+  }
 
   const recommendations = mockRecommendations
     .map(rec => ({

@@ -385,7 +385,7 @@ export const AdminLessons = () => {
                 <div className="bg-white/80 backdrop-blur-md rounded-[20px] border-2 border-slate-200 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      4. Select Sub-strand (Sub-topic)
+                      4. Units (sub-strands in curriculum order)
                     </h2>
                     {selectedSubStrand && (
                       <button
@@ -414,10 +414,16 @@ export const AdminLessons = () => {
                         >
                           <div className="flex items-start justify-between mb-2">
                             <h3 className="text-sm font-semibold text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              {subStrand.sequenceNumber != null ? `Unit ${subStrand.sequenceNumber} · ` : ''}
                               {subStrand.name}
                             </h3>
                             <Sparkles className="w-4 h-4 text-indigo-600" />
                           </div>
+                          {subStrand.lessonsAllocated != null && (
+                            <p className="text-xs text-slate-500 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              Curriculum allocation: {subStrand.lessonsAllocated} lessons
+                            </p>
+                          )}
                           {subStrand.description && (
                             <p className="text-xs text-text-secondary mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                               {subStrand.description}

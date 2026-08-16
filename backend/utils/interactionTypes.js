@@ -1,0 +1,27 @@
+/**
+ * Canonical learner interaction types. Keep in sync with
+ * frontend/src/lib/interactionTypes.ts.
+ *
+ * Part 2 shipped multiple_choice only. Part 7 adds drag_to_target.
+ */
+export const DEFAULT_INTERACTION_TYPE = 'multiple_choice';
+
+export const INTERACTION_TYPES = Object.freeze(['multiple_choice', 'drag_to_target']);
+
+const LEGACY_TYPE_MAP = Object.freeze({
+  'multiple-choice': 'multiple_choice',
+  multiple_choice: 'multiple_choice',
+  multiplechoice: 'multiple_choice',
+  'drag-to-target': 'drag_to_target',
+  drag_to_target: 'drag_to_target',
+  dragtotarget: 'drag_to_target'
+});
+
+export const resolveInteractionType = (value) => {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
+  if (LEGACY_TYPE_MAP[raw]) return LEGACY_TYPE_MAP[raw];
+  if (INTERACTION_TYPES.includes(raw)) return raw;
+  return DEFAULT_INTERACTION_TYPE;
+};

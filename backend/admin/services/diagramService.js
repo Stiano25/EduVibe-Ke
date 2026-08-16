@@ -2,9 +2,24 @@ import { DIAGRAM_TYPES, renderDiagram, coerceLabeledBoxesParams } from './diagra
 
 /**
  * Infer diagram type from free-text brief when AI omits diagramType.
+ *
+ * `youngGrade` (Grade 3 and below) runs the concrete keyword tests first, so a
+ * counting or number-line cue wins over the abstract process/comparison cues
+ * further down the chain. Anything the concrete tests miss falls through to the
+ * normal ordering unchanged.
  */
-export const inferDiagramType = (brief = '', skillFocus = '') => {
+export const inferDiagramType = (brief = '', skillFocus = '', { youngGrade = false } = {}) => {
   const t = `${brief} ${skillFocus}`.toLowerCase();
+  if (youngGrade) {
+    if (/count(ing)?|counters?|circles?|dots?|ten\s*frame|objects?\s*to\s*count|how\s*many|altogether|in\s*all|group\s*of/.test(t)) {
+      return 'counting_circles';
+    }
+    if (/number\s*line|numberline|count\s*on|jump\s*(of|to|forward)|order\s*the\s*numbers/.test(t)) {
+      return 'number_line';
+    }
+    if (/fraction|half|halves|quarter|third|equal\s*parts?|shaded/.test(t)) return 'fraction_bars';
+    if (/label|parts?\s*of|name\s*the|match\s*the|which\s*part/.test(t)) return 'labeled_boxes';
+  }
   if (/matrix|matrices|determinant|row\s*and\s*column/.test(t)) return 'matrix';
   if (/unit\s*circle|radian|exact\s*value.*(sin|cos)|special\s*angle/.test(t)) return 'unit_circle';
   if (/trigonometr|sin\b|cos\b|tan\b|sohcahtoa|right\s*triangle|hypotenuse|opposite|adjacent/.test(t)) {

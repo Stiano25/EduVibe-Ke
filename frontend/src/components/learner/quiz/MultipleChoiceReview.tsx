@@ -2,6 +2,7 @@ import { CheckCircle, XCircle } from 'lucide-react'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
+import { OptionVisual } from '../OptionVisual'
 import type { MultipleChoiceReviewProps } from './types'
 
 /** Review MCQ card. Sibling interaction types get their own file — do not extend this. */
@@ -76,7 +77,7 @@ export const MultipleChoiceReview = ({
             }`}
           >
             <span className="font-semibold mr-2">{String.fromCharCode(65 + oi)}.</span>
-            <MathText text={opt} />
+            <OptionVisual option={opt} compact />
             {isSelected && !isCorrectOpt && (
               <span className="ml-2 text-[10px] font-bold text-red-700">Your answer</span>
             )}

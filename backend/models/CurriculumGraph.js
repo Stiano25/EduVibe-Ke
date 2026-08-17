@@ -192,7 +192,9 @@ export class PrerequisiteEdge {
       createdAt: row.created_at,
       reviewedAt: row.reviewed_at || null,
       reviewerId: row.reviewer_id || null,
-      rejectReason: row.reject_reason || null
+      rejectReason: row.reject_reason || null,
+      flaggedForReread: row.flagged_for_reread === true,
+      flagReason: row.flag_reason || null
     };
   }
 
@@ -239,6 +241,8 @@ export class PrerequisiteEdge {
     if (fields.reviewedAt !== undefined) payload.reviewed_at = fields.reviewedAt;
     if (fields.reviewerId !== undefined) payload.reviewer_id = fields.reviewerId;
     if (fields.rejectReason !== undefined) payload.reject_reason = fields.rejectReason;
+    if (fields.flaggedForReread !== undefined) payload.flagged_for_reread = !!fields.flaggedForReread;
+    if (fields.flagReason !== undefined) payload.flag_reason = fields.flagReason;
     const { data, error } = await getDbClient()
       .from(this.tableName)
       .update(payload)

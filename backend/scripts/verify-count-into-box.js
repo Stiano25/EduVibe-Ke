@@ -24,8 +24,17 @@ const assert = (condition, message) => {
 
 // Live diagram types are defined in the frontend module; duplicate the list here
 // so this script does not need a TS loader.
-const LIVE = ['counting_circles', 'labeled_boxes', 'number_line', 'fraction_bars'];
-assert(LIVE.length === 4, 'four live diagram types');
+const LIVE = [
+  'counting_circles',
+  'labeled_boxes',
+  'number_line',
+  'fraction_bars',
+  'object_quantity',
+  'rectangle',
+  'cube',
+  'right_triangle'
+];
+assert(LIVE.length === 8, 'eight live diagram types');
 
 const q = makeCountIntoBoxQuestion({ a: 2, b: 3 });
 assert(q.interactionType === 'drag_to_target', 'interactionType');

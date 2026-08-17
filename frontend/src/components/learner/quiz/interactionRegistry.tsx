@@ -4,11 +4,14 @@ import { MultipleChoiceLive } from './MultipleChoiceLive'
 import { MultipleChoiceReview } from './MultipleChoiceReview'
 import { DragToTargetLive } from './DragToTargetLive'
 import { DragToTargetReview } from './DragToTargetReview'
+import { NumericEntryLive } from './NumericEntryLive'
+import { NumericEntryReview } from './NumericEntryReview'
 import type { MultipleChoiceLiveProps, MultipleChoiceReviewProps } from './types'
 
 export const LIVE_INTERACTIONS: Record<InteractionType, ComponentType<MultipleChoiceLiveProps>> = {
   multiple_choice: MultipleChoiceLive,
   drag_to_target: DragToTargetLive,
+  numeric_entry: NumericEntryLive,
 }
 
 export const REVIEW_INTERACTIONS: Record<
@@ -17,6 +20,7 @@ export const REVIEW_INTERACTIONS: Record<
 > = {
   multiple_choice: MultipleChoiceReview,
   drag_to_target: DragToTargetReview,
+  numeric_entry: NumericEntryReview,
 }
 
 export const LiveInteraction = (props: MultipleChoiceLiveProps) => {

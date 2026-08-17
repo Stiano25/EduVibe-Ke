@@ -54,10 +54,12 @@ const pickFailedOutcome = async () => {
     ...(await PrerequisiteEdge.listByStatus('active', { edgeType: LAYER2_EDGE_TYPE, limit: 200 }))
   ];
   const withEdges = new Set(openLayer2.map((e) => e.outcomeId));
-  const grade1 = all.filter((row) => String(row.grade) === '1');
-  const open = grade1.filter((row) => !withEdges.has(row.id));
-  const pool = open.length ? open : grade1;
-  // Prefer a later-looking strand so the cross-strand case is interesting.
+  const older = all.filter((row) => {
+    const n = parseInt(row.grade, 10);
+    return Number.isFinite(n) && n >= 3;
+  });
+  const open = older.filter((row) => !withEdges.has(row.id));
+  const pool = open.length ? open : older.length ? older : all;
   const ranked = [...pool].sort((a, b) => String(b.outcomeText).length - String(a.outcomeText).length);
   return ranked[0] || all[0];
 };
@@ -77,6 +79,23 @@ const main = async () => {
 
   const userId = await pickUserId();
   assert(userId, 'need a learner user_id from skill_attempts or lesson_progress');
+
+  const grade1 = (await CurriculumOutcome.listAll()).find((row) => String(row.grade) === '1');
+  if (grade1) {
+    const suppressed = await maybeQueueLayer2Proposal({
+      userId,
+      learningOutcomeKey: grade1.outcomeKey,
+      grade: '1',
+      consecutiveFails: 2,
+      processAsync: false
+    });
+    console.log('Grade 1 suppress:', suppressed);
+    assert(
+      suppressed.queued === false && suppressed.reason === 'grade1_format_untrusted',
+      'Grade 1 Layer 2 proposals must be suppressed'
+    );
+  }
+
   const failed = await pickFailedOutcome();
   assert(failed, 'no curriculum_outcomes to propose against');
   const candidates = await listCandidateOutcomes(failed);

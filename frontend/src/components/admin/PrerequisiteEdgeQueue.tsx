@@ -20,6 +20,8 @@ type Layer2Edge = {
   rejectReason?: string | null
   source?: string | null
   edgeType?: string | null
+  flaggedForReread?: boolean
+  flagReason?: string | null
   outcome?: OutcomeRef | null
   prerequisite?: OutcomeRef | null
 }
@@ -127,7 +129,8 @@ export const PrerequisiteEdgeQueue = () => {
         </h2>
         <p className="mt-1 text-sm text-slate-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
           Proposed when a learner gets stuck and Layer 1 has no cross-strand link. Approve before
-          they can be used for remediation routing.
+          they can be used for remediation routing. Grade 1 proposals are paused until question
+          format is trustworthy; any leftover Grade 1 edges are marked <strong>re-read</strong>.
         </p>
       </div>
 
@@ -174,8 +177,18 @@ export const PrerequisiteEdgeQueue = () => {
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${statusChip(edge.status)}`}>
                     {edge.status}
                   </span>
+                  {edge.flaggedForReread && (
+                    <span className="px-2 py-0.5 rounded-full font-semibold bg-amber-200 text-amber-950">
+                      re-read
+                    </span>
+                  )}
                   <span className="text-slate-500">confidence {Number(edge.confidence).toFixed(2)}</span>
                 </div>
+                {edge.flaggedForReread && edge.flagReason && (
+                  <p className="text-[12px] text-amber-900 bg-amber-50 border border-amber-200 rounded-[10px] p-2">
+                    <strong>Flagged for re-review:</strong> {edge.flagReason}
+                  </p>
+                )}
                 <p className="text-sm text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
                   <strong>Stuck on:</strong> {outcomeLabel(edge.outcome)}
                 </p>

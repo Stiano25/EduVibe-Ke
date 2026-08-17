@@ -1,3 +1,5 @@
+import { DEFAULT_OBJECT_KIND, inferObjectKind, isObjectKind, objectIconSvg } from '../../utils/objectKinds.js';
+
 /** Escape text for SVG attribute / text nodes. */
 const esc = (s = '') =>
   String(s)
@@ -569,12 +571,14 @@ export const renderMatrix = (params = {}) => {
 export const renderCountingCircles = (params = {}) => {
   const count = Math.min(Math.max(Number(params.count) || 5, 1), 40);
   const columns = Math.min(Math.max(Number(params.columns) || 5, 1), 10);
-  const title = params.title || params.label || `Count: ${count}`;
+  const showTotal = params.showTotal === true;
+  const showNumbers = params.showNumbers === true;
+  const title = params.title || params.label || '';
   const highlight = params.highlight != null ? Number(params.highlight) : null;
   const color = params.color || '#14B8A6';
   const r = 16;
   const gap = 12;
-  const startY = 80;
+  const startY = title ? 80 : 48;
   const circles = [];
   for (let i = 0; i < count; i++) {
     const col = i % columns;
@@ -586,13 +590,88 @@ export const renderCountingCircles = (params = {}) => {
     const isHi = highlight != null && i + 1 === highlight;
     circles.push(`
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="${isHi ? '#F59E0B' : color}" stroke="#0F766E" stroke-width="2"/>
-      <text x="${cx}" y="${cy + 5}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">${i + 1}</text>
+      ${showNumbers ? `<text x="${cx}" y="${cy + 5}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">${i + 1}</text>` : ''}
     `);
   }
   return svgWrap(`
-    <text x="320" y="40" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="18" font-weight="600" fill="#0F172A">${formatDiagramLabel(title)}</text>
+    ${title ? `<text x="320" y="40" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="18" font-weight="600" fill="#0F172A">${formatDiagramLabel(title)}</text>` : ''}
     ${circles.join('')}
-    <text x="320" y="260" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#334155">${formatDiagramLabel(`Total = ${count}`)}</text>
+    ${showTotal ? `<text x="320" y="260" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#334155">${formatDiagramLabel(`Total = ${count}`)}</text>` : ''}
+  `);
+};
+
+/** N copies of a named object. Never print the count on quiz figures. */
+export const renderObjectQuantity = (params = {}) => {
+  const kind = isObjectKind(params.objectKind)
+    ? params.objectKind
+    : inferObjectKind(`${params.title || ''} ${params.label || ''} ${params.brief || ''}`, DEFAULT_OBJECT_KIND);
+  const groups = Array.isArray(params.groups) && params.groups.length
+    ? params.groups.map((n) => Math.min(20, Math.max(0, Number(n) || 0)))
+    : [Math.min(20, Math.max(1, Number(params.count) || 1))];
+  const size = 28;
+  const gap = 8;
+  const groupGap = 28;
+  const icons = [];
+  let x = 40;
+  const y = 90;
+  for (let g = 0; g < groups.length; g += 1) {
+    for (let i = 0; i < groups[g]; i += 1) {
+      icons.push(objectIconSvg(kind, { x, y, size }));
+      x += size + gap;
+    }
+    x += groupGap;
+  }
+  const width = Math.max(640, x + 40);
+  return svgWrap(
+    `
+    ${icons.join('')}
+  `,
+    width,
+    220
+  );
+};
+
+export const renderRectangle = (params = {}) => {
+  const width = Number(params.width) || Number(params.length) || 8;
+  const height = Number(params.height) || 5;
+  const unit = params.unit || 'cm';
+  const x = 120;
+  const y = 70;
+  const w = 400;
+  const h = 160;
+  return svgWrap(`
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#ECFDF5" stroke="#0F766E" stroke-width="3"/>
+    <text x="${x + w / 2}" y="${y + h + 28}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#0F172A">${formatDiagramLabel(`${width} ${unit}`)}</text>
+    <text x="${x - 16}" y="${y + h / 2}" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="16" fill="#0F172A">${formatDiagramLabel(`${height} ${unit}`)}</text>
+  `);
+};
+
+export const renderCube = (params = {}) => {
+  const side = Number(params.side) || Number(params.length) || 4;
+  const width = Number(params.width) || side;
+  const height = Number(params.height) || side;
+  const depth = Number(params.depth) || side;
+  const unit = params.unit || 'cm';
+  const ox = 220;
+  const oy = 200;
+  const dx = 90;
+  const dy = 50;
+  const frontW = 180;
+  const frontH = 140;
+  const a = `${ox},${oy}`;
+  const b = `${ox + frontW},${oy}`;
+  const c = `${ox + frontW},${oy - frontH}`;
+  const d = `${ox},${oy - frontH}`;
+  const f = `${ox + frontW + dx},${oy - dy}`;
+  const g = `${ox + frontW + dx},${oy - frontH - dy}`;
+  const h = `${ox + dx},${oy - frontH - dy}`;
+  return svgWrap(`
+    <polygon points="${a} ${b} ${c} ${d}" fill="#CCFBF1" stroke="#0F766E" stroke-width="2.5"/>
+    <polygon points="${c} ${b} ${f} ${g}" fill="#99F6E4" stroke="#0F766E" stroke-width="2.5"/>
+    <polygon points="${d} ${c} ${g} ${h}" fill="#5EEAD4" stroke="#0F766E" stroke-width="2.5"/>
+    <text x="${ox + frontW / 2}" y="${oy + 24}" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#0F172A">${formatDiagramLabel(`${width} ${unit}`)}</text>
+    <text x="${ox - 14}" y="${oy - frontH / 2}" text-anchor="end" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#0F172A">${formatDiagramLabel(`${height} ${unit}`)}</text>
+    <text x="${ox + frontW + dx / 2 + 28}" y="${oy - dy / 2 + 8}" text-anchor="start" font-family="Manrope, Arial, sans-serif" font-size="15" fill="#0F172A">${formatDiagramLabel(`${depth} ${unit}`)}</text>
   `);
 };
 
@@ -703,6 +782,9 @@ export const DIAGRAM_TYPES = new Set([
   'coordinate_plane',
   'matrix',
   'counting_circles',
+  'object_quantity',
+  'rectangle',
+  'cube',
   'indices',
   'right_triangle',
   'unit_circle'
@@ -730,6 +812,12 @@ export const renderDiagram = (diagramType, params = {}) => {
       return renderMatrix(params);
     case 'counting_circles':
       return renderCountingCircles(params);
+    case 'object_quantity':
+      return renderObjectQuantity(params);
+    case 'rectangle':
+      return renderRectangle(params);
+    case 'cube':
+      return renderCube(params);
     case 'indices':
       return renderIndices(params);
     case 'right_triangle':

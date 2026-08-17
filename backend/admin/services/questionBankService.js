@@ -46,7 +46,8 @@ ${quizExemplarsBlock || 'No source exemplars were available. Write from the outc
 Return ONLY one JSON object:
 { "quiz": { "questions": [ /* exactly ${count} items */ ] } }
 
-Each question: question, options (3-4), correctAnswerIndex, explanation (max 16 words), distractors[{"optionIndex","misconception":"max 8 words"}], reviewRationale[{"optionIndex","text"}] for EVERY option, learningOutcomeIndex, bloomLevel (recall|understand|apply|reason), modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+Each question: question, interactionType (multiple_choice, numeric_entry, or drag_to_target), options (3-4 strings or {diagramType,params} picture options) and correctAnswerIndex for multiple_choice, or params {a,b} and answerFormula for numeric_entry, or params {a,b,target,objectPool,objectKind} and answerFormula for drag_to_target, explanation (max 16 words), distractors[{"optionIndex","misconception":"max 8 words"}] for MCQ, reviewRationale[{"optionIndex","text"}] for EVERY MCQ option, learningOutcomeIndex, bloomLevel (recall|understand|apply|reason), modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+For Grade 1 counting/addition, prefer numeric_entry for bare "what is a + b", drag_to_target for "show this many", and picture options when the choice is a quantity of a named object. Keep plain-text multiple_choice for abstract number comparisons.
 Do NOT include id, type, template, or feedback fields.
 Do NOT set template:true. These are fixed reviewed items, not parametrized templates.
 Keep learner-facing strings concise. Complete valid JSON only. No markdown fences.`;

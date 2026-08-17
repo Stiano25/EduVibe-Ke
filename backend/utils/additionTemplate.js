@@ -1,4 +1,4 @@
-const ALLOWED_VARIABLES = new Set(['a', 'b']);
+const ALLOWED_VARIABLES = new Set(['a', 'b', 'target']);
 const OPERATORS = {
   '+': { precedence: 1, apply: (a, b) => a + b },
   '-': { precedence: 1, apply: (a, b) => a - b },
@@ -172,22 +172,38 @@ const evaluatePair = ({ pair, answerFn, distractorFns }) => {
   return { valid, correct, distractors };
 };
 
-export const validateAdditionTemplate = (template = {}) => {
+const isNumericEntryTemplate = (template = {}) =>
+  template?.interactionType === 'numeric_entry' ||
+  template?.type === 'numeric-entry' ||
+  template?.activity === 'numeric_entry';
+
+export const validateAdditionTemplate = (template = {}, { requireDistractors } = {}) => {
   const constraints = normalizeAdditionConstraints(template.constraints);
   const pairs = enumerateAdditionPairs(constraints);
   if (pairs.length < 2) return { valid: false, reason: 'fewer than two valid parameter pairs' };
   if (!/\{a\}/.test(String(template.questionText)) || !/\{b\}/.test(String(template.questionText))) {
     return { valid: false, reason: 'questionText must contain {a} and {b}' };
   }
+  const needDistractors =
+    requireDistractors ?? !isNumericEntryTemplate(template);
   try {
     const answerFormula = String(template.answerFormula || 'a + b');
     const answerFn = compileFormula(answerFormula);
     const formulas = normalizeDistractorFormulas(template.distractorFormulas);
-    if (formulas.length < 3) return { valid: false, reason: 'at least three distractor formulas required' };
-    const distractorFns = formulas.map((item) => ({ item, fn: compileFormula(item.formula) }));
-    for (const pair of pairs) {
-      if (!evaluatePair({ pair, answerFn, distractorFns }).valid) {
-        return { valid: false, reason: `invalid or duplicate answer at a=${pair.a}, b=${pair.b}` };
+    if (needDistractors) {
+      if (formulas.length < 3) return { valid: false, reason: 'at least three distractor formulas required' };
+      const distractorFns = formulas.map((item) => ({ item, fn: compileFormula(item.formula) }));
+      for (const pair of pairs) {
+        if (!evaluatePair({ pair, answerFn, distractorFns }).valid) {
+          return { valid: false, reason: `invalid or duplicate answer at a=${pair.a}, b=${pair.b}` };
+        }
+      }
+    } else {
+      for (const pair of pairs) {
+        const correct = answerFn(pair);
+        if (!Number.isInteger(correct) || correct < 0) {
+          return { valid: false, reason: `invalid answer at a=${pair.a}, b=${pair.b}` };
+        }
       }
     }
     return {
@@ -220,8 +236,30 @@ const parameterizeRenderedQuestion = (question = {}) => {
 };
 
 const buildFromValidated = (template, validation, pair) => {
+  const numeric = isNumericEntryTemplate(template);
   const answerFn = compileFormula(validation.answerFormula);
-  const distractorFns = validation.distractorFormulas.map((item) => ({
+  if (numeric) {
+    const correct = answerFn(pair);
+    if (!Number.isInteger(correct) || correct < 0) return null;
+    return {
+      ...template,
+      template: true,
+      templateVersion: 1,
+      interactionType: 'numeric_entry',
+      type: 'numeric-entry',
+      activity: 'numeric_entry',
+      questionText: String(template.questionText),
+      params: { a: pair.a, b: pair.b, ...(template.params?.objectKind ? { objectKind: template.params.objectKind } : {}) },
+      constraints: validation.constraints,
+      answerFormula: validation.answerFormula,
+      distractorFormulas: validation.distractorFormulas || [],
+      question: renderTemplateText(template.questionText, pair),
+      options: [],
+      correctAnswerIndex: 0,
+      distractors: []
+    };
+  }
+  const distractorFns = (validation.distractorFormulas || []).map((item) => ({
     item,
     fn: compileFormula(item.formula)
   }));
@@ -264,11 +302,12 @@ export const normalizeAdditionTemplateQuestion = (question = {}) => {
     answerFormula: String(question.answerFormula || 'a + b'),
     distractorFormulas: normalizeDistractorFormulas(question.distractorFormulas)
   };
-  let validation = validateAdditionTemplate(base);
+  const numeric = isNumericEntryTemplate(question);
+  let validation = validateAdditionTemplate(base, { requireDistractors: !numeric });
   let repairedDistractors = false;
-  if (!validation.valid) {
+  if (!validation.valid && !numeric) {
     base.distractorFormulas = DEFAULT_DISTRACTOR_FORMULAS;
-    validation = validateAdditionTemplate(base);
+    validation = validateAdditionTemplate(base, { requireDistractors: true });
     repairedDistractors = validation.valid;
   }
   if (!validation.valid) return { question, valid: false, reason: validation.reason };
@@ -295,7 +334,9 @@ export const normalizeAdditionTemplateQuestion = (question = {}) => {
 export const twistAdditionQuestion = (template = {}, { random = Math.random } = {}) => {
   const normalized = normalizeAdditionTemplateQuestion(template);
   if (!normalized.valid) return { ok: false, reason: normalized.reason };
-  const validation = validateAdditionTemplate(normalized.question);
+  const validation = validateAdditionTemplate(normalized.question, {
+    requireDistractors: !isNumericEntryTemplate(normalized.question)
+  });
   const original = normalized.question.params || {};
   const candidates = validation.pairs.filter(
     (pair) => pair.a !== Number(original.a) || pair.b !== Number(original.b)

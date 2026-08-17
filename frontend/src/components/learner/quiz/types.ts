@@ -2,10 +2,18 @@ import type { RefObject } from 'react'
 import type { InteractionType } from '@/lib/interactionTypes'
 import type { TapSelection } from '../TapSelectOptions'
 
+export type QuizOption =
+  | string
+  | {
+      text?: string
+      diagramType: string
+      params?: Record<string, unknown>
+    }
+
 export type AdaptiveQuestion = {
   id: string
   question: string
-  options: string[]
+  options: QuizOption[]
   points?: number
   skillFocus?: string
   bloomLevel?: string
@@ -16,13 +24,14 @@ export type AdaptiveQuestion = {
   interactionType?: InteractionType | string
   activity?: string
   objectPool?: number
+  objectKind?: string
   bankEntryId?: string
 }
 
 export type ReviewItem = {
   id: string
   question: string
-  options: string[]
+  options: QuizOption[]
   correctAnswerIndex: number
   selectedOptionIndex: number
   correct: boolean
@@ -36,8 +45,11 @@ export type ReviewItem = {
   interactionType?: InteractionType | string
   activity?: string
   objectPool?: number
+  objectKind?: string
   expectedCount?: number
   placedCount?: number
+  expectedValue?: number
+  submittedValue?: number | null
   phase?: string
 }
 
@@ -68,6 +80,7 @@ export type MultipleChoiceLiveProps = {
   interactiveRef: RefObject<HTMLDivElement | null>
   onSelect: (selection: TapSelection) => void
   onSubmitDrag?: (payload: { placedCount: number; responseTimeMs: number }) => void
+  onSubmitNumeric?: (payload: { submittedValue: string | number; responseTimeMs: number }) => void
 }
 
 export type MultipleChoiceReviewProps = {

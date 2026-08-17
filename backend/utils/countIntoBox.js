@@ -3,12 +3,13 @@
  * Target and objectPool are parametrized; expected count uses answerFormula.
  */
 import {
-  compileFormula,
   enumerateAdditionPairs,
   normalizeAdditionConstraints,
   normalizeAdditionTemplateQuestion,
   validateAdditionTemplate
 } from './additionTemplate.js';
+import { expectedScalarForQuestion } from './expectedScalar.js';
+import { inferObjectKind, DEFAULT_OBJECT_KIND } from './objectKinds.js';
 
 const asInt = (value, fallback) => {
   const n = Number(value);
@@ -24,23 +25,7 @@ export const objectPoolForTarget = (target) => {
   return Math.min(20, Math.max(t + 3, 6));
 };
 
-export const expectedCountForQuestion = (question = {}) => {
-  const params = question.params || {};
-  const formula = String(question.answerFormula || '').trim();
-  if (formula) {
-    try {
-      const value = compileFormula(formula)(params);
-      if (Number.isInteger(value) && value >= 0) return value;
-    } catch {
-      /* fall through */
-    }
-  }
-  if (Number.isInteger(Number(params.target))) return Number(params.target);
-  const a = asInt(params.a, NaN);
-  const b = asInt(params.b, NaN);
-  if (Number.isInteger(a) && Number.isInteger(b)) return a + b;
-  return null;
-};
+export const expectedCountForQuestion = (question = {}) => expectedScalarForQuestion(question);
 
 export const makeCountIntoBoxQuestion = ({
   a = 2,
@@ -57,6 +42,8 @@ export const makeCountIntoBoxQuestion = ({
     .replaceAll('{a}', String(pair.a))
     .replaceAll('{b}', String(pair.b))
     .replaceAll('{target}', String(target));
+  const objectKind =
+    inferObjectKind(`${questionText} ${text}`) || DEFAULT_OBJECT_KIND;
   return {
     id: `count-box-${pair.a}-${pair.b}`,
     question: text,
@@ -68,7 +55,7 @@ export const makeCountIntoBoxQuestion = ({
     templateVersion: 1,
     options: [],
     correctAnswerIndex: 0,
-    params: { a: pair.a, b: pair.b, target, objectPool },
+    params: { a: pair.a, b: pair.b, target, objectPool, objectKind },
     constraints: normalizeAdditionConstraints({ a: [1, 9], b: [1, 9], sumMax: 10 }),
     answerFormula: 'a + b',
     skillFocus,

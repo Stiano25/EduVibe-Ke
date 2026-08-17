@@ -18,9 +18,12 @@ const assert = (condition, message) => {
 };
 
 assert(
-  INTERACTION_TYPES.includes('multiple_choice') && INTERACTION_TYPES.includes('drag_to_target'),
-  'MCQ and drag_to_target are registered'
+  INTERACTION_TYPES.includes('multiple_choice') &&
+    INTERACTION_TYPES.includes('drag_to_target') &&
+    INTERACTION_TYPES.includes('numeric_entry'),
+  'MCQ, drag_to_target, and numeric_entry are registered'
 );
+assert(resolveInteractionType('numeric_entry') === 'numeric_entry', 'numeric_entry maps');
 assert(resolveInteractionType(undefined) === 'multiple_choice', 'missing → multiple_choice');
 assert(resolveInteractionType('multiple-choice') === 'multiple_choice', 'legacy type hyphen maps');
 assert(resolveInteractionType('MULTIPLE_CHOICE') === 'multiple_choice', 'canonical value maps');

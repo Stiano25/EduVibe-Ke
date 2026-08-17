@@ -8,6 +8,24 @@ import {
   isGradeOneAdditionContext,
   normalizeAdditionTemplateQuestion
 } from '../../utils/additionTemplate.js';
+import {
+  isCountIntoBoxQuestion,
+  makeCountIntoBoxQuestion,
+  objectPoolForTarget
+} from '../../utils/countIntoBox.js';
+import {
+  isNumericEntryQuestion,
+  makeNumericEntryQuestion
+} from '../../utils/numericEntry.js';
+import { applyQuizQualityGates } from '../../utils/quizQualityGates.js';
+import { inferObjectKind, namesCountableObject } from '../../utils/objectKinds.js';
+import {
+  coercePictureOptions,
+  inferGeometryDiagramType,
+  isObjectQuantityContent,
+  objectQuantityParamsFromQuestion,
+  shouldUseRepresentationalDiagram
+} from '../../utils/representationalContent.js';
 import { DIAGRAM_TYPES, coerceLabeledBoxesParams } from './diagramTemplates.js';
 import { inferDiagramType } from './diagramService.js';
 import {
@@ -254,6 +272,45 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
     case 'counting_circles':
       if (nums.length >= 1) p.count = Math.min(Math.max(Math.trunc(nums[0]), 1), 40);
       break;
+    case 'object_quantity': {
+      const kind = inferObjectKind(questionText) || p.objectKind || 'bead';
+      p.objectKind = kind;
+      if (Array.isArray(p.groups) && p.groups.length >= 2) break;
+      if (nums.length >= 2 && namesCountableObject(questionText)) {
+        p.groups = [
+          Math.min(20, Math.max(0, Math.trunc(nums[0]))),
+          Math.min(20, Math.max(0, Math.trunc(nums[1])))
+        ];
+      } else if (nums.length >= 1) {
+        p.count = Math.min(Math.max(Math.trunc(nums[0]), 1), 40);
+      }
+      break;
+    }
+    case 'rectangle':
+      if (nums.length >= 2) {
+        p.width = nums[0];
+        p.height = nums[1];
+      } else if (nums.length === 1) {
+        p.width = nums[0];
+        p.height = nums[0];
+      }
+      break;
+    case 'cube':
+      if (nums.length >= 3) {
+        p.length = nums[0];
+        p.width = nums[1];
+        p.height = nums[2];
+      } else if (nums.length >= 1) {
+        p.side = nums[0];
+      }
+      break;
+    case 'right_triangle':
+      if (nums.length >= 2) {
+        p.adjacent = String(nums[0]);
+        p.opposite = String(nums[1]);
+        if (nums[2] != null) p.hypotenuse = String(nums[2]);
+      }
+      break;
     case 'indices': {
       const pow = String(questionText).match(/(\d+)\s*\^\s*(\d+)/) ||
         String(questionText).match(/(\d+)\^\{(\d+)\}/);
@@ -307,7 +364,22 @@ export const normalizeQuiz = (
 
   const questions = quiz.questions.map((rawQuestion, qi) => {
     let q = rawQuestion || {};
-    if (additionTemplates && q.template === true) {
+    let incomingInteraction = resolveInteractionType(q.interactionType || q.type);
+    const stemPreview = `${q.question || ''} ${q.questionText || ''}`;
+    const showThisMany =
+      /show this many|draw enough|put them in|count into|place .* in (the )?box/i.test(stemPreview);
+
+    if (
+      additionTemplates &&
+      q.template === true &&
+      incomingInteraction !== 'drag_to_target' &&
+      !showThisMany
+    ) {
+      q = { ...q, interactionType: 'numeric_entry', type: 'numeric-entry' };
+      incomingInteraction = 'numeric_entry';
+    }
+
+    if (additionTemplates && q.template === true && incomingInteraction !== 'drag_to_target') {
       const normalizedTemplate = normalizeAdditionTemplateQuestion(q);
       if (normalizedTemplate.valid) {
         q = normalizedTemplate.question;
@@ -321,7 +393,67 @@ export const normalizeQuiz = (
         q = { ...q, template: false };
       }
     }
-    const options = Array.isArray(q.options) ? q.options.map(String) : [];
+    incomingInteraction = resolveInteractionType(q.interactionType || q.type);
+
+    if (incomingInteraction === 'drag_to_target' || isCountIntoBoxQuestion(q)) {
+      const seed = makeCountIntoBoxQuestion({
+        a: q.params?.a,
+        b: q.params?.b,
+        questionText: q.questionText || q.question || 'How many is {a} plus {b}?',
+        skillFocus: q.skillFocus,
+        bloomLevel: q.bloomLevel,
+        learningOutcomeIndex: q.learningOutcomeIndex
+      });
+      const params = { ...seed.params, ...(q.params && typeof q.params === 'object' ? q.params : {}) };
+      if (params.target == null && Number.isInteger(Number(params.a)) && Number.isInteger(Number(params.b))) {
+        params.target = Number(params.a) + Number(params.b);
+      }
+      if (params.target != null) {
+        params.objectPool = objectPoolForTarget(params.target);
+      }
+      if (!params.objectKind) {
+        params.objectKind = inferObjectKind(stemPreview) || seed.params.objectKind;
+      }
+      q = {
+        ...seed,
+        ...q,
+        type: 'drag-to-target',
+        interactionType: 'drag_to_target',
+        activity: q.activity || 'count_into_box',
+        params,
+        answerFormula: q.answerFormula || seed.answerFormula,
+        options: Array.isArray(q.options) ? q.options : [],
+        question: q.question || seed.question
+      };
+    } else if (incomingInteraction === 'numeric_entry' || isNumericEntryQuestion(q)) {
+      const seed = makeNumericEntryQuestion({
+        a: q.params?.a,
+        b: q.params?.b,
+        questionText: q.questionText || q.question || 'What is {a} + {b}?',
+        skillFocus: q.skillFocus,
+        bloomLevel: q.bloomLevel,
+        learningOutcomeIndex: q.learningOutcomeIndex,
+        objectKind: q.params?.objectKind || inferObjectKind(stemPreview)
+      });
+      const params = { ...seed.params, ...(q.params && typeof q.params === 'object' ? q.params : {}) };
+      q = {
+        ...seed,
+        ...q,
+        type: 'numeric-entry',
+        interactionType: 'numeric_entry',
+        activity: 'numeric_entry',
+        params,
+        answerFormula: q.answerFormula || seed.answerFormula,
+        options: [],
+        question: q.question || seed.question
+      };
+    }
+
+    const stem = String(q.question || q.questionText || '');
+    const options =
+      incomingInteraction === 'numeric_entry' || incomingInteraction === 'drag_to_target'
+        ? []
+        : coercePictureOptions(Array.isArray(q.options) ? q.options : [], stem);
     let outcomeIndex = Number(q.learningOutcomeIndex);
     if (!Number.isFinite(outcomeIndex) || outcomeIndex < 1 || outcomeIndex > outcomes.length) {
       outcomeIndex = (qi % Math.max(outcomes.length, 1)) + 1;
@@ -388,57 +520,79 @@ export const normalizeQuiz = (
       modality = assignDefaultModality(qi, profile);
     }
 
+    const interactionType = resolveInteractionType(q.interactionType || q.type);
+    const isDrag = interactionType === 'drag_to_target';
+    const isNumeric = interactionType === 'numeric_entry';
+
     let diagramBriefId = null;
     const embeddedDiagram = q.diagram && typeof q.diagram === 'object' ? q.diagram : null;
     const authoredBrief = normalizeOutcomeText(embeddedDiagram?.brief || q.diagramBrief || '');
+    const wantsObjectFigure =
+      (!isDrag && shouldUseRepresentationalDiagram(`${q.question || ''} ${authoredBrief}`)) ||
+      (isNumeric && namesCountableObject(q.question || ''));
 
-    if (modality === 'visual' && !authoredBrief) {
+    if (modality === 'visual' && !authoredBrief && !isDrag && !wantsObjectFigure) {
       // The model claimed a visual but never designed one. Shipping the old
       // `Figure for: <stem>` placeholder made the question overclaim a figure it
       // does not have, so demote it to a plain practice question instead.
+      // drag_to_target is itself the figure (object pool + box), so it stays.
       console.warn(`Question ${qid}: tagged visual with no diagram brief — downgraded to practice`);
       modality = 'practice';
       downgradedVisuals.push(qid);
     }
 
-    if (modality === 'visual') {
+    if ((modality === 'visual' || wantsObjectFigure) && !isDrag) {
+      if (wantsObjectFigure) modality = 'visual';
       const embedded = embeddedDiagram;
       const skillFocus = (q.skillFocus || outcomeText || 'core skill').slice(0, 120);
-      const stem = String(q.question || '');
+      const figureStem = String(q.question || '');
+      const figureText = `${embedded?.brief || ''} ${figureStem} ${skillFocus}`;
       let diagramType = String(
         embedded?.diagramType || q.diagramType || ''
       ).trim();
       if (!DIAGRAM_TYPES.has(diagramType)) {
-        diagramType = inferDiagramType(
-          `${embedded?.brief || ''} ${stem} ${skillFocus}`,
-          skillFocus,
-          { youngGrade: prefersConcreteDiagrams(gradeNumber) }
-        );
+        diagramType = inferDiagramType(figureText, skillFocus, {
+          youngGrade: prefersConcreteDiagrams(gradeNumber)
+        });
       }
-      // Never use comparison boxes for graph/gradient topics
+      const geo = inferGeometryDiagramType(figureText);
+      if (geo) diagramType = geo;
+      if (
+        isObjectQuantityContent(figureText) ||
+        namesCountableObject(figureText) ||
+        diagramType === 'labeled_boxes' && namesCountableObject(figureText)
+      ) {
+        diagramType = 'object_quantity';
+      }
       if (
         diagramType === 'comparison' &&
-        /gradient|slope|perpendicular|parallel|coordinate|y\s*=|linear/.test(
-          `${stem} ${skillFocus} ${embedded?.brief || ''}`.toLowerCase()
-        )
+        /gradient|slope|perpendicular|parallel|coordinate|y\s*=|linear/.test(figureText.toLowerCase())
       ) {
         diagramType = 'coordinate_plane';
       }
       diagramType = clampDiagramType(diagramType, profile);
+      if (diagramType === 'labeled_boxes' && namesCountableObject(figureText)) {
+        diagramType = 'object_quantity';
+      }
       let params =
         (embedded?.params && typeof embedded.params === 'object' && embedded.params) ||
         (q.diagramParams && typeof q.diagramParams === 'object' && q.diagramParams) ||
         null;
+      if (diagramType === 'object_quantity') {
+        params = {
+          ...objectQuantityParamsFromQuestion(q),
+          ...(params && typeof params === 'object' ? params : {})
+        };
+      }
       params = seedParamsFromStem(
         diagramType,
         params ? { ...defaultParamsHint(diagramType), ...params } : defaultParamsHint(diagramType),
-        stem
+        figureStem
       );
       if (diagramType === 'labeled_boxes') {
         params = coerceLabeledBoxesParams(params);
       }
 
-      // Never attach teaching vb-1/vb-2 to a quiz item
       const requestedId = String(q.diagramBriefId || embedded?.id || '').trim();
       const briefId =
         requestedId && !isTeachingBriefId(requestedId)
@@ -451,7 +605,7 @@ export const normalizeQuiz = (
         id: briefId,
         skillFocus,
         outcomeKey: outcomeKey(skillFocus),
-        brief: authoredBrief,
+        brief: authoredBrief || `${diagramType} for ${skillFocus}`,
         diagramType,
         params,
         scope: 'question',
@@ -469,8 +623,22 @@ export const normalizeQuiz = (
     return {
       id: qid,
       question: q.question || `Question ${qi + 1}`,
-      type: 'multiple-choice',
-      interactionType: resolveInteractionType(q.interactionType || q.type),
+      type: isDrag ? 'drag-to-target' : isNumeric ? 'numeric-entry' : 'multiple-choice',
+      interactionType,
+      ...(isDrag
+        ? {
+            activity: q.activity || 'count_into_box',
+            params: q.params,
+            answerFormula: q.answerFormula || 'a + b'
+          }
+        : {}),
+      ...(isNumeric
+        ? {
+            activity: 'numeric_entry',
+            params: q.params,
+            answerFormula: q.answerFormula || 'a + b'
+          }
+        : {}),
       options,
       correctAnswerIndex,
       explanation: q.explanation || '',
@@ -489,7 +657,7 @@ export const normalizeQuiz = (
       distractors,
       ...(hasReviewRationale ? { reviewRationale } : {}),
       modality,
-      diagramBriefId: modality === 'visual' ? diagramBriefId : null,
+      diagramBriefId: modality === 'visual' && !isDrag ? diagramBriefId : null,
       steps: modality === 'text_steps' ? steps || [] : undefined,
       ...(q.template === true
         ? {
@@ -574,8 +742,22 @@ const defaultParamsHint = (diagramType) => {
       return { title: 'Matrix', rows: 2, cols: 2, values: [[1, 2], [3, 4]] };
     case 'counting_circles':
       return { title: 'Count', count: 6, columns: 5 };
+    case 'object_quantity':
+      return { objectKind: 'bead', count: 5 };
+    case 'rectangle':
+      return { width: 8, height: 5, unit: 'cm' };
+    case 'cube':
+      return { side: 4, unit: 'cm' };
     case 'indices':
       return { title: 'Indices', base: 2, exponent: 3 };
+    case 'right_triangle':
+      return {
+        title: 'Right triangle',
+        angleDeg: 35,
+        opposite: 'opp',
+        adjacent: 'adj',
+        hypotenuse: 'hyp'
+      };
     default:
       return { title: 'Key ideas', items: [{ label: 'Idea', text: '' }] };
   }
@@ -1027,8 +1209,23 @@ export const buildQuizChunkPrompt = (
           .join('\n')}\n`
       : '';
   const concreteDiagramLine = prefersConcreteDiagrams(ctx.gradeNumber)
-    ? `\nAt this grade prefer concrete figure types a child can literally count or point at — counting_circles, labeled_boxes, number_line, fraction_bars — over abstract flow or comparison boxes.`
+    ? `\nAt this grade prefer concrete figure types a child can literally count or point at — object_quantity (repeated icons of the named object), counting_circles (only when no object is named), number_line, fraction_bars, rectangle, cube. Do NOT use labeled_boxes for counting or "N of [object]" — that draws text in a rectangle, not the object.`
     : '';
+  const countIntoBoxFit =
+    prefersConcreteDiagrams(ctx.gradeNumber) &&
+    /mathematics/i.test(String(ctx.subject?.name || '')) &&
+    /number|count|add|subtract|whole/i.test(
+      `${ctx.strand?.name || ''} ${ctx.subStrand?.name || ''}`
+    );
+  const interactionTypeBlock = `INTERACTION TYPES — set interactionType on every question (this field is real and is graded):
+- "numeric_entry": the learner types the answer on a keypad. No options. Set params:{a,b}, answerFormula:"a + b". Use this for bare computation such as "What is {a} + {b}?" — never dress that up as a 4-option guess.
+- "drag_to_target": the learner drags objects into a box until the count is right. Set activity:"count_into_box", params:{a,b,target,objectPool,objectKind}, answerFormula:"a + b". options may be []. Use this for "show this many" / "how many altogether" with objects to place.
+- "multiple_choice": 3-4 options and correctAnswerIndex. Use for comparisons, sequencing, word choice, shape identification. Options may be plain strings OR {diagramType,params} picture options when the choice is itself a quantity or shape.
+${
+  countIntoBoxFit || isGradeOneAdditionContext(ctx)
+    ? `At Grade ${ctx.grade} for counting/addition: include at least 2 numeric_entry items (bare sums), at least 2 drag_to_target items (place objects), and at least 1 multiple_choice item whose options are picture options (object_quantity icons or shapes) — not Unicode dots. Remaining items stay multiple_choice text when the work is abstract (which number is bigger).`
+    : 'Use drag_to_target only when the task is literally counting objects into a set. Use numeric_entry for simple one-step computation. Do not replace MCQ elsewhere.'
+}`;
   const additionTemplateBlock = isGradeOneAdditionContext(ctx)
     ? `
 GRADE 1 ADDITION TEMPLATE SLICE:
@@ -1051,6 +1248,9 @@ GRADE 1 ADDITION TEMPLATE SLICE:
 - Three-addend and missing-pattern questions are not supported by this Phase 1 template engine:
   set template:false and omit all template-only fields for those questions.
 - Include at least 4 valid template:true questions in this chunk when the selected outcomes permit it.
+- At least 2 of those MUST be interactionType:"numeric_entry" with params:{a,b} and answerFormula:"a + b" (bare "What is {a} + {b}?"). options must be [].
+- At least 2 MUST be interactionType:"drag_to_target" with activity:"count_into_box" so the learner places objects into a box. params must include target (a+b), objectPool (> target), and objectKind (ball, banana, apple, bead, block, …).
+- Include at least 1 multiple_choice item with picture options: each option is {diagramType:"object_quantity", params:{objectKind,count}} rather than a number string or Unicode dots.
 `
     : '';
   return `Create PART "${chunk.label}" of the adaptive QUIZ BANK for Kenyan CBC lesson "${title}" (lesson ${lessonIndex} of ${totalLessons}, Grade ${ctx.grade}, for ${ageGroup}).
@@ -1064,6 +1264,8 @@ ${profile.quizStyle}
 
 ${buildComplexityBlock(ctx.grade, band, ageGroup)}
 
+${interactionTypeBlock}
+
 THIS PART: ${chunk.bloomFocus(band)}
 ${chunk.matrixRule(band)}
 MODALITY MIX for ${ctx.subject.name}: ${profile.modalityMixText} Treat that as the intended overall balance for the whole bank, not a target to exceed.
@@ -1076,10 +1278,13 @@ Return ONLY one JSON object:
 }
 
 COMPACT QUESTION SHAPE — include ONLY:
-- question, options (3-4), correctAnswerIndex
+- question, interactionType (multiple_choice, numeric_entry, or drag_to_target)
+- for multiple_choice: options (3-4 strings OR {diagramType,params} picture options), correctAnswerIndex
+- for numeric_entry: params {a,b}, answerFormula; options must be []
+- for drag_to_target: activity "count_into_box", params {a,b,target,objectPool,objectKind}, answerFormula; options may be []
 - explanation (max 16 words)
-- distractors:[{"optionIndex":number,"misconception":"max 8 words"}] for wrong options
-- reviewRationale:[{"optionIndex":number,"text":"..."}] for EVERY option, correct and wrong
+- distractors:[{"optionIndex":number,"misconception":"max 8 words"}] for wrong MCQ options
+- reviewRationale:[{"optionIndex":number,"text":"..."}] for EVERY MCQ option, correct and wrong
 - learningOutcomeIndex, bloomLevel, modality, difficulty
 Do NOT include id, type, points, skillFocus, optionExplanations, feedbackCorrect or feedbackIncorrect; the server adds them.
 
@@ -1188,7 +1393,7 @@ Topic: ${ctx.subject.name} · ${ctx.strand.name} · ${ctx.subStrand.name}
 ${buildComplexityBlock(ctx.grade, band, ageGroup)}
 ${avoidBlock}
 Use bloomLevel "understand" or "apply" (mix). Use the same COMPACT shape as the main bank:
-question, options(3-4), correctAnswerIndex, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}], reviewRationale[{optionIndex,text}] for EVERY option, learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+interactionType (multiple_choice, numeric_entry, or drag_to_target), question, options(3-4) and correctAnswerIndex for multiple_choice (options may be {diagramType,params} picture options), or params{a,b}+answerFormula for numeric_entry, or params{a,b,target,objectPool,objectKind}+answerFormula for drag_to_target, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}] for MCQ, reviewRationale[{optionIndex,text}] for EVERY MCQ option, learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
 reviewRationale is admin-review-only: 1-2 sentences, 20-30 words per option, saying precisely why that option is right or exactly what mistake produces it. Keep "explanation" and "misconception" as short as stated — they are learner-facing.
 Only tag a question visual when its content is genuinely visual, and then include a real "diagram" object with specific params. Otherwise use practice or text_steps.
 Do NOT include id, type, points, skillFocus, optionExplanations or feedback fields; the server adds them.
@@ -1249,6 +1454,14 @@ export const runQuizQAPass = async (
   { label = '', generateContentFn = null, ctx = null } = {}
 ) => {
   if (!Array.isArray(questions) || questions.length === 0) return questions;
+
+  const mechanical = applyQuizQualityGates(questions);
+  if (mechanical.answerInStem || mechanical.conceptRepetition) {
+    console.log(
+      `Quiz quality gates${label ? ` (${label})` : ''}: answer-in-stem=${mechanical.answerInStem} concept-repetition=${mechanical.conceptRepetition}`
+    );
+  }
+
   if (!isQuizQaEnabled()) return questions;
 
   const band = ctx?.complexityBand || getComplexityBand(ctx?.gradeNumber);
@@ -1279,12 +1492,13 @@ For each question below, check:
 3. Is the question text clear and age-appropriate for Grade ${grade}, with no ambiguous wording?
 4. Is there any factual error in the question or the marked correct answer?
 ${complexityCheck}
+7. Does the correct answer already appear as a number or phrase in the stem (e.g. "A tray has 5 spoons and 4 forks. How many spoons are there?" → 5)? That is a defect — start the issue with "answer appears in stem".
 
 Return ONLY a compact JSON array, one entry per question in the same order:
 {"i":number,"ok":boolean} for a passing question.
 {"i":number,"ok":false,"issue":"max 18 words"} for a genuine problem.
 
-Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording, over-complexity for the grade).
+Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording, over-complexity for the grade, answer already in the stem).
 Do not fail a question just for being easy or simple — that's expected for some Bloom levels.
 ${complexityInstruction}
 Judge complexity against the stated grade only, never against what would suit an older learner.
@@ -1323,8 +1537,16 @@ ${JSON.stringify(
       if (!Number.isFinite(idx) || idx < 0 || idx >= questions.length) continue;
       const passes = entry?.ok ?? entry?.passes_qa;
       if (passes === false) {
-        questions[idx].qa_flagged = true;
-        questions[idx].qa_issue = String(entry.issue || 'Flagged by automated QA').slice(0, 280);
+        const issue = String(entry.issue || 'Flagged by automated QA').slice(0, 280);
+        if (questions[idx].qa_flagged) {
+          const prev = String(questions[idx].qa_issue || '').trim();
+          if (prev && !prev.includes(issue)) {
+            questions[idx].qa_issue = `${prev}; ${issue}`.slice(0, 280);
+          }
+        } else {
+          questions[idx].qa_flagged = true;
+          questions[idx].qa_issue = issue;
+        }
       }
     }
     const flaggedCount = questions.filter((q) => q.qa_flagged).length;
@@ -1657,10 +1879,14 @@ export const generateLessonsFromSubStrand = async (
         );
       }
 
-      // ——— Batched QA pass (QUIZ_QA_ENABLED, default on) ———
-      if (isQuizQaEnabled() && (mapped.quiz?.questions || []).length > 0) {
-        reportProgress(onProgress, start + span * 0.93, `Lesson ${i + 1}: running quiz QA…`);
-        await runQuizQAPass(mapped.quiz.questions, { label: `lesson ${i + 1}`, ctx });
+      // ——— Mechanical quality gates always; LLM QA is env-gated ———
+      if ((mapped.quiz?.questions || []).length > 0) {
+        if (isQuizQaEnabled()) {
+          reportProgress(onProgress, start + span * 0.93, `Lesson ${i + 1}: running quiz QA…`);
+          await runQuizQAPass(mapped.quiz.questions, { label: `lesson ${i + 1}`, ctx });
+        } else {
+          applyQuizQualityGates(mapped.quiz.questions);
+        }
       }
 
       lessons.push(mapped);
@@ -1820,12 +2046,15 @@ export const topUpLessonQuizBank = async (lessonId) => {
     gradeNumber: ctx.gradeNumber
   });
 
-  // QA only the newly added batch (existing questions already reviewed / flagged)
-  if (isQuizQaEnabled() && normalized.questions.length > 0) {
-    await runQuizQAPass(normalized.questions, {
-      label: `top-up ${lessonId.slice(0, 8)}`,
-      ctx
-    });
+  if (normalized.questions.length > 0) {
+    if (isQuizQaEnabled()) {
+      await runQuizQAPass(normalized.questions, {
+        label: `top-up ${lessonId.slice(0, 8)}`,
+        ctx
+      });
+    } else {
+      applyQuizQualityGates(normalized.questions);
+    }
   }
 
   // Canonicalize difficulty on the full bank at save (fixes older medium/hard drift too)

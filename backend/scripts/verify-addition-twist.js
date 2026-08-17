@@ -4,6 +4,7 @@ import {
   twistAdditionQuestion,
   validateAdditionTemplate
 } from '../utils/additionTemplate.js';
+import { expectedScalarForQuestion } from '../utils/expectedScalar.js';
 import { normalizeQuiz } from '../admin/services/lessonGenerationService.js';
 
 const assert = (condition, message) => {
@@ -55,7 +56,9 @@ for (const field of [
 ]) {
   assert(stored[field] !== undefined, `normalizeQuiz dropped template field ${field}`);
 }
-assert(Number(stored.options[stored.correctAnswerIndex]) === 9, 'normalized template answer is wrong');
+assert(stored.interactionType === 'numeric_entry', 'Grade 1 addition templates normalize to numeric_entry');
+assert(stored.options.length === 0, 'numeric_entry has no option list');
+assert(expectedScalarForQuestion(stored) === 9, 'normalized template answer is wrong');
 
 const seen = new Set();
 for (let i = 0; i < 500; i += 1) {

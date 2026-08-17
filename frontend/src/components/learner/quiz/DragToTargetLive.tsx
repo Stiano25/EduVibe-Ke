@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { MathText } from '@/components/ui/MathText'
 import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
+import { ObjectIcon, resolveObjectKind } from '../diagrams/objectIcons'
 import type { MultipleChoiceLiveProps } from './types'
 
 const DONE = 'Done'
@@ -15,6 +16,7 @@ export const DragToTargetLive = ({
   onSubmitDrag,
 }: MultipleChoiceLiveProps) => {
   const poolSize = Math.min(20, Math.max(Number(question.objectPool) || 8, 3))
+  const objectKind = resolveObjectKind(question.objectKind, question.question)
   const [inBox, setInBox] = useState<number[]>([])
   const [dragging, setDragging] = useState<number | null>(null)
   const boxRef = useRef<HTMLDivElement>(null)
@@ -59,14 +61,14 @@ export const DragToTargetLive = ({
               key={id}
               type="button"
               disabled={disabled}
-              aria-label="bead"
-              className={`h-10 w-10 rounded-full bg-teal-500 border-2 border-teal-700 touch-manipulation ${
-                dragging === id ? 'opacity-50' : ''
-              }`}
+              aria-label={objectKind}
+              className={`touch-manipulation ${dragging === id ? 'opacity-50' : ''}`}
               onClick={() => dropIntoBox(id)}
               onPointerDown={() => setDragging(id)}
               onPointerUp={(e) => onPointerUp(id, e.clientX, e.clientY)}
-            />
+            >
+              <ObjectIcon kind={objectKind} className="h-10 w-10" />
+            </button>
           ))}
         </div>
 
@@ -81,10 +83,12 @@ export const DragToTargetLive = ({
                 key={id}
                 type="button"
                 disabled={disabled}
-                aria-label="bead in box"
-                className="h-10 w-10 rounded-full bg-teal-500 border-2 border-teal-700 touch-manipulation"
+                aria-label={`${objectKind} in box`}
+                className="touch-manipulation"
                 onClick={() => returnToPool(id)}
-              />
+              >
+                <ObjectIcon kind={objectKind} className="h-10 w-10" />
+              </button>
             ))}
           </div>
         </div>

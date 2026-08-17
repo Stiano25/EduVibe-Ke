@@ -6,6 +6,15 @@ import {
   isCountIntoBoxQuestion,
   twistCountIntoBoxQuestion
 } from '../../utils/countIntoBox.js';
+import {
+  expectedScalarForQuestion,
+  parseNumericAnswer
+} from '../../utils/expectedScalar.js';
+import {
+  isNumericEntryQuestion,
+  twistNumericEntryQuestion
+} from '../../utils/numericEntry.js';
+import { normalizeQuizOption } from '../../utils/quizOptions.js';
 
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
@@ -64,7 +73,7 @@ const shuffleIndices = (n) => {
  * Returns display-space options + remapped correct index; `order[display] = original`.
  */
 export const shuffleQuestionOptions = (q = {}) => {
-  const options = Array.isArray(q.options) ? q.options.map(String) : [];
+  const options = Array.isArray(q.options) ? q.options.map(normalizeQuizOption) : [];
   const n = options.length;
   if (n < 2) {
     return {
@@ -93,7 +102,7 @@ export const shuffleQuestionOptions = (q = {}) => {
 };
 
 const applyStoredOrder = (q, order) => {
-  const options = Array.isArray(q.options) ? q.options.map(String) : [];
+  const options = Array.isArray(q.options) ? q.options.map(normalizeQuizOption) : [];
   if (!Array.isArray(order) || order.length !== options.length) {
     return {
       options,
@@ -139,7 +148,8 @@ const publicQuestion = (q, indexInBank, session = null) => {
     learningOutcomeKey: q.learningOutcomeKey,
     ...(resolveInteractionType(q.interactionType || q.type) === 'drag_to_target'
       ? {
-          objectPool: Number(q.params?.objectPool) || 8
+          objectPool: Number(q.params?.objectPool) || 8,
+          objectKind: q.params?.objectKind || undefined
         }
       : {}),
     ...(q.bankEntryId ? { bankEntryId: q.bankEntryId } : {}),
@@ -389,7 +399,8 @@ const fastAnswerTrigger = (session, responseTimeMs) => {
 const scheduleTwin = ({ session, lesson, question, questionId, correct, responseTimeMs }) => {
   if (String(lesson?.grade) !== '1') return null;
   const drag = isCountIntoBoxQuestion(question);
-  if (!drag && !isAdditionTemplateQuestion(question)) return null;
+  const numeric = isNumericEntryQuestion(question);
+  if (!drag && !numeric && !isAdditionTemplateQuestion(question)) return null;
   const triggerReason = !correct
     ? 'incorrect'
     : fastAnswerTrigger(session, responseTimeMs)
@@ -397,7 +408,11 @@ const scheduleTwin = ({ session, lesson, question, questionId, correct, response
       : null;
   if (!triggerReason) return null;
 
-  const twisted = drag ? twistCountIntoBoxQuestion(question) : twistAdditionQuestion(question);
+  const twisted = drag
+    ? twistCountIntoBoxQuestion(question)
+    : numeric
+      ? twistNumericEntryQuestion(question)
+      : twistAdditionQuestion(question);
   if (!twisted.ok) {
     console.warn(`[twin-consistency] ${questionId}: ${twisted.reason}`);
     return null;
@@ -411,12 +426,14 @@ const scheduleTwin = ({ session, lesson, question, questionId, correct, response
     isTwistedVariant: true,
     twinPairId: pairId,
     twinOf: questionId,
-    diagramBriefId: null,
-    modality: drag ? 'visual' : 'practice',
+    diagramBriefId: question.diagramBriefId || null,
+    modality: drag || numeric ? question.modality || (drag ? 'visual' : 'practice') : 'practice',
     steps: undefined,
     ...(drag
       ? { interactionType: 'drag_to_target', activity: 'count_into_box' }
-      : {})
+      : numeric
+        ? { interactionType: 'numeric_entry', activity: 'numeric_entry' }
+        : {})
   };
   const entry = {
     pairId,
@@ -558,6 +575,7 @@ export const advanceAdaptiveSession = ({
   lesson,
   selectedOptionIndex,
   placedCount: rawPlacedCount,
+  submittedValue: rawSubmittedValue,
   responseTimeMs: rawResponseTimeMs,
   masteryRows = [],
   modalitySuccessMap = new Map()
@@ -594,12 +612,15 @@ export const advanceAdaptiveSession = ({
   const responseTimeMs = asResponseTimeMs(rawResponseTimeMs);
   const interactionType = resolveInteractionType(question.interactionType || question.type);
   const isDrag = interactionType === 'drag_to_target';
+  const isNumeric = interactionType === 'numeric_entry' || isNumericEntryQuestion(question);
   const order = session.optionOrders?.[currentId];
   let selectedDisplay = Number(selectedOptionIndex);
   let selectedOriginal = selectedDisplay;
   let correct = false;
   let displayCorrect = 0;
   let expectedCount = null;
+  let expectedValue = null;
+  let submittedValue = null;
 
   if (isDrag) {
     expectedCount = expectedCountForQuestion(question);
@@ -611,6 +632,15 @@ export const advanceAdaptiveSession = ({
     selectedOriginal = placed;
     correct = expectedCount != null && placed === expectedCount;
     displayCorrect = expectedCount;
+  } else if (isNumeric) {
+    expectedValue = expectedScalarForQuestion(question);
+    submittedValue = parseNumericAnswer(
+      rawSubmittedValue ?? rawPlacedCount ?? selectedOptionIndex
+    );
+    selectedDisplay = submittedValue;
+    selectedOriginal = submittedValue;
+    correct = expectedValue != null && submittedValue === expectedValue;
+    displayCorrect = expectedValue;
   } else {
     selectedOriginal =
       Array.isArray(order) && order[selectedDisplay] !== undefined
@@ -834,7 +864,8 @@ export const advanceAdaptiveSession = ({
       correctAnswerIndex: displayCorrect,
       explanation: question.explanation,
       optionExplanations: applyStoredOrder(question, order).optionExplanations,
-      ...(isDrag ? { expectedCount, placedCount: selectedOriginal } : {})
+      ...(isDrag ? { expectedCount, placedCount: selectedOriginal } : {}),
+      ...(isNumeric ? { expectedValue, submittedValue } : {})
     },
     meta: {
       phase: session.phase,
@@ -903,8 +934,11 @@ export const buildReviewView = (lesson, sessionReview) => {
       interactionType: resolveInteractionType(q.interactionType || q.type),
       activity: q.activity || undefined,
       objectPool: q.params?.objectPool != null ? Number(q.params.objectPool) : undefined,
+      objectKind: q.params?.objectKind || undefined,
       expectedCount: isCountIntoBoxQuestion(q) ? expectedCountForQuestion(q) : undefined,
       placedCount: isCountIntoBoxQuestion(q) ? a.selectedOptionIndex : undefined,
+      expectedValue: isNumericEntryQuestion(q) ? expectedScalarForQuestion(q) : undefined,
+      submittedValue: isNumericEntryQuestion(q) ? a.selectedOptionIndex : undefined,
       phase: a.phase
     });
   }

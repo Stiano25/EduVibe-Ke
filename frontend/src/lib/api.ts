@@ -477,6 +477,7 @@ class ApiClient {
         session: Record<string, unknown>
         selectedOptionIndex: number
         placedCount?: number
+        submittedValue?: string | number
         responseTimeMs: number
       }
     ) =>

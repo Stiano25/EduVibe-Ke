@@ -1,8 +1,14 @@
+import { ObjectQuantityStrip } from './objectIcons'
+
 export const LIVE_DIAGRAM_TYPES = [
   'counting_circles',
   'labeled_boxes',
   'number_line',
   'fraction_bars',
+  'object_quantity',
+  'rectangle',
+  'cube',
+  'right_triangle',
 ] as const
 
 export type LiveDiagramType = (typeof LIVE_DIAGRAM_TYPES)[number]
@@ -169,19 +175,25 @@ const LabeledBoxes = ({ params }: { params: DiagramParams }) => {
 const CountingCircles = ({ params }: { params: DiagramParams }) => {
   const count = Math.min(Math.max(Number(params.count) || 5, 1), 40)
   const columns = Math.min(Math.max(Number(params.columns) || 5, 1), 10)
-  const title = formatLabel(params.title || params.label || `Count: ${count}`)
+  const showTotal = params.showTotal === true
+  const showNumbers = params.showNumbers === true
+  const title = formatLabel(params.title || params.label || '')
   const highlight = params.highlight != null ? Number(params.highlight) : null
   const color = String(params.color || '#14B8A6')
   const r = 16
   const gap = 12
-  const startY = 80
+  const startY = title ? 80 : 48
+  const rows = Math.ceil(count / columns)
+  const svgH = Math.max(200, startY + rows * (r * 2 + gap) + 36)
 
   return (
-    <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
+    <svg viewBox={`0 0 640 ${svgH}`} className="w-full h-auto" role="img">
       <rect width="100%" height="100%" fill="#F8FAFC" />
-      <text x="320" y="40" textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
-        {title}
-      </text>
+      {title ? (
+        <text x="320" y="40" textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
+          {title}
+        </text>
+      ) : null}
       {Array.from({ length: count }, (_, i) => {
         const col = i % columns
         const row = Math.floor(i / columns)
@@ -193,14 +205,131 @@ const CountingCircles = ({ params }: { params: DiagramParams }) => {
         return (
           <g key={i}>
             <circle cx={cx} cy={cy} r={r} fill={isHi ? '#F59E0B' : color} stroke="#0F766E" strokeWidth="2" />
-            <text x={cx} y={cy + 5} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="12" fontWeight="700" fill="#fff">
-              {i + 1}
-            </text>
+            {showNumbers ? (
+              <text x={cx} y={cy + 5} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="12" fontWeight="700" fill="#fff">
+                {i + 1}
+              </text>
+            ) : null}
           </g>
         )
       })}
-      <text x="320" y="260" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="16" fill="#334155">
-        {`Total = ${count}`}
+      {showTotal ? (
+        <text x="320" y={svgH - 16} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="16" fill="#334155">
+          {`Total = ${count}`}
+        </text>
+      ) : null}
+    </svg>
+  )
+}
+
+const RectangleShape = ({ params }: { params: DiagramParams }) => {
+  const width = Number(params.width) || Number(params.length) || 8
+  const height = Number(params.height) || 5
+  const unit = formatLabel(params.unit || 'cm')
+  const x = 120
+  const y = 70
+  const w = 400
+  const h = 160
+
+  return (
+    <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
+      <rect width="100%" height="100%" fill="#F8FAFC" />
+      <rect x={x} y={y} width={w} height={h} fill="#ECFDF5" stroke="#0F766E" strokeWidth="3" />
+      <text x={x + w / 2} y={y + h + 28} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="16" fill="#0F172A">
+        {`${width} ${unit}`}
+      </text>
+      <text x={x - 16} y={y + h / 2} textAnchor="end" fontFamily="Manrope, Arial, sans-serif" fontSize="16" fill="#0F172A">
+        {`${height} ${unit}`}
+      </text>
+    </svg>
+  )
+}
+
+const CubeShape = ({ params }: { params: DiagramParams }) => {
+  const side = Number(params.side) || Number(params.length) || 4
+  const width = Number(params.width) || side
+  const height = Number(params.height) || side
+  const depth = Number(params.depth) || side
+  const unit = formatLabel(params.unit || 'cm')
+  const ox = 220
+  const oy = 170
+  const dx = 90
+  const dy = 50
+  const frontW = 180
+  const frontH = 140
+
+  const p = {
+    a: [ox, oy],
+    b: [ox + frontW, oy],
+    c: [ox + frontW, oy - frontH],
+    d: [ox, oy - frontH],
+    e: [ox + dx, oy - dy],
+    f: [ox + frontW + dx, oy - dy],
+    g: [ox + frontW + dx, oy - frontH - dy],
+    h: [ox + dx, oy - frontH - dy],
+  }
+
+  return (
+    <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
+      <rect width="100%" height="100%" fill="#F8FAFC" />
+      <polygon
+        points={`${p.a} ${p.b} ${p.c} ${p.d}`}
+        fill="#CCFBF1"
+        stroke="#0F766E"
+        strokeWidth="2.5"
+      />
+      <polygon
+        points={`${p.c} ${p.b} ${p.f} ${p.g}`}
+        fill="#99F6E4"
+        stroke="#0F766E"
+        strokeWidth="2.5"
+      />
+      <polygon
+        points={`${p.d} ${p.c} ${p.g} ${p.h}`}
+        fill="#5EEAD4"
+        stroke="#0F766E"
+        strokeWidth="2.5"
+      />
+      <text x={ox + frontW / 2} y={oy + 24} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
+        {`${width} ${unit}`}
+      </text>
+      <text x={ox - 14} y={oy - frontH / 2} textAnchor="end" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
+        {`${height} ${unit}`}
+      </text>
+      <text x={ox + frontW + dx / 2 + 28} y={oy - dy / 2 + 8} textAnchor="start" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
+        {`${depth} ${unit}`}
+      </text>
+    </svg>
+  )
+}
+
+const RightTriangle = ({ params }: { params: DiagramParams }) => {
+  const angleDeg = Math.min(Math.max(Number(params.angleDeg) || 35, 15), 75)
+  const hyp = formatLabel(params.hypotenuse || params.c || 'hyp')
+  const opp = formatLabel(params.opposite || params.a || 'opp')
+  const adj = formatLabel(params.adjacent || params.b || 'adj')
+  const ax = 120
+  const ay = 230
+  const adjLen = 280
+  const oppLen = Math.min(Math.tan((angleDeg * Math.PI) / 180) * adjLen, 160)
+  const bx = ax + adjLen
+  const by = ay
+  const cx = ax
+  const cy = ay - oppLen
+
+  return (
+    <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
+      <rect width="100%" height="100%" fill="#F8FAFC" />
+      <polygon points={`${ax},${ay} ${bx},${by} ${cx},${cy}`} fill="#ECFDF5" stroke="#0F766E" strokeWidth="3" />
+      <path d={`M ${ax + 18} ${ay} L ${ax + 18} ${ay - 18} L ${ax} ${ay - 18}`} fill="none" stroke="#334155" strokeWidth="2" />
+      <text x={(ax + bx) / 2} y={ay + 22} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="14" fill="#0F172A">
+        {adj}
+      </text>
+      <text x={ax - 28} y={(ay + cy) / 2} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="14" fill="#0F172A">
+        {opp}
+      </text>
+      <text x={(bx + cx) / 2 + 18} y={(by + cy) / 2} textAnchor="start" fontFamily="Manrope, Arial, sans-serif" fontSize="14" fill="#0F172A">
+        {hyp}
       </text>
     </svg>
   )
@@ -221,6 +350,10 @@ export const LiveDiagram = ({ diagramType, params, className = '' }: LiveDiagram
       {diagramType === 'fraction_bars' ? <FractionBars params={p} /> : null}
       {diagramType === 'labeled_boxes' ? <LabeledBoxes params={p} /> : null}
       {diagramType === 'counting_circles' ? <CountingCircles params={p} /> : null}
+      {diagramType === 'object_quantity' ? <ObjectQuantityStrip params={p} /> : null}
+      {diagramType === 'rectangle' ? <RectangleShape params={p} /> : null}
+      {diagramType === 'cube' ? <CubeShape params={p} /> : null}
+      {diagramType === 'right_triangle' ? <RightTriangle params={p} /> : null}
     </div>
   )
 }

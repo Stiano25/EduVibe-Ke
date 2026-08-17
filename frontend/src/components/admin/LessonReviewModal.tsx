@@ -5,6 +5,8 @@ import { api } from '@/lib/api'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { MathText } from '@/components/ui/MathText'
 import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlocks'
+import { LiveDiagram, isLiveDiagramType } from '@/components/learner/diagrams/LiveDiagram'
+import { OptionVisual } from '@/components/learner/OptionVisual'
 import type { Lesson, LessonVisualBrief, QuizQuestion } from '@/types'
 
 const DIAGRAM_TYPES = [
@@ -18,6 +20,9 @@ const DIAGRAM_TYPES = [
   'coordinate_plane',
   'matrix',
   'counting_circles',
+  'object_quantity',
+  'rectangle',
+  'cube',
   'indices',
   'right_triangle',
   'unit_circle',
@@ -1010,6 +1015,14 @@ export const LessonReviewModal = ({
                           {q.bloomLevel}
                         </span>
                       )}
+                      {q.interactionType && (
+                        <span
+                          className="px-2 py-0.5 text-[10px] font-semibold bg-teal-100 text-teal-800 rounded-full"
+                          style={{ fontFamily: 'Manrope, sans-serif' }}
+                        >
+                          {q.interactionType}
+                        </span>
+                      )}
                       {q.flagged_near_duplicate && (
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-900 rounded-full border border-amber-300"
@@ -1063,11 +1076,24 @@ export const LessonReviewModal = ({
                               : ''}
                           </p>
                         )}
-                        {diagramUrlForQuestion(q) ? (
-                          <img src={diagramUrlForQuestion(q)!} alt="" className="mt-2 max-h-40 mx-auto" />
-                        ) : (
-                          <p className="text-violet-600 mt-1">SVG renders on approve (preview under Visuals tab).</p>
-                        )}
+                        {(() => {
+                          const brief = briefs.find((b) => b.id === q.diagramBriefId)
+                          if (brief && isLiveDiagramType(brief.diagramType)) {
+                            return (
+                              <LiveDiagram
+                                diagramType={brief.diagramType}
+                                params={brief.params}
+                                className="mt-2"
+                              />
+                            )
+                          }
+                          if (diagramUrlForQuestion(q)) {
+                            return <img src={diagramUrlForQuestion(q)!} alt="" className="mt-2 max-h-40 mx-auto" />
+                          }
+                          return (
+                            <p className="text-violet-600 mt-1">SVG renders on approve (preview under Visuals tab).</p>
+                          )
+                        })()}
                       </div>
                     )}
 
@@ -1076,6 +1102,21 @@ export const LessonReviewModal = ({
                       text={q.question || ''}
                       className="text-base sm:text-lg font-semibold text-[#0F172A]"
                     />
+
+                    {q.interactionType === 'numeric_entry' && (
+                      <div className="rounded-[16px] border-2 border-indigo-200 bg-indigo-50 p-4 space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                          Numeric entry
+                        </p>
+                        <div className="min-h-12 rounded-[12px] border-2 border-indigo-200 bg-white flex items-center justify-center text-2xl font-black text-slate-400">
+                          —
+                        </div>
+                        <p className="text-xs text-slate-600">
+                          Learner types the answer. Expected from formula
+                          {q.answerFormula ? ` ${q.answerFormula}` : ''}.
+                        </p>
+                      </div>
+                    )}
 
                     {q.options?.map((option, optIdx) => {
                       const isCorrect = optIdx === q.correctAnswerIndex
@@ -1093,8 +1134,8 @@ export const LessonReviewModal = ({
                             <span className="text-xs font-semibold text-slate-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
                               {String.fromCharCode(65 + optIdx)}.
                             </span>
-                            <span className="text-sm text-[#0F172A]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                              <MathText text={option} />
+                            <span className="text-sm text-[#0F172A] flex-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              <OptionVisual option={option} compact />
                             </span>
                             {isCorrect && (
                               <span

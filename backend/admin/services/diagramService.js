@@ -1,18 +1,27 @@
 import { DIAGRAM_TYPES, renderDiagram, coerceLabeledBoxesParams } from './diagramTemplates.js';
+import { namesCountableObject } from '../../utils/objectKinds.js';
+import {
+  inferGeometryDiagramType,
+  isObjectQuantityContent
+} from '../../utils/representationalContent.js';
 
 /**
  * Infer diagram type from free-text brief when AI omits diagramType.
  *
- * `youngGrade` (Grade 3 and below) runs the concrete keyword tests first, so a
- * counting or number-line cue wins over the abstract process/comparison cues
- * further down the chain. Anything the concrete tests miss falls through to the
- * normal ordering unchanged.
+ * Part 0: object/quantity content must NOT fall through to labeled_boxes —
+ * that template only understands items/boxes text, so counting params look "dropped".
  */
 export const inferDiagramType = (brief = '', skillFocus = '', { youngGrade = false } = {}) => {
   const t = `${brief} ${skillFocus}`.toLowerCase();
+  const geo = inferGeometryDiagramType(t);
   if (youngGrade) {
-    if (/count(ing)?|counters?|circles?|dots?|ten\s*frame|objects?\s*to\s*count|how\s*many|altogether|in\s*all|group\s*of/.test(t)) {
-      return 'counting_circles';
+    if (geo) return geo;
+    if (
+      isObjectQuantityContent(t) ||
+      namesCountableObject(t) ||
+      /count(ing)?|counters?|how\s*many|altogether|in\s*all|group\s*of|show\s*this\s*many/.test(t)
+    ) {
+      return namesCountableObject(t) ? 'object_quantity' : 'counting_circles';
     }
     if (/number\s*line|numberline|count\s*on|jump\s*(of|to|forward)|order\s*the\s*numbers/.test(t)) {
       return 'number_line';
@@ -20,13 +29,18 @@ export const inferDiagramType = (brief = '', skillFocus = '', { youngGrade = fal
     if (/fraction|half|halves|quarter|third|equal\s*parts?|shaded/.test(t)) return 'fraction_bars';
     if (/label|parts?\s*of|name\s*the|match\s*the|which\s*part/.test(t)) return 'labeled_boxes';
   }
+  if (geo) return geo;
   if (/matrix|matrices|determinant|row\s*and\s*column/.test(t)) return 'matrix';
   if (/unit\s*circle|radian|exact\s*value.*(sin|cos)|special\s*angle/.test(t)) return 'unit_circle';
   if (/trigonometr|sin\b|cos\b|tan\b|sohcahtoa|right\s*triangle|hypotenuse|opposite|adjacent/.test(t)) {
     return 'right_triangle';
   }
-  if (/count(ing)?|counters?|circles?|dots?|ten\s*frame|objects?\s*to\s*count|how\s*many/.test(t)) {
-    return 'counting_circles';
+  if (
+    isObjectQuantityContent(t) ||
+    namesCountableObject(t) ||
+    /count(ing)?|counters?|circles?|dots?|ten\s*frame|objects?\s*to\s*count|how\s*many/.test(t)
+  ) {
+    return namesCountableObject(t) ? 'object_quantity' : 'counting_circles';
   }
   if (/indic(es|ex)|exponent|power\s*of|squared|cubed|\^[0-9]|base\s*and\s*power/.test(t)) {
     return 'indices';
@@ -74,6 +88,12 @@ const defaultParamsForType = (diagramType, brief, skillFocus) => {
       return { title: label, rows: 2, cols: 2, values: [[1, 2], [3, 4]] };
     case 'counting_circles':
       return { title: label, count: 6, columns: 5 };
+    case 'object_quantity':
+      return { objectKind: 'bead', count: 5, columns: 5 };
+    case 'rectangle':
+      return { width: 8, height: 5, unit: 'cm' };
+    case 'cube':
+      return { side: 4, unit: 'cm' };
     case 'indices':
       return { title: label, base: 2, exponent: 3 };
     case 'right_triangle':

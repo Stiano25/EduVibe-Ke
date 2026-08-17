@@ -22,11 +22,17 @@ export interface QuizDistractor {
   misconception: string
 }
 
+export type QuizOptionVisual = {
+  text?: string
+  diagramType: string
+  params?: Record<string, unknown>
+}
+
 export interface QuizQuestion {
   id: string
   question?: string
-  type?: 'multiple-choice'
-  options?: string[] // 2-6 options
+  type?: 'multiple-choice' | 'drag-to-target' | 'numeric-entry'
+  options?: Array<string | QuizOptionVisual>
   /** Omitted on learner lesson payloads — served only via adaptive endpoints */
   correctAnswerIndex?: number
   explanation?: string
@@ -48,10 +54,13 @@ export interface QuizQuestion {
   reviewRationale?: string[]
   modality?: Exclude<LearnerModality, 'mixed'> | 'practice' | 'visual' | 'text_steps'
   /**
-   * How the learner answers. Canonical value today is `multiple_choice`.
+   * How the learner answers.
    * Distinct from legacy `type: 'multiple-choice'`, which is kept for older banks.
    */
-  interactionType?: 'multiple_choice'
+  interactionType?: 'multiple_choice' | 'drag_to_target' | 'numeric_entry'
+  params?: Record<string, unknown>
+  answerFormula?: string
+  activity?: string
   diagramBriefId?: string | null
   steps?: string[]
   /** Set when AI output is too close to a past-paper exemplar — admin should review */

@@ -22,6 +22,9 @@ const MATH_DIAGRAMS = [
   'coordinate_plane',
   'matrix',
   'counting_circles',
+  'object_quantity',
+  'rectangle',
+  'cube',
   'indices',
   'right_triangle',
   'unit_circle'
@@ -48,7 +51,10 @@ const PROFILES = [
 - indices/exponents/powers → indices (base, exponent)
 - trigonometry / SOHCAHTOA → right_triangle (angleDeg, opposite, adjacent, hypotenuse)
 - unit circle / special angles → unit_circle (angleDeg)
-- early counting / how many objects → counting_circles (count, columns)
+- early counting / how many named objects → object_quantity (objectKind, count or groups:[a,b])
+- abstract counters with no named object → counting_circles (count, columns; do not print Total)
+- cubes / cuboids with dimensions → cube (side or length,width,height)
+- rectangles / squares with dimensions → rectangle (width, height)
 - fractions → fraction_bars; place value → place_value; number line → number_line`,
     fallbackDiagramType: 'labeled_boxes'
   },

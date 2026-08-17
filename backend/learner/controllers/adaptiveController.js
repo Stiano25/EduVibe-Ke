@@ -507,11 +507,12 @@ export const nextAdaptiveQuiz = async (req, res) => {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const lessonId = req.params.lessonId;
-    const { session, selectedOptionIndex, placedCount, responseTimeMs } = req.body || {};
+    const { session, selectedOptionIndex, placedCount, submittedValue, responseTimeMs } = req.body || {};
     if (
       !session ||
       (selectedOptionIndex === undefined || selectedOptionIndex === null) &&
-        (placedCount === undefined || placedCount === null)
+        (placedCount === undefined || placedCount === null) &&
+        (submittedValue === undefined || submittedValue === null)
     ) {
       return res.status(400).json({ error: 'session and an answer are required' });
     }
@@ -539,8 +540,9 @@ export const nextAdaptiveQuiz = async (req, res) => {
     const result = advanceAdaptiveSession({
       session: stripSignature(session),
       lesson,
-      selectedOptionIndex: selectedOptionIndex ?? placedCount,
+      selectedOptionIndex: selectedOptionIndex ?? placedCount ?? submittedValue,
       placedCount,
+      submittedValue,
       responseTimeMs,
       masteryRows,
       modalitySuccessMap

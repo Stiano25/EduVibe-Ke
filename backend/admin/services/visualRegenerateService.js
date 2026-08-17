@@ -37,9 +37,10 @@ Guidance:
 - gradients / lines → coordinate_plane (lines:[{m,c,label}])
 - matrices → matrix (values:[[...]])
 - indices / powers → indices (base, exponent)
-- counting objects → counting_circles (count)
-- fractions → fraction_bars
-If nothing fits, use labeled_boxes with params items:[{label,text}] (never boxes/detail).
+- counting named objects → object_quantity (objectKind, count)
+- abstract counters → counting_circles (count)
+- cubes with dimensions → cube; rectangles → rectangle
+If nothing fits, use labeled_boxes with params items:[{label,text}] (never boxes/detail) — but NEVER for counting objects.
 
 Return ONLY JSON:
 {

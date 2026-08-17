@@ -5,6 +5,7 @@ import { Strand } from '../../models/Strand.js';
 import { Subject } from '../../models/Subject.js';
 import { Lesson } from '../../models/Lesson.js';
 import { oneOrNull } from '../../utils/dbResult.js';
+import { parseGradeNumber } from '../../utils/complexityBands.js';
 
 export const LAYER2_SOURCE = 'fail_streak_llm';
 export const LAYER2_EDGE_TYPE = 'cross_strand';
@@ -15,9 +16,16 @@ const EVENTS = 'prerequisite_remediation_events';
 const CANDIDATE_CAP = 40;
 
 const gradeNumber = (grade) => {
-  if (grade === 'K' || grade === 'k') return 0;
-  const n = parseInt(grade, 10);
+  const n = parseGradeNumber(grade);
   return Number.isFinite(n) ? n : null;
+};
+
+/** Fail-streaks on Grade 1 (and K) are not trustworthy until question format is fixed. */
+export const LAYER2_MIN_GRADE = 2;
+
+export const isLayer2GradeSuppressed = (grade) => {
+  const n = gradeNumber(grade);
+  return n != null && n < LAYER2_MIN_GRADE;
 };
 
 const extractJsonText = (text = '') => {
@@ -103,6 +111,9 @@ export const maybeQueueLayer2Proposal = async ({
   const outcome = await resolveFailedOutcome(learningOutcomeKey, grade);
   if (!outcome) {
     return { queued: false, reason: 'outcome_not_in_graph' };
+  }
+  if (isLayer2GradeSuppressed(grade || outcome.grade)) {
+    return { queued: false, reason: 'grade1_format_untrusted', outcomeId: outcome.id };
   }
   if (await hasOpenLayer2Edge(outcome.id)) {
     return { queued: false, reason: 'layer2_edge_exists', outcomeId: outcome.id };
@@ -262,6 +273,18 @@ export const processEdgeProposalJob = async (jobId) => {
 
     const failed = await CurriculumOutcome.findById(job.outcomeId);
     if (!failed) throw new Error('Failed outcome missing');
+    if (isLayer2GradeSuppressed(job.grade || failed.grade)) {
+      await db
+        .from(JOBS)
+        .update({
+          status: 'skipped',
+          error: 'grade1_format_untrusted',
+          finished_at: new Date().toISOString(),
+          proposed_count: 0
+        })
+        .eq('id', jobId);
+      return { skipped: true, reason: 'grade1_format_untrusted' };
+    }
     const maps = await loadTaxonomyMaps();
     const failedDecorated = decorateOutcome(failed, maps);
     const candidates = await listCandidateOutcomes(failed);

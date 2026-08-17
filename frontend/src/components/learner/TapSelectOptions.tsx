@@ -1,6 +1,7 @@
 import { useRef, type RefObject } from 'react'
-import { MathText } from '@/components/ui/MathText'
 import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
+import { OptionVisual } from './OptionVisual'
+import type { QuizOption } from './quiz/types'
 
 export type TapSelection = {
   optionIndex: number
@@ -8,7 +9,7 @@ export type TapSelection = {
 }
 
 interface TapSelectOptionsProps {
-  options: string[]
+  options: QuizOption[]
   questionKey: string
   selectedIndex?: number | null
   disabled?: boolean
@@ -70,7 +71,7 @@ export const TapSelectOptions = ({
             } disabled:cursor-not-allowed`}
           >
             <span className="mr-2 font-semibold">{String.fromCharCode(65 + optionIndex)}.</span>
-            <MathText text={option} />
+            <OptionVisual option={option} compact />
           </button>
         )
       })}

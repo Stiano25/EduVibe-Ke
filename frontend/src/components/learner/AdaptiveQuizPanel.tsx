@@ -118,10 +118,12 @@ export const AdaptiveQuizPanel = ({
   const submitAnswer = async ({
     selectedOptionIndex,
     placedCount,
+    submittedValue,
     responseTimeMs,
   }: {
     selectedOptionIndex?: number
     placedCount?: number
+    submittedValue?: string | number
     responseTimeMs: number
   }) => {
     if (!session || !question || submitting || flash) return
@@ -132,8 +134,9 @@ export const AdaptiveQuizPanel = ({
     try {
       const res = (await api.learner.nextAdaptiveQuiz(lessonId, {
         session,
-        selectedOptionIndex: selectedOptionIndex ?? placedCount ?? 0,
+        selectedOptionIndex: selectedOptionIndex ?? placedCount ?? submittedValue ?? 0,
         placedCount,
+        submittedValue,
         responseTimeMs,
       })) as {
         session: Record<string, unknown>
@@ -191,6 +194,11 @@ export const AdaptiveQuizPanel = ({
 
   const handleSubmitDrag = (payload: { placedCount: number; responseTimeMs: number }) =>
     submitAnswer(payload)
+
+  const handleSubmitNumeric = (payload: {
+    submittedValue: string | number
+    responseTimeMs: number
+  }) => submitAnswer(payload)
 
   if (loading) {
     return (
@@ -304,6 +312,7 @@ export const AdaptiveQuizPanel = ({
         interactiveRef={interactiveRef}
         onSelect={handleSelectAndSubmit}
         onSubmitDrag={handleSubmitDrag}
+        onSubmitNumeric={handleSubmitNumeric}
       />
     </div>
   )

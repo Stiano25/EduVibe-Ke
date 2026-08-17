@@ -7,6 +7,7 @@ import { SearchBar } from '@/components/learner/SearchBar'
 import { SubjectNavigation } from '@/components/learner/SubjectNavigation'
 import { DailyExerciseCard } from '@/components/learner/DailyExerciseCard'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
+import { QuestLessonPicker } from '@/components/learner/QuestLessonPicker'
 import { ModalityPreferencePrompt } from '@/components/learner/ModalityPreferencePrompt'
 import { useLessonStore } from '@/store/useLessonStore'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -116,7 +117,10 @@ export const LearnerDashboard = () => {
             <div className="print:hidden">
               <WelcomeHeader />
               {questNav ? (
-                <QuestNextCard data={nextTask} loading={loadingNextTask} />
+                <>
+                  <QuestNextCard data={nextTask} loading={loadingNextTask} />
+                  <QuestLessonPicker compact />
+                </>
               ) : (
                 <>
                   <SearchBar value={searchQuery} onChange={setSearchQuery} />

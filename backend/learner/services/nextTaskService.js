@@ -148,3 +148,61 @@ export const resolveNextTask = async (userId, grade, { extraSatisfiedIds = [] } 
     }
   };
 };
+
+/**
+ * Approved lessons for the learner's grade, with unlock flags.
+ * Quest UI uses this as a picker; locked items stay visible but not tappable.
+ */
+export const listLessonChoices = async (userId, grade) => {
+  if (!userId || !grade) {
+    return { grade: grade || null, choices: [] };
+  }
+
+  const subjects = [...(await Subject.findByGrade(grade))].sort((a, b) =>
+    String(a.name || '').localeCompare(String(b.name || ''))
+  );
+  if (subjects.length === 0) {
+    return { grade, choices: [] };
+  }
+
+  const subjectIdsWithStrands = await Strand.findSubjectIdsHavingAny(subjects.map((s) => s.id));
+  const orderedSubjects = subjects.filter((s) => subjectIdsWithStrands.has(s.id));
+
+  const choices = [];
+  for (const subject of orderedSubjects) {
+    const strands = Strand.dedupeByNamePreserveOrder(await Strand.findBySubject(subject.id));
+    for (const strand of strands) {
+      const { subStrands, lessonsBySub, progressByLessonId } = await loadStrandUnitUnlock(
+        userId,
+        strand.id
+      );
+      const flags = unlockFlagsForSequence(subStrands, lessonsBySub, progressByLessonId);
+      const visible = (subStrands || []).filter(
+        (ss) => (lessonsBySub.get(ss.id) || []).length > 0
+      );
+
+      for (const unit of visible) {
+        const unitIndex = subStrands.findIndex((ss) => ss.id === unit.id);
+        const unitUnlocked = unitIndex < 0 ? true : flags[unitIndex] !== false;
+        const lessons = sortLessons(lessonsBySub.get(unit.id) || []);
+        for (let i = 0; i < lessons.length; i++) {
+          const row = lessons[i];
+          const prev = i > 0 ? progressByLessonId.get(lessons[i - 1].id) : null;
+          const p = progressByLessonId.get(row.id);
+          choices.push({
+            lessonId: row.id,
+            title: row.title || 'Lesson',
+            subjectName: subject.name,
+            strandName: strand.name,
+            subStrandName: unit.name,
+            isUnlocked: unitUnlocked && (i === 0 || progressMeetsUnlock(prev)),
+            isCompleted: !!p?.completed,
+            progress: Number(p?.progress) || 0
+          });
+        }
+      }
+    }
+  }
+
+  return { grade, choices };
+};

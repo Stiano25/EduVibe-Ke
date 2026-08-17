@@ -62,6 +62,12 @@ export const QuestNextCard = ({ data, loading }: QuestNextCardProps) => {
           >
             {QUEST_COPY.done}
           </p>
+          <Link
+            to="/learner/lessons"
+            className="mt-4 inline-flex items-center justify-center px-6 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700"
+          >
+            {QUEST_COPY.pick}
+          </Link>
         </div>
       </div>
     )
@@ -88,6 +94,14 @@ export const QuestNextCard = ({ data, loading }: QuestNextCardProps) => {
           >
             {label}
           </Link>
+          <div className="mt-3">
+            <Link
+              to="/learner/lessons"
+              className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-white/15 text-white text-sm font-bold hover:bg-white/25"
+            >
+              {QUEST_COPY.pick}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

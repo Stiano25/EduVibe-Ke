@@ -238,7 +238,13 @@ export const ObjectQuantityStrip = ({
       {groups.map((count, gi) => (
         <div key={gi} className="flex flex-wrap justify-center gap-1">
           {Array.from({ length: count }, (_, i) => (
-            <ObjectIcon key={`${gi}-${i}`} kind={kind} className={iconClass} title={kind} />
+            <span
+              key={`${gi}-${i}`}
+              className="ev-object-pop inline-flex"
+              style={{ animationDelay: `${(gi * 6 + i) * 70}ms` }}
+            >
+              <ObjectIcon kind={kind} className={iconClass} title={kind} />
+            </span>
           ))}
         </div>
       ))}

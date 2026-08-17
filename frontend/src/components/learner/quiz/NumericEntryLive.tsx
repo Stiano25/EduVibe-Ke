@@ -3,6 +3,9 @@ import { Loader2 } from 'lucide-react'
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
 import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
+import { resolveAdditionLayout } from '@/lib/additionLayout'
+import { ColumnAddition } from './ColumnAddition'
+import { AdditionWorkedExample } from './AdditionWorkedExample'
 import type { MultipleChoiceLiveProps } from './types'
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'back', '0'] as const
@@ -20,6 +23,15 @@ export const NumericEntryLive = ({
   const [digits, setDigits] = useState('')
   const { measureResponseTimeMs } = useVisibleResponseTimer(question.id, interactiveRef)
   const disabled = submitting || !!flash
+  const layout = resolveAdditionLayout(question.layout)
+  const addends = question.addends
+  const vertical =
+    layout === 'vertical' &&
+    addends != null &&
+    Number.isInteger(addends.a) &&
+    Number.isInteger(addends.b)
+  const scaffoldCarry = question.scaffoldCarry !== false
+  const workedSteps = Array.isArray(question.workedSteps) ? question.workedSteps : []
 
   const press = (key: (typeof KEYS)[number]) => {
     if (disabled) return
@@ -41,9 +53,9 @@ export const NumericEntryLive = ({
   return (
     <div className="p-5 rounded-[16px] border-2 border-slate-200 bg-white space-y-4">
       <div ref={interactiveRef} className="space-y-4">
-        {visualBrief && isLiveDiagramType(visualBrief.diagramType) ? (
+        {!vertical && visualBrief && isLiveDiagramType(visualBrief.diagramType) ? (
           <LiveDiagram diagramType={visualBrief.diagramType} params={visualBrief.params} />
-        ) : diagramUrl ? (
+        ) : !vertical && diagramUrl ? (
           <img
             src={diagramUrl}
             alt=""
@@ -53,17 +65,50 @@ export const NumericEntryLive = ({
 
         <MathText as="p" text={question.question} className="text-lg font-bold text-[#0F172A]" />
 
-        <div
-          className="min-h-16 rounded-[16px] border-2 border-indigo-200 bg-indigo-50 flex items-center justify-center px-4"
-          aria-live="polite"
-        >
-          <span
-            className="text-4xl font-black tracking-widest text-[#0F172A]"
-            style={{ fontFamily: 'Fredoka, sans-serif' }}
+        {vertical && workedSteps.length > 0 ? (
+          <>
+            <AdditionWorkedExample
+              a={addends.a}
+              b={addends.b}
+              steps={workedSteps}
+              scaffoldCarry={scaffoldCarry}
+            />
+            <div
+              className="min-h-14 rounded-[16px] border-2 border-indigo-200 bg-indigo-50 flex items-center justify-center px-4"
+              aria-live="polite"
+            >
+              <span
+                className="text-3xl font-black tracking-widest text-[#0F172A]"
+                style={{ fontFamily: 'Fredoka, sans-serif' }}
+              >
+                {digits || '—'}
+              </span>
+            </div>
+          </>
+        ) : vertical ? (
+          <div className="flex justify-center rounded-[16px] border-2 border-indigo-200 bg-indigo-50">
+            <ColumnAddition
+              a={addends.a}
+              b={addends.b}
+              sumText={digits}
+              scaffoldCarry={scaffoldCarry}
+              reveal="sum"
+              animate
+            />
+          </div>
+        ) : (
+          <div
+            className="min-h-16 rounded-[16px] border-2 border-indigo-200 bg-indigo-50 flex items-center justify-center px-4"
+            aria-live="polite"
           >
-            {digits || '—'}
-          </span>
-        </div>
+            <span
+              className="text-4xl font-black tracking-widest text-[#0F172A]"
+              style={{ fontFamily: 'Fredoka, sans-serif' }}
+            >
+              {digits || '—'}
+            </span>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-2">
           {KEYS.map((key) => (

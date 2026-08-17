@@ -12,7 +12,7 @@ export const loadStrandUnitUnlock = async (userId, strandId) => {
   const db = getDbClient();
   const { data: lessonRows, error: lessonError } = await db
     .from('lessons')
-    .select('id, sub_strand_id, duration, lesson_order')
+    .select('id, title, sub_strand_id, duration, lesson_order')
     .in('sub_strand_id', ids)
     .eq('status', 'approved');
   if (lessonError) throw lessonError;
@@ -22,6 +22,7 @@ export const loadStrandUnitUnlock = async (userId, strandId) => {
     if (!lessonsBySub.has(row.sub_strand_id)) lessonsBySub.set(row.sub_strand_id, []);
     lessonsBySub.get(row.sub_strand_id).push({
       id: row.id,
+      title: row.title,
       lessonOrder: row.lesson_order,
       duration: row.duration,
       subStrandId: row.sub_strand_id

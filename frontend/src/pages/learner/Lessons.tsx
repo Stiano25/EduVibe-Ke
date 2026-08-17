@@ -1,13 +1,14 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useSearchParams, Link, Navigate } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
 import { ArrowLeft, Play, Clock, Lock } from 'lucide-react'
 import { api } from '@/lib/api'
 import { LazyLottie } from '@/components/ui/LazyLottie'
 import { animationKeyForSubjectId, type AnimationKey } from '@/lib/lottieAnimations'
+import { QuestLessonPicker } from '@/components/learner/QuestLessonPicker'
 import type { Lesson, Subject, Strand, SubStrand } from '@/types'
 import { useAuthStore } from '@/store/useAuthStore'
-import { usesQuestNavigation } from '@/lib/complexityBands'
+import { QUEST_COPY, usesQuestNavigation } from '@/lib/complexityBands'
 
 interface LessonWithUnlock extends Lesson {
   isUnlocked: boolean
@@ -38,6 +39,8 @@ export const LearnerLessons = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const catalogMode = questNav && !substrandId
+
   const subjectLottieKey: AnimationKey | null = useMemo(() => {
     if (!subjectId) return null
     return animationKeyForSubjectId(subjectId)
@@ -46,6 +49,10 @@ export const LearnerLessons = () => {
   // Fetch subject, strand, and substrand info
   useEffect(() => {
     const fetchData = async () => {
+      if (catalogMode) {
+        setLoading(false)
+        return
+      }
       if (!subjectId || !strandId || !substrandId) {
         setError('Missing required parameters')
         setLoading(false)
@@ -77,7 +84,7 @@ export const LearnerLessons = () => {
     }
 
     fetchData()
-  }, [subjectId, strandId, substrandId])
+  }, [catalogMode, subjectId, strandId, substrandId])
 
   // Sort and categorize lessons by completion status
   const categorizeLessons = (lessonList: LessonWithUnlock[]) => {
@@ -175,8 +182,19 @@ export const LearnerLessons = () => {
 
   const iconColor = subject?.color || 'bg-primary-600'
 
-  if (questNav) {
-    return <Navigate to="/learner" replace />
+  if (catalogMode) {
+    return (
+      <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
+        <div className="p-[5px] pt-[5px]">
+          <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] text-center mb-4">
+              {QUEST_COPY.lessons}
+            </h1>
+            <QuestLessonPicker heading={QUEST_COPY.pick} />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (loading) {

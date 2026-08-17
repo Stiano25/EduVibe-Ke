@@ -19,4 +19,7 @@ export const QUEST_COPY = {
   keepGoing: 'Keep going',
   done: 'All done for now.',
   home: 'Home',
+  lessons: 'Lessons',
+  pick: 'Pick a lesson',
+  locked: 'Locked',
 } as const

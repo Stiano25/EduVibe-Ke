@@ -34,7 +34,7 @@ export const Shell = ({ children }: ShellProps) => {
   const isAdmin = user?.role === 'admin'
   const questNav = !isAdmin && usesQuestNavigation(user?.grade)
   const visibleLearnerNav = questNav
-    ? learnerNavItems.filter((item) => item.path === '/learner')
+    ? learnerNavItems.filter((item) => item.path === '/learner' || item.path === '/learner/lessons')
     : learnerNavItems
 
   const handleLogout = () => {

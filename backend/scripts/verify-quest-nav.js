@@ -6,7 +6,7 @@
  */
 import 'dotenv/config';
 import { getDbClient } from '../config/supabase.js';
-import { resolveNextTask } from '../learner/services/nextTaskService.js';
+import { listLessonChoices, resolveNextTask } from '../learner/services/nextTaskService.js';
 import { usesQuestNavigation, complexityBandKey } from '../utils/complexityBands.js';
 
 const assert = (condition, message) => {
@@ -135,12 +135,23 @@ const main = async () => {
     console.log('No young-grade learner progress found; walking empty-progress catalog as Grade 1.');
     const fake = '00000000-0000-4000-8000-000000000001';
     await walkTasks(fake, '1');
+    const listed = await listLessonChoices(fake, '1');
+    assert(Array.isArray(listed.choices), 'lesson choices is an array');
+    console.log(`  lesson choices: ${listed.choices.length}`);
   } else {
     console.log(
       `Young learner ${learner.userId.slice(0, 8)} grade ${learner.grade} (${learner.progressRows} progress rows)`
     );
     const seen = await walkTasks(learner.userId, learner.grade);
     assert(seen.length >= 1, 'at least one recommended task');
+    const listed = await listLessonChoices(learner.userId, learner.grade);
+    assert(Array.isArray(listed.choices), 'lesson choices is an array');
+    console.log(`  lesson choices: ${listed.choices.length}`);
+    assert(listed.choices.some((c) => c.lessonId === seen[0]), 'picker includes next lesson');
+    assert(
+      listed.choices.every((c) => c.lessonId && c.title && typeof c.isUnlocked === 'boolean'),
+      'choice fields present'
+    );
   }
 
   const browse = await resolveNextTask(

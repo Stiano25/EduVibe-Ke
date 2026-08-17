@@ -1,6 +1,8 @@
 import { CheckCircle, XCircle } from 'lucide-react'
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
+import { resolveAdditionLayout } from '@/lib/additionLayout'
+import { ColumnAddition } from './ColumnAddition'
 import type { MultipleChoiceReviewProps } from './types'
 
 export const NumericEntryReview = ({
@@ -11,6 +13,13 @@ export const NumericEntryReview = ({
 }: MultipleChoiceReviewProps) => {
   const submitted = item.submittedValue ?? item.selectedOptionIndex
   const expected = item.expectedValue
+  const layout = resolveAdditionLayout(item.layout)
+  const addends = item.addends
+  const vertical =
+    layout === 'vertical' &&
+    addends != null &&
+    Number.isInteger(addends.a) &&
+    Number.isInteger(addends.b)
 
   return (
     <div
@@ -31,7 +40,18 @@ export const NumericEntryReview = ({
         )}
       </div>
 
-      {visualBrief && isLiveDiagramType(visualBrief.diagramType) ? (
+      {vertical ? (
+        <div className="flex justify-center mb-3">
+          <ColumnAddition
+            a={addends.a}
+            b={addends.b}
+            sumText={submitted == null ? '' : String(submitted)}
+            scaffoldCarry={item.scaffoldCarry !== false}
+            reveal="sum"
+            animate={false}
+          />
+        </div>
+      ) : visualBrief && isLiveDiagramType(visualBrief.diagramType) ? (
         <LiveDiagram diagramType={visualBrief.diagramType} params={visualBrief.params} className="mb-3" />
       ) : diagramUrl ? (
         <img

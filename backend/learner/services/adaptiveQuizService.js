@@ -14,6 +14,13 @@ import {
   isNumericEntryQuestion,
   twistNumericEntryQuestion
 } from '../../utils/numericEntry.js';
+import {
+  hasIntegerAddends,
+  resolveAdditionLayout,
+  resolveScaffoldCarry,
+  verticalAdditionInstruction
+} from '../../utils/additionLayout.js';
+import { additionWorkedSteps } from '../../utils/additionWorkedExample.js';
 import { normalizeQuizOption } from '../../utils/quizOptions.js';
 
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
@@ -124,6 +131,23 @@ const applyStoredOrder = (q, order) => {
   };
 };
 
+const publicNumericFields = (q) => {
+  if (!hasIntegerAddends(q.params)) return {};
+  const a = Number(q.params.a);
+  const b = Number(q.params.b);
+  const layout = resolveAdditionLayout(q.params.layout);
+  const scaffoldCarry = resolveScaffoldCarry(q.params.scaffoldCarry, { layout });
+  const worked =
+    q.modality === 'text_steps' && layout === 'vertical' ? additionWorkedSteps(a, b) : null;
+  return {
+    layout,
+    addends: { a, b },
+    scaffoldCarry,
+    ...(worked ? { workedSteps: worked.map(({ id, text, reveal }) => ({ id, text, reveal })) } : {}),
+    ...(layout === 'vertical' ? { question: verticalAdditionInstruction(q.question) } : {})
+  };
+};
+
 const publicQuestion = (q, indexInBank, session = null) => {
   if (!q) return null;
   const id = qid(q, indexInBank);
@@ -131,11 +155,13 @@ const publicQuestion = (q, indexInBank, session = null) => {
   if (session) {
     session.optionOrders = { ...(session.optionOrders || {}), [id]: shuffled.order };
   }
+  const interactionType = resolveInteractionType(q.interactionType || q.type);
+  const numericFields = interactionType === 'numeric_entry' ? publicNumericFields(q) : {};
   return {
     id,
-    question: q.question,
+    question: numericFields.question || q.question,
     type: q.type || 'multiple-choice',
-    interactionType: resolveInteractionType(q.interactionType || q.type),
+    interactionType,
     activity: q.activity || undefined,
     options: shuffled.options,
     points: q.points || 15,
@@ -146,10 +172,18 @@ const publicQuestion = (q, indexInBank, session = null) => {
     steps: q.steps || undefined,
     learningOutcomeIndex: q.learningOutcomeIndex,
     learningOutcomeKey: q.learningOutcomeKey,
-    ...(resolveInteractionType(q.interactionType || q.type) === 'drag_to_target'
+    ...(interactionType === 'drag_to_target'
       ? {
           objectPool: Number(q.params?.objectPool) || 8,
           objectKind: q.params?.objectKind || undefined
+        }
+      : {}),
+    ...(interactionType === 'numeric_entry'
+      ? {
+          layout: numericFields.layout,
+          addends: numericFields.addends,
+          scaffoldCarry: numericFields.scaffoldCarry,
+          ...(numericFields.workedSteps ? { workedSteps: numericFields.workedSteps } : {})
         }
       : {}),
     ...(q.bankEntryId ? { bankEntryId: q.bankEntryId } : {}),
@@ -160,7 +194,7 @@ const publicQuestion = (q, indexInBank, session = null) => {
           twinOf: q.twinOf
         }
       : {})
-    // Never send correctAnswerIndex during live attempt
+    // Never send correctAnswerIndex, params, or answerFormula during live attempt
   };
 };
 
@@ -939,6 +973,19 @@ export const buildReviewView = (lesson, sessionReview) => {
       placedCount: isCountIntoBoxQuestion(q) ? a.selectedOptionIndex : undefined,
       expectedValue: isNumericEntryQuestion(q) ? expectedScalarForQuestion(q) : undefined,
       submittedValue: isNumericEntryQuestion(q) ? a.selectedOptionIndex : undefined,
+      ...(isNumericEntryQuestion(q) && hasIntegerAddends(q.params)
+        ? {
+            layout: resolveAdditionLayout(q.params.layout),
+            addends: { a: Number(q.params.a), b: Number(q.params.b) },
+            scaffoldCarry: resolveScaffoldCarry(q.params.scaffoldCarry, {
+              layout: resolveAdditionLayout(q.params.layout)
+            }),
+            question:
+              resolveAdditionLayout(q.params.layout) === 'vertical'
+                ? verticalAdditionInstruction(q.question)
+                : q.question
+          }
+        : {}),
       phase: a.phase
     });
   }

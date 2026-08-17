@@ -28,15 +28,15 @@ assert(parseNumericAnswer('6a') == null, 'non-digits rejected');
 const q = makeNumericEntryQuestion({ a: 4, b: 6, questionText: 'What is {a} + {b}?' });
 assert(q.interactionType === 'numeric_entry', 'interactionType');
 assert(q.options.length === 0, 'no options');
+assert(q.params.layout === 'vertical', 'default layout is vertical');
+assert(q.question === 'Add.', 'vertical question is Add.');
 assert(expectedScalarForQuestion(q) === 10, '4+6=10');
 
 const twisted = twistNumericEntryQuestion(q, { random: () => 0.9 });
 assert(twisted.ok, 'twist ok');
 assert(twisted.question.interactionType === 'numeric_entry', 'twist keeps numeric_entry');
-assert(
-  twisted.question.params.a !== 4 || twisted.question.params.b !== 6,
-  'twist changes pair'
-);
+assert(twisted.question.params.layout === 'horizontal', 'vertical original twins to horizontal');
+assert(twisted.question.params.a === 4 && twisted.question.params.b === 6, 'presentation twin keeps pair');
 
 const profile = {
   modalityCycle: ['practice'],
@@ -62,6 +62,8 @@ const normalized = normalizeQuiz(
 );
 assert(normalized.questions[0].interactionType === 'numeric_entry', 'Grade 1 addition template → numeric_entry');
 assert(normalized.questions[0].options.length === 0, 'normalized numeric has no options');
+assert(normalized.questions[0].params.layout === 'vertical', 'normalized layout vertical');
+assert(normalized.questions[0].question === 'Add.', 'normalized stem is Add.');
 
 const lesson = {
   id: 'numeric-verify',
@@ -78,6 +80,9 @@ let state = createAdaptiveSession({ lesson });
 assert(state.question.interactionType === 'numeric_entry', 'live payload is numeric_entry');
 assert(state.question.answerFormula == null, 'formula not leaked live');
 assert(state.question.params == null, 'params not leaked live');
+assert(state.question.layout === 'vertical', 'live layout');
+assert(state.question.addends?.a === 4 && state.question.addends?.b === 6, 'addends sent live');
+assert(state.question.question === 'Add.', 'live stem is Add.');
 
 const wrong = advanceAdaptiveSession({
   session: state.session,

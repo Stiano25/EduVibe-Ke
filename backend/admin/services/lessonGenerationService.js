@@ -17,6 +17,14 @@ import {
   isNumericEntryQuestion,
   makeNumericEntryQuestion
 } from '../../utils/numericEntry.js';
+import {
+  DEFAULT_ADDITION_LAYOUT,
+  VERTICAL_ADDITION_INSTRUCTION,
+  hasIntegerAddends,
+  resolveAdditionLayout,
+  resolveScaffoldCarry
+} from '../../utils/additionLayout.js';
+import { additionWorkedStepTexts } from '../../utils/additionWorkedExample.js';
 import { applyQuizQualityGates } from '../../utils/quizQualityGates.js';
 import { inferObjectKind, namesCountableObject } from '../../utils/objectKinds.js';
 import {
@@ -433,9 +441,15 @@ export const normalizeQuiz = (
         skillFocus: q.skillFocus,
         bloomLevel: q.bloomLevel,
         learningOutcomeIndex: q.learningOutcomeIndex,
-        objectKind: q.params?.objectKind || inferObjectKind(stemPreview)
+        objectKind: q.params?.objectKind || inferObjectKind(stemPreview),
+        layout: q.params?.layout || (additionTemplates ? 'vertical' : 'horizontal')
       });
       const params = { ...seed.params, ...(q.params && typeof q.params === 'object' ? q.params : {}) };
+      params.layout = resolveAdditionLayout(
+        params.layout,
+        { defaultLayout: additionTemplates ? DEFAULT_ADDITION_LAYOUT : 'horizontal' }
+      );
+      params.scaffoldCarry = resolveScaffoldCarry(params.scaffoldCarry, { layout: params.layout });
       q = {
         ...seed,
         ...q,
@@ -445,7 +459,10 @@ export const normalizeQuiz = (
         params,
         answerFormula: q.answerFormula || seed.answerFormula,
         options: [],
-        question: q.question || seed.question
+        question:
+          params.layout === 'vertical'
+            ? VERTICAL_ADDITION_INSTRUCTION
+            : q.question || seed.question
       };
     }
 
@@ -614,11 +631,20 @@ export const normalizeQuiz = (
       diagramBriefId = briefId;
     }
 
-    const steps = Array.isArray(q.steps)
+    let steps = Array.isArray(q.steps)
       ? q.steps.map(String).filter(Boolean).slice(0, 6)
       : modality === 'text_steps'
         ? []
         : undefined;
+
+    if (
+      isNumeric &&
+      hasIntegerAddends(q.params) &&
+      resolveAdditionLayout(q.params.layout) === 'vertical' &&
+      modality === 'text_steps'
+    ) {
+      steps = additionWorkedStepTexts(Number(q.params.a), Number(q.params.b));
+    }
 
     return {
       id: qid,
@@ -1218,26 +1244,23 @@ export const buildQuizChunkPrompt = (
       `${ctx.strand?.name || ''} ${ctx.subStrand?.name || ''}`
     );
   const interactionTypeBlock = `INTERACTION TYPES — set interactionType on every question (this field is real and is graded):
-- "numeric_entry": the learner types the answer on a keypad. No options. Set params:{a,b}, answerFormula:"a + b". Use this for bare computation such as "What is {a} + {b}?" — never dress that up as a 4-option guess.
+- "numeric_entry": the learner types the answer on a keypad. No options. Set params:{a,b,layout:"vertical"}, answerFormula:"a + b", question:"Add." The figure is a vertical column (stacked digits, a line, answer underneath) — never a shopkeeper story. Use this for bare computation.
 - "drag_to_target": the learner drags objects into a box until the count is right. Set activity:"count_into_box", params:{a,b,target,objectPool,objectKind}, answerFormula:"a + b". options may be []. Use this for "show this many" / "how many altogether" with objects to place.
 - "multiple_choice": 3-4 options and correctAnswerIndex. Use for comparisons, sequencing, word choice, shape identification. Options may be plain strings OR {diagramType,params} picture options when the choice is itself a quantity or shape.
 ${
   countIntoBoxFit || isGradeOneAdditionContext(ctx)
-    ? `At Grade ${ctx.grade} for counting/addition: include at least 2 numeric_entry items (bare sums), at least 2 drag_to_target items (place objects), and at least 1 multiple_choice item whose options are picture options (object_quantity icons or shapes) — not Unicode dots. Remaining items stay multiple_choice text when the work is abstract (which number is bigger).`
+    ? `At Grade ${ctx.grade} for counting/addition: include at least 2 numeric_entry items (vertical column, question "Add."), at least 2 drag_to_target items (place objects), and at least 1 multiple_choice item whose options are picture options (object_quantity icons or shapes) — not Unicode dots. Remaining items stay multiple_choice text when the work is abstract (which number is bigger). Do not write word-problem stems for numeric_entry.`
     : 'Use drag_to_target only when the task is literally counting objects into a set. Use numeric_entry for simple one-step computation. Do not replace MCQ elsewhere.'
 }`;
   const additionTemplateBlock = isGradeOneAdditionContext(ctx)
     ? `
 GRADE 1 ADDITION TEMPLATE SLICE:
 - The GRADE COMPLEXITY CEILING above applies in full to every template question: the rendered
-  "question" and the "questionText" pattern must both fit inside it. So a template stem is ONE
-  short sentence — "Amina has {a} beads and gets {b} more. How many now?" breaks the one-sentence
-  rule; write "What is {a} + {b}?" or "Amina has {a} beads and gets {b} more — how many?" instead.
-  A real-life word problem at this grade is still one sentence.
+  "question" and the "questionText" pattern must both fit inside it.
+  numeric_entry items are NOT a sentence — question is "Add." and the digits live in the column.
+  Word-problem stems are not used for numeric_entry.
 - For every TWO-OPERAND addition question, set template:true and include:
-  questionText with both {a} and {b}; params:{a,b}; constraints; answerFormula:"a + b";
-  distractorFormulas with at least 3 {id,formula,misconception} entries.
-- Keep "question" and "options" rendered with the initial params for review.
+  questionText with both {a} and {b} (admin/debug pattern); params:{a,b,layout:"vertical"}; constraints; answerFormula:"a + b".
 - Derive constraints from the exact outcome:
   * two single digits: a:[1,9], b:[1,9], sumMax:10
   * two-digit + one-digit without regrouping: a:[10,99], b:[1,9], sumMax:100, noRegrouping:true
@@ -1248,7 +1271,7 @@ GRADE 1 ADDITION TEMPLATE SLICE:
 - Three-addend and missing-pattern questions are not supported by this Phase 1 template engine:
   set template:false and omit all template-only fields for those questions.
 - Include at least 4 valid template:true questions in this chunk when the selected outcomes permit it.
-- At least 2 of those MUST be interactionType:"numeric_entry" with params:{a,b} and answerFormula:"a + b" (bare "What is {a} + {b}?"). options must be [].
+- At least 2 of those MUST be interactionType:"numeric_entry" with params:{a,b,layout:"vertical"} and answerFormula:"a + b". question MUST be "Add." — stacked digits, not a sentence. options must be [].
 - At least 2 MUST be interactionType:"drag_to_target" with activity:"count_into_box" so the learner places objects into a box. params must include target (a+b), objectPool (> target), and objectKind (ball, banana, apple, bead, block, …).
 - Include at least 1 multiple_choice item with picture options: each option is {diagramType:"object_quantity", params:{objectKind,count}} rather than a number string or Unicode dots.
 `
@@ -1280,7 +1303,7 @@ Return ONLY one JSON object:
 COMPACT QUESTION SHAPE — include ONLY:
 - question, interactionType (multiple_choice, numeric_entry, or drag_to_target)
 - for multiple_choice: options (3-4 strings OR {diagramType,params} picture options), correctAnswerIndex
-- for numeric_entry: params {a,b}, answerFormula; options must be []
+- for numeric_entry: params {a,b,layout:"vertical"}, answerFormula, question "Add."; options must be []
 - for drag_to_target: activity "count_into_box", params {a,b,target,objectPool,objectKind}, answerFormula; options may be []
 - explanation (max 16 words)
 - distractors:[{"optionIndex":number,"misconception":"max 8 words"}] for wrong MCQ options
@@ -1298,7 +1321,7 @@ Visual questions MUST include "diagram": { "diagramType": one of ${diagramTypeLi
 - "params" must hold real, specific values for THIS question — never {} and never generic placeholders.
 - "brief" must describe the actual figure to draw, in your own words. Never restate the question as the brief.
 - If you cannot design a genuine figure for a question, do NOT tag it visual — use practice or text_steps.${concreteDiagramLine}
-text_steps questions MUST include steps[] (max 3 short steps).
+text_steps questions MUST include steps[] (max 3 short steps), except numeric_entry vertical columns — the server fills those from {a,b} (align, add ones, carry, total). Do not author steps for those.
 NEVER reuse vb-1/vb-2 for quiz diagrams.
 Match diagram type to topic. Diagram content must match the question exactly (same numbers, words, steps).
 ${additionTemplateBlock}
@@ -1393,7 +1416,7 @@ Topic: ${ctx.subject.name} · ${ctx.strand.name} · ${ctx.subStrand.name}
 ${buildComplexityBlock(ctx.grade, band, ageGroup)}
 ${avoidBlock}
 Use bloomLevel "understand" or "apply" (mix). Use the same COMPACT shape as the main bank:
-interactionType (multiple_choice, numeric_entry, or drag_to_target), question, options(3-4) and correctAnswerIndex for multiple_choice (options may be {diagramType,params} picture options), or params{a,b}+answerFormula for numeric_entry, or params{a,b,target,objectPool,objectKind}+answerFormula for drag_to_target, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}] for MCQ, reviewRationale[{optionIndex,text}] for EVERY MCQ option, learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
+interactionType (multiple_choice, numeric_entry, or drag_to_target), question, options(3-4) and correctAnswerIndex for multiple_choice (options may be {diagramType,params} picture options), or params{a,b,layout:"vertical"}+answerFormula and question "Add." for numeric_entry, or params{a,b,target,objectPool,objectKind}+answerFormula for drag_to_target, explanation (max 16 words), distractors[{optionIndex,misconception max 8 words}] for MCQ, reviewRationale[{optionIndex,text}] for EVERY MCQ option, learningOutcomeIndex (from the uncovered list), bloomLevel, modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
 reviewRationale is admin-review-only: 1-2 sentences, 20-30 words per option, saying precisely why that option is right or exactly what mistake produces it. Keep "explanation" and "misconception" as short as stated — they are learner-facing.
 Only tag a question visual when its content is genuinely visual, and then include a real "diagram" object with specific params. Otherwise use practice or text_steps.
 Do NOT include id, type, points, skillFocus, optionExplanations or feedback fields; the server adds them.

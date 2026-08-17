@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import type { InteractionType } from '@/lib/interactionTypes'
+import type { AdditionLayout, WorkedStep } from '@/lib/additionLayout'
 import type { TapSelection } from '../TapSelectOptions'
 
 export type QuizOption =
@@ -25,6 +26,10 @@ export type AdaptiveQuestion = {
   activity?: string
   objectPool?: number
   objectKind?: string
+  layout?: AdditionLayout | string
+  addends?: { a: number; b: number }
+  scaffoldCarry?: boolean
+  workedSteps?: WorkedStep[]
   bankEntryId?: string
 }
 
@@ -50,6 +55,9 @@ export type ReviewItem = {
   placedCount?: number
   expectedValue?: number
   submittedValue?: number | null
+  layout?: AdditionLayout | string
+  addends?: { a: number; b: number }
+  scaffoldCarry?: boolean
   phase?: string
 }
 

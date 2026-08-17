@@ -10,6 +10,7 @@ import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlo
 import { AdaptiveQuizPanel } from '@/components/learner/AdaptiveQuizPanel'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
+import { QuestLessonSwitch } from '@/components/learner/QuestLessonPicker'
 import { usesQuestNavigation } from '@/lib/complexityBands'
 
 export const LessonView = () => {
@@ -411,7 +412,7 @@ export const LessonView = () => {
           <StaggeredEntry>
             <div className="max-w-4xl mx-auto">
               <button
-                onClick={() => (questNav ? navigate('/learner') : navigate(-1))}
+                onClick={() => (questNav ? navigate('/learner/lessons') : navigate(-1))}
                 className="mb-6 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
                  
                 onMouseDown={(e) => {
@@ -427,6 +428,8 @@ export const LessonView = () => {
                 <ArrowLeft className="w-4 h-4" />
                 Back
               </button>
+
+              {questNav && id ? <QuestLessonSwitch currentLessonId={id} /> : null}
 
               <div className="mb-6">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A] mb-4">

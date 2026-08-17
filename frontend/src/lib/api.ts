@@ -489,6 +489,7 @@ class ApiClient {
       this.request(`/learner/lessons/${lessonId}/adaptive-review`),
     getProgressReport: () => this.request('/learner/progress-report'),
     getNextTask: () => this.request('/learner/next-task'),
+    getLessonChoices: () => this.request('/learner/lesson-choices'),
     getSkillMastery: () => this.request('/learner/skill-mastery'),
   };
 }

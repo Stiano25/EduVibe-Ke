@@ -7,6 +7,9 @@ import { MathText } from '@/components/ui/MathText'
 import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlocks'
 import { LiveDiagram, isLiveDiagramType } from '@/components/learner/diagrams/LiveDiagram'
 import { OptionVisual } from '@/components/learner/OptionVisual'
+import { ColumnAddition } from '@/components/learner/quiz/ColumnAddition'
+import { AdditionWorkedExample } from '@/components/learner/quiz/AdditionWorkedExample'
+import { additionWorkedSteps, resolveAdditionLayout } from '@/lib/additionLayout'
 import type { Lesson, LessonVisualBrief, QuizQuestion } from '@/types'
 
 const DIAGRAM_TYPES = [
@@ -133,6 +136,14 @@ export const LessonReviewModal = ({
   const qCount = questions.length
   const safeIndex = Math.min(Math.max(currentQuestionIndex, 0), Math.max(qCount - 1, 0))
   const q = questions[safeIndex] as QuizQuestion | undefined
+  const numericLayout =
+    q?.interactionType === 'numeric_entry'
+      ? resolveAdditionLayout(typeof q.params?.layout === 'string' ? q.params.layout : undefined)
+      : null
+  const showColumnAddition =
+    numericLayout === 'vertical' &&
+    Number.isInteger(Number(q?.params?.a)) &&
+    Number.isInteger(Number(q?.params?.b))
   const activeBrief = briefs[briefIndex]
 
   useEffect(() => {
@@ -1052,7 +1063,7 @@ export const LessonReviewModal = ({
                       )}
                     </div>
 
-                    {q.modality === 'text_steps' && q.steps && q.steps.length > 0 && (
+                    {q.modality === 'text_steps' && !showColumnAddition && q.steps && q.steps.length > 0 ? (
                       <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-700 bg-amber-50 border border-amber-100 rounded-[12px] p-3">
                         {q.steps.map((s, i) => (
                           <li key={i} style={{ fontFamily: 'Manrope, sans-serif' }}>
@@ -1060,9 +1071,9 @@ export const LessonReviewModal = ({
                           </li>
                         ))}
                       </ol>
-                    )}
+                    ) : null}
 
-                    {q.modality === 'visual' && (
+                    {q.modality === 'visual' && !showColumnAddition && (
                       <div className="rounded-[12px] border border-violet-100 bg-violet-50/50 p-3 text-xs text-violet-800" style={{ fontFamily: 'Manrope, sans-serif' }}>
                         {q.diagramBriefId && /^vb-\d+$/i.test(q.diagramBriefId) ? (
                           <p className="text-amber-800 font-semibold mb-1">
@@ -1099,18 +1110,35 @@ export const LessonReviewModal = ({
 
                     <MathText
                       as="p"
-                      text={q.question || ''}
+                      text={showColumnAddition ? 'Add.' : q.question || ''}
                       className="text-base sm:text-lg font-semibold text-[#0F172A]"
                     />
 
                     {q.interactionType === 'numeric_entry' && (
                       <div className="rounded-[16px] border-2 border-indigo-200 bg-indigo-50 p-4 space-y-2">
                         <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
-                          Numeric entry
+                          {showColumnAddition ? 'Column addition' : 'Numeric entry'}
                         </p>
-                        <div className="min-h-12 rounded-[12px] border-2 border-indigo-200 bg-white flex items-center justify-center text-2xl font-black text-slate-400">
-                          —
-                        </div>
+                        {showColumnAddition && q.modality === 'text_steps' ? (
+                          <AdditionWorkedExample
+                            a={Number(q.params?.a)}
+                            b={Number(q.params?.b)}
+                            steps={additionWorkedSteps(Number(q.params?.a), Number(q.params?.b))}
+                          />
+                        ) : showColumnAddition ? (
+                          <div className="flex justify-center bg-white rounded-[12px] border border-indigo-100">
+                            <ColumnAddition
+                              a={Number(q.params?.a)}
+                              b={Number(q.params?.b)}
+                              scaffoldCarry
+                              animate
+                            />
+                          </div>
+                        ) : (
+                          <div className="min-h-12 rounded-[12px] border-2 border-indigo-200 bg-white flex items-center justify-center text-2xl font-black text-slate-400">
+                            —
+                          </div>
+                        )}
                         <p className="text-xs text-slate-600">
                           Learner types the answer. Expected from formula
                           {q.answerFormula ? ` ${q.answerFormula}` : ''}.

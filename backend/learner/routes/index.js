@@ -24,7 +24,7 @@ import {
   getAdaptiveReview
 } from '../controllers/adaptiveController.js';
 import { getProgressReport } from '../controllers/progressReportController.js';
-import { getNextTask } from '../controllers/nextTaskController.js';
+import { getLessonChoices, getNextTask } from '../controllers/nextTaskController.js';
 import { registerLearner, loginLearner } from '../controllers/authController.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 
@@ -47,6 +47,7 @@ router.post('/skill-attempts', submitSkillAttempts);
 router.get('/skill-mastery', getSkillMastery);
 router.get('/progress-report', getProgressReport);
 router.get('/next-task', getNextTask);
+router.get('/lesson-choices', getLessonChoices);
 router.get('/lessons/:lessonId/scaffold', getScaffoldForLesson);
 router.post('/lessons/:lessonId/adaptive-start', startAdaptiveQuiz);
 router.post('/lessons/:lessonId/adaptive-next', nextAdaptiveQuiz);

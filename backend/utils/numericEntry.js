@@ -1,6 +1,7 @@
 /**
  * Numeric free-entry on the Grade 1 addition template engine.
  * Expected value uses answerFormula against params — same scalar channel as drag.
+ * Layout is presentation only: vertical (default) vs horizontal (twin probe).
  */
 import {
   compileFormula,
@@ -9,6 +10,14 @@ import {
   normalizeAdditionTemplateQuestion,
   validateAdditionTemplate
 } from './additionTemplate.js';
+import {
+  DEFAULT_ADDITION_LAYOUT,
+  HORIZONTAL_ADDITION_PATTERN,
+  VERTICAL_ADDITION_INSTRUCTION,
+  renderHorizontalAdditionStem,
+  resolveAdditionLayout,
+  resolveScaffoldCarry
+} from './additionLayout.js';
 import { expectedScalarForQuestion } from './expectedScalar.js';
 import { inferObjectKind } from './objectKinds.js';
 
@@ -25,21 +34,27 @@ export const isNumericEntryQuestion = (question = {}) =>
 export const makeNumericEntryQuestion = ({
   a = 4,
   b = 6,
-  questionText = 'What is {a} + {b}?',
+  questionText = HORIZONTAL_ADDITION_PATTERN,
   skillFocus = 'Addition',
   bloomLevel = 'apply',
   learningOutcomeIndex = 1,
-  objectKind = null
+  objectKind = null,
+  layout = DEFAULT_ADDITION_LAYOUT
 } = {}) => {
   const pair = { a: asInt(a, 4), b: asInt(b, 6) };
-  const text = String(questionText)
-    .replaceAll('{a}', String(pair.a))
-    .replaceAll('{b}', String(pair.b));
+  const resolvedLayout = resolveAdditionLayout(layout);
+  const text =
+    resolvedLayout === 'vertical'
+      ? VERTICAL_ADDITION_INSTRUCTION
+      : renderHorizontalAdditionStem(pair.a, pair.b, questionText || HORIZONTAL_ADDITION_PATTERN);
   const kind = objectKind || inferObjectKind(questionText);
   return {
     id: `numeric-${pair.a}-${pair.b}`,
     question: text,
-    questionText,
+    questionText:
+      resolvedLayout === 'vertical'
+        ? VERTICAL_ADDITION_INSTRUCTION
+        : questionText || HORIZONTAL_ADDITION_PATTERN,
     type: 'numeric-entry',
     interactionType: 'numeric_entry',
     activity: 'numeric_entry',
@@ -50,6 +65,8 @@ export const makeNumericEntryQuestion = ({
     params: {
       a: pair.a,
       b: pair.b,
+      layout: resolvedLayout,
+      scaffoldCarry: resolveScaffoldCarry(null, { layout: resolvedLayout }),
       ...(kind ? { objectKind: kind } : {})
     },
     constraints: normalizeAdditionConstraints({ a: [1, 9], b: [1, 9], sumMax: 10 }),
@@ -69,11 +86,40 @@ export const twistNumericEntryQuestion = (question = {}, { random = Math.random 
   const base = isNumericEntryQuestion(question)
     ? question
     : makeNumericEntryQuestion(question.params || {});
+  const original = base.params || {};
+  const layout = resolveAdditionLayout(original.layout);
+  const shared = {
+    skillFocus: base.skillFocus,
+    bloomLevel: base.bloomLevel,
+    learningOutcomeIndex: base.learningOutcomeIndex,
+    objectKind: original.objectKind
+  };
+
+  // Vertical original → same {a,b} shown horizontally (format transfer, not a new sum).
+  if (layout === 'vertical' && Number.isInteger(Number(original.a)) && Number.isInteger(Number(original.b))) {
+    return {
+      ok: true,
+      question: {
+        ...makeNumericEntryQuestion({
+          ...shared,
+          a: Number(original.a),
+          b: Number(original.b),
+          layout: 'horizontal',
+          questionText: HORIZONTAL_ADDITION_PATTERN
+        }),
+        id: base.id,
+        learningOutcomeKey: base.learningOutcomeKey,
+        answerFormula: String(base.answerFormula || 'a + b'),
+        constraints: normalizeAdditionConstraints(base.constraints)
+      }
+    };
+  }
+
   const asTemplate = {
     ...base,
     template: true,
     interactionType: 'numeric_entry',
-    questionText: base.questionText || 'What is {a} + {b}?',
+    questionText: base.questionText || HORIZONTAL_ADDITION_PATTERN,
     constraints: normalizeAdditionConstraints(base.constraints),
     answerFormula: String(base.answerFormula || 'a + b'),
     distractorFormulas: []
@@ -81,7 +127,6 @@ export const twistNumericEntryQuestion = (question = {}, { random = Math.random 
   const normalized = normalizeAdditionTemplateQuestion(asTemplate);
   const source = normalized.valid ? normalized.question : asTemplate;
   const validation = validateAdditionTemplate(source, { requireDistractors: false });
-  const original = source.params || {};
   const pairs = validation.valid
     ? validation.pairs
     : enumerateAdditionPairs(source.constraints);
@@ -95,14 +140,11 @@ export const twistNumericEntryQuestion = (question = {}, { random = Math.random 
     ok: true,
     question: {
       ...makeNumericEntryQuestion({
-        ...base,
+        ...shared,
         a: pair.a,
         b: pair.b,
-        questionText: base.questionText || source.questionText,
-        skillFocus: base.skillFocus,
-        bloomLevel: base.bloomLevel,
-        learningOutcomeIndex: base.learningOutcomeIndex,
-        objectKind: base.params?.objectKind
+        layout: 'horizontal',
+        questionText: HORIZONTAL_ADDITION_PATTERN
       }),
       id: base.id,
       learningOutcomeKey: base.learningOutcomeKey,

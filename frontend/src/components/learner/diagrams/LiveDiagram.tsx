@@ -59,7 +59,16 @@ const NumberLine = ({ params }: { params: DiagramParams }) => {
             <text x={x} y={y + 36} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="14" fill="#0F172A">
               {formatLabel(String(v))}
             </text>
-            {isHi ? <circle cx={x} cy={y} r="8" fill="#14B8A6" /> : null}
+            {isHi ? (
+              <circle
+                className="ev-jump-in"
+                cx={x}
+                cy={y}
+                r="8"
+                fill="#14B8A6"
+                style={{ ['--ev-jump-from' as string]: `${xAt(min) - x}px` }}
+              />
+            ) : null}
           </g>
         )
       })}
@@ -235,10 +244,27 @@ const RectangleShape = ({ params }: { params: DiagramParams }) => {
     <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
       <rect width="100%" height="100%" fill="#F8FAFC" />
       <rect x={x} y={y} width={w} height={h} fill="#ECFDF5" stroke="#0F766E" strokeWidth="3" />
-      <text x={x + w / 2} y={y + h + 28} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="16" fill="#0F172A">
+      <text
+        className="ev-label-in"
+        x={x + w / 2}
+        y={y + h + 28}
+        textAnchor="middle"
+        fontFamily="Manrope, Arial, sans-serif"
+        fontSize="16"
+        fill="#0F172A"
+      >
         {`${width} ${unit}`}
       </text>
-      <text x={x - 16} y={y + h / 2} textAnchor="end" fontFamily="Manrope, Arial, sans-serif" fontSize="16" fill="#0F172A">
+      <text
+        className="ev-label-in"
+        x={x - 16}
+        y={y + h / 2}
+        textAnchor="end"
+        fontFamily="Manrope, Arial, sans-serif"
+        fontSize="16"
+        fill="#0F172A"
+        style={{ animationDelay: '120ms' }}
+      >
         {`${height} ${unit}`}
       </text>
     </svg>
@@ -290,13 +316,13 @@ const CubeShape = ({ params }: { params: DiagramParams }) => {
         stroke="#0F766E"
         strokeWidth="2.5"
       />
-      <text x={ox + frontW / 2} y={oy + 24} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
+      <text className="ev-label-in" x={ox + frontW / 2} y={oy + 24} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
         {`${width} ${unit}`}
       </text>
-      <text x={ox - 14} y={oy - frontH / 2} textAnchor="end" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
+      <text className="ev-label-in" x={ox - 14} y={oy - frontH / 2} textAnchor="end" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A" style={{ animationDelay: '100ms' }}>
         {`${height} ${unit}`}
       </text>
-      <text x={ox + frontW + dx / 2 + 28} y={oy - dy / 2 + 8} textAnchor="start" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A">
+      <text className="ev-label-in" x={ox + frontW + dx / 2 + 28} y={oy - dy / 2 + 8} textAnchor="start" fontFamily="Manrope, Arial, sans-serif" fontSize="15" fill="#0F172A" style={{ animationDelay: '200ms' }}>
         {`${depth} ${unit}`}
       </text>
     </svg>

@@ -14,8 +14,9 @@ import {
   resolveContentSource,
   isGradeOneNumberConceptContext,
   templatesForSession,
-  homeOutcomeFamilies,
-  targetOutcomeFamily
+  homeRungs,
+  targetRung,
+  rungOf
 } from '../utils/templateLadders.js';
 import { isGradeOneAdditionContext } from '../utils/additionTemplate.js';
 import { objectPoolForTarget } from '../utils/countIntoBox.js';
@@ -42,6 +43,10 @@ assert(resolveContentSource(additionCtx, outcomes) === QUIZ_SOURCE_TEMPLATES, 'a
 
 const templates = laddersForOutcomes(additionCtx, outcomes);
 assert(templates.length >= 4, `expected a handful of templates, got ${templates.length}`);
+assert(
+  !templates.some((t) => rungOf(t) === 'multiples_of_ten'),
+  'two-outcome addition lesson (singles+2-digit) must not attach the tens lesson'
+);
 const tiers = new Set(templates.map((t) => t.difficulty));
 assert(tiers.size >= 2, 'templates span more than one difficulty tier');
 
@@ -168,21 +173,24 @@ const twoDigitOnly = [
   'add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100'
 ];
 const twoDigitTemplates = laddersForOutcomes(additionCtx, twoDigitOnly);
-const twoDigitFamilies = new Set(twoDigitTemplates.map((t) => t.outcomeFamily));
-assert(twoDigitTemplates.length >= 6, `full addition ladder, got ${twoDigitTemplates.length}`);
-assert(twoDigitFamilies.has('singles_to_10'), 'singles reachable from a 2-digit lesson');
-assert(twoDigitFamilies.has('two_digit_one_digit'), '2-digit family attached');
-assert(twoDigitFamilies.has('multiples_of_ten'), 'tens reachable from a 2-digit lesson');
+const twoDigitRungs = new Set(twoDigitTemplates.map((t) => rungOf(t)));
+assert(twoDigitTemplates.length >= 6, `home plus easier rungs, got ${twoDigitTemplates.length}`);
+assert(twoDigitRungs.has('singles_to_10'), 'singles reachable as a drop from a 2-digit lesson');
+assert(twoDigitRungs.has('two_digit_one_digit'), '2-digit home rung attached');
+assert(
+  !twoDigitRungs.has('multiples_of_ten'),
+  'tens belong to a different lesson and must not attach'
+);
 assert(
   twoDigitTemplates.some((t) => t.modality === 'text_steps'),
-  'worked-example template exists on the 2-digit family'
+  'worked-example template exists on the 2-digit rung'
 );
 assert(
   twoDigitTemplates.some((t) => t.interactionType === 'drag_to_target'),
-  'picture/drag template exists on the singles family'
+  'picture/drag template exists on the singles rung'
 );
 
-const storedTwo = twoDigitTemplates.filter((t) => t.outcomeFamily === 'two_digit_one_digit');
+const storedTwo = twoDigitTemplates.filter((t) => rungOf(t) === 'two_digit_one_digit');
 const approvedLike = {
   id: 'live-two-digit',
   grade: '1',
@@ -195,35 +203,39 @@ const approvedLike = {
   }
 };
 const expanded = templatesForSession(approvedLike);
-assert(expanded.length > storedTwo.length, 'session expands stored 2-digit templates to the full ladder');
-const homes = homeOutcomeFamilies('addition', twoDigitOnly, storedTwo);
-assert(homes.has('two_digit_one_digit') && !homes.has('singles_to_10'), 'home family is the lesson objective');
+assert(expanded.length > storedTwo.length, 'session fills easier rungs for drop, not harder ones');
 assert(
-  targetOutcomeFamily({
-    skill: 'addition',
-    homeFamilies: homes,
+  !expanded.some((t) => rungOf(t) === 'multiples_of_ten'),
+  'session must not inject the tens lesson'
+);
+const homes = homeRungs('addition', twoDigitOnly, storedTwo);
+assert(homes.has('two_digit_one_digit') && !homes.has('singles_to_10'), 'home rung is the lesson objective');
+assert(
+  targetRung({
+    family: 'addition',
+    homeRungs: homes,
     mastery: { status: 'mastered', bktPKnow: 1 }
-  }) === 'multiples_of_ten',
-  'mastered learner escalates one family'
+  }) === 'two_digit_one_digit',
+  'mastered learner stays at this lesson home — does not enter the tens lesson'
 );
 assert(
-  targetOutcomeFamily({
-    skill: 'addition',
-    homeFamilies: homes,
+  targetRung({
+    family: 'addition',
+    homeRungs: homes,
     mastery: { status: 'struggling', bktPKnow: 0.2 }
   }) === 'singles_to_10',
-  'struggling learner drops one family'
+  'struggling learner drops one rung'
 );
 assert(
-  targetOutcomeFamily({
-    skill: 'addition',
-    homeFamilies: homes,
+  targetRung({
+    family: 'addition',
+    homeRungs: homes,
     mastery: { status: 'developing', bktPKnow: 0.55 }
   }) === 'two_digit_one_digit',
-  'developing learner stays on the lesson family'
+  'developing learner stays on the lesson home rung'
 );
 
-const familyOfTemplateId = (id) => {
+const rungOfTemplateId = (id) => {
   const s = String(id || '');
   if (s.includes('tens')) return 'tens';
   if (s.includes('twodigit')) return 'twodigit';
@@ -231,14 +243,14 @@ const familyOfTemplateId = (id) => {
   return 'other';
 };
 
-const runFamilySession = (masteryRows, n = 8) => {
-  const families = [];
+const runRungSession = (masteryRows, n = 8) => {
+  const rungs = [];
   const templateIds = [];
   let s = createAdaptiveSession({ lesson: approvedLike, masteryRows });
   for (let i = 0; i < n && s.question && !s.meta.done; i += 1) {
     const live = s.session.twistedQuestions[s.question.id];
     templateIds.push(live.templateId);
-    families.push(familyOfTemplateId(live.templateId));
+    rungs.push(rungOfTemplateId(live.templateId));
     const expected =
       live.interactionType === 'drag_to_target'
         ? Number(live.params.target ?? live.params.a + live.params.b)
@@ -255,27 +267,36 @@ const runFamilySession = (masteryRows, n = 8) => {
       masteryRows
     });
   }
-  return { families, templateIds };
+  return { rungs, templateIds, lastMeta: s.meta };
 };
 
 const masteredKey = storedTwo[0].learningOutcomeKey;
-const masteredRun = runFamilySession(
+const masteredRun = runRungSession(
   [{ learningOutcomeKey: masteredKey, status: 'mastered', bktPKnow: 0.95 }],
   8
 );
 assert(
-  masteredRun.families.filter((f) => f === 'tens').length >= 4,
-  `mastered session should mostly serve tens, got ${masteredRun.families.join(',')}`
+  masteredRun.rungs.every((r) => r !== 'tens'),
+  `mastered 2-digit session must never serve tens, got ${masteredRun.rungs.join(',')}`
+);
+assert(
+  masteredRun.rungs.filter((r) => r === 'twodigit').length >= 4,
+  `mastered session should stay on the 2-digit home rung, got ${masteredRun.rungs.join(',')}`
 );
 assert(new Set(masteredRun.templateIds).size >= 1, 'mastered session serves template ids');
+assert(masteredRun.lastMeta?.done === true || masteredRun.rungs.length >= 8, 'session continues until mainTarget / done');
 
-const strugglingRun = runFamilySession(
+const strugglingRun = runRungSession(
   [{ learningOutcomeKey: masteredKey, status: 'struggling', bktPKnow: 0.2 }],
   6
 );
 assert(
-  strugglingRun.families.filter((f) => f === 'singles').length >= 3,
-  `struggling session should mostly serve singles, got ${strugglingRun.families.join(',')}`
+  strugglingRun.rungs.filter((r) => r === 'singles').length >= 3,
+  `struggling session should mostly serve singles, got ${strugglingRun.rungs.join(',')}`
+);
+assert(
+  strugglingRun.rungs.every((r) => r !== 'tens'),
+  'struggling session also stays out of the tens lesson'
 );
 
 console.log('verify-template-backed-session: OK', {

@@ -80,7 +80,10 @@ export type QuizSource = 'templates' | 'fixed_pool'
 
 export interface QuizTemplate {
   id: string
+  /** Operation type: addition | subtraction | number_concept | … */
   family?: string
+  /** Difficulty tier within that operation. Legacy stored lessons used outcomeFamily. */
+  rung?: string
   outcomeFamily?: string
   difficulty?: 'easy' | 'intermediate' | 'advanced'
   interactionType?: 'multiple_choice' | 'drag_to_target' | 'numeric_entry'

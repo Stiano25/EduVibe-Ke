@@ -28,8 +28,9 @@ import {
   instantiateTemplate,
   difficultyTierFromMastery,
   templatesForSession,
-  homeOutcomeFamilies,
-  targetOutcomeFamily,
+  homeRungs,
+  targetRung,
+  rungOf,
   skillFromTemplates
 } from '../../utils/templateLadders.js';
 
@@ -323,29 +324,30 @@ const pickNextTemplateItem = (
     preferScaffold = ['reason', 'apply'].includes(last.bloomLevel);
   }
 
-  const skill = skillFromTemplates(templates);
-  const homes = homeOutcomeFamilies(
-    skill,
+  // Pool is already this lesson's attached rungs (never another lesson).
+
+  const family = skillFromTemplates(templates);
+  const homes = homeRungs(
+    family,
     lesson.learningObjectives || [],
-    lesson.quiz?.templates || []
+    lesson.quiz?.templates || [],
+    lesson.grade
   );
   const masteryKey =
-    templates.find((t) => homes.has(t.outcomeFamily))?.learningOutcomeKey ||
+    templates.find((t) => homes.has(rungOf(t)))?.learningOutcomeKey ||
     templates[0]?.learningOutcomeKey ||
     outcomeKeyOf(templates[0], lesson);
   const mastery = masteryMap.get(masteryKey);
   const failStreak = last?.learningOutcomeKey
     ? session.outcomeFailStreak[last.learningOutcomeKey] || 0
     : 0;
-  const targetFamily = targetOutcomeFamily({
-    skill,
-    homeFamilies: homes,
+  const rung = targetRung({
+    family,
+    homeRungs: homes,
     mastery,
     failStreak
   });
-  let pool = targetFamily
-    ? templates.filter((t) => t.outcomeFamily === targetFamily)
-    : templates;
+  let pool = rung ? templates.filter((t) => rungOf(t) === rung) : templates;
   if (!pool.length) pool = templates;
 
   const usedTemplateIds = new Set(

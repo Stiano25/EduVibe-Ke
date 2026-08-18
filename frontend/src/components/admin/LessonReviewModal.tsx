@@ -494,7 +494,13 @@ export const LessonReviewModal = ({
             [
               { id: 'content' as const, label: 'Content', icon: FileText },
               { id: 'visuals' as const, label: `Visuals (${briefs.length})`, icon: ImageIcon },
-              { id: 'quiz' as const, label: `Quiz (${qCount})`, icon: HelpCircle },
+              {
+                id: 'quiz' as const,
+                label: templateBacked
+                  ? `Quiz (${quizTemplates.length} seed${quizTemplates.length === 1 ? '' : 's'})`
+                  : `Quiz (${qCount})`,
+                icon: HelpCircle,
+              },
             ] as const
           ).map((tab) => {
             const Icon = tab.icon
@@ -798,7 +804,10 @@ export const LessonReviewModal = ({
             {templateBacked && (
               <div className="rounded-[14px] border border-slate-200 bg-slate-50 p-3 space-y-2">
                 <p className="text-xs font-bold text-slate-700" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  {quizTemplates.length} template{quizTemplates.length === 1 ? '' : 's'} across{' '}
+                  {quizTemplates.length} seed template{quizTemplates.length === 1 ? '' : 's'} — real
+                  sessions generate additional variants from these
+                </p>
+                <p className="text-[11px] text-slate-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
                   {new Set(quizTemplates.map((t) => t.difficulty).filter(Boolean)).size} difficulty
                   tier
                   {new Set(quizTemplates.map((t) => t.difficulty).filter(Boolean)).size === 1
@@ -820,7 +829,7 @@ export const LessonReviewModal = ({
                       {' · '}
                       {t.interactionType?.replace(/_/g, ' ')}
                       {' · '}
-                      {t.skillFocus || t.outcomeFamily || t.id}
+                      {t.skillFocus || t.rung || t.outcomeFamily || t.id}
                     </li>
                   ))}
                 </ul>
@@ -1066,7 +1075,9 @@ export const LessonReviewModal = ({
                 </div>
 
                 <p className="text-center text-xs text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  Question {safeIndex + 1} of {qCount}
+                  {templateBacked
+                    ? `Seed ${safeIndex + 1} of ${qCount} — real sessions generate additional variants from these`
+                    : `Question ${safeIndex + 1} of ${qCount}`}
                   {filteredIndices.length !== qCount ? ` (filtered)` : ''}
                 </p>
 

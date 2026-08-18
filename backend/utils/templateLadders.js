@@ -41,7 +41,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-singles-easy-numeric',
     family: 'addition',
-    outcomeFamily: 'singles_to_10',
+    rung: 'singles_to_10',
     outcomeMatch: /2-single digit|two single.?digit|sum of 10|putting objects together|'\+' and '='|addition sentences/i,
     difficulty: 'easy',
     interactionType: 'numeric_entry',
@@ -56,7 +56,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-singles-mid-numeric',
     family: 'addition',
-    outcomeFamily: 'singles_to_10',
+    rung: 'singles_to_10',
     outcomeMatch: /2-single digit|two single.?digit|sum of 10|putting objects together|'\+' and '='|addition sentences/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
@@ -71,7 +71,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-singles-easy-drag',
     family: 'addition',
-    outcomeFamily: 'singles_to_10',
+    rung: 'singles_to_10',
     outcomeMatch: /2-single digit|two single.?digit|sum of 10|putting objects together|model addition/i,
     difficulty: 'easy',
     interactionType: 'drag_to_target',
@@ -86,7 +86,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-twodigit-mid-numeric',
     family: 'addition',
-    outcomeFamily: 'two_digit_one_digit',
+    rung: 'two_digit_one_digit',
     outcomeMatch: /2-digit number to a 1-digit|two-digit.*one-digit|without regrouping/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
@@ -107,7 +107,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-twodigit-mid-steps',
     family: 'addition',
-    outcomeFamily: 'two_digit_one_digit',
+    rung: 'two_digit_one_digit',
     outcomeMatch: /2-digit number to a 1-digit|two-digit.*one-digit|without regrouping/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
@@ -128,7 +128,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-twodigit-adv-numeric',
     family: 'addition',
-    outcomeFamily: 'two_digit_one_digit',
+    rung: 'two_digit_one_digit',
     outcomeMatch: /2-digit number to a 1-digit|two-digit.*one-digit|without regrouping/i,
     difficulty: 'advanced',
     interactionType: 'numeric_entry',
@@ -149,7 +149,7 @@ export const ADDITION_LADDER = [
   {
     id: 'add-tens-mid-numeric',
     family: 'addition',
-    outcomeFamily: 'multiples_of_ten',
+    rung: 'multiples_of_ten',
     outcomeMatch: /multiples of 10/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
@@ -174,7 +174,7 @@ const NUMBER_CONCEPT_LADDER = [
   {
     id: 'nc-represent-easy-drag',
     family: 'number_concept',
-    outcomeFamily: 'represent_numbers',
+    rung: 'represent_numbers',
     outcomeMatch: /represent numbers 1-30|concrete objects/i,
     difficulty: 'easy',
     interactionType: 'drag_to_target',
@@ -189,7 +189,7 @@ const NUMBER_CONCEPT_LADDER = [
   {
     id: 'nc-represent-mid-drag',
     family: 'number_concept',
-    outcomeFamily: 'represent_numbers',
+    rung: 'represent_numbers',
     outcomeMatch: /represent numbers 1-30|concrete objects/i,
     difficulty: 'intermediate',
     interactionType: 'drag_to_target',
@@ -204,7 +204,7 @@ const NUMBER_CONCEPT_LADDER = [
   {
     id: 'nc-represent-adv-drag',
     family: 'number_concept',
-    outcomeFamily: 'represent_numbers',
+    rung: 'represent_numbers',
     outcomeMatch: /represent numbers 1-30|concrete objects/i,
     difficulty: 'advanced',
     interactionType: 'drag_to_target',
@@ -219,7 +219,7 @@ const NUMBER_CONCEPT_LADDER = [
   {
     id: 'nc-represent-adv-numeric',
     family: 'number_concept',
-    outcomeFamily: 'represent_numbers',
+    rung: 'represent_numbers',
     outcomeMatch: /represent numbers 1-30|concrete objects/i,
     difficulty: 'advanced',
     interactionType: 'numeric_entry',
@@ -234,7 +234,7 @@ const NUMBER_CONCEPT_LADDER = [
   {
     id: 'nc-one-count-easy-drag',
     family: 'number_concept',
-    outcomeFamily: 'one_count',
+    rung: 'one_count',
     outcomeMatch: /group in all situations has only one count|only one count/i,
     difficulty: 'easy',
     interactionType: 'drag_to_target',
@@ -249,7 +249,7 @@ const NUMBER_CONCEPT_LADDER = [
   {
     id: 'nc-one-count-mid-drag',
     family: 'number_concept',
-    outcomeFamily: 'one_count',
+    rung: 'one_count',
     outcomeMatch: /group in all situations has only one count|only one count/i,
     difficulty: 'intermediate',
     interactionType: 'drag_to_target',
@@ -267,7 +267,7 @@ export const SUBTRACTION_LADDER = [
   {
     id: 'sub-singles-numeric',
     family: 'subtraction',
-    outcomeFamily: 'single_digit_minus_single_digit',
+    rung: 'single_digit_minus_single_digit',
     outcomeMatch: /subtract single digit|single digit numbers|taking away|subtraction sentences/i,
     difficulty: 'easy',
     interactionType: 'numeric_entry',
@@ -294,7 +294,7 @@ export const SUBTRACTION_LADDER = [
   {
     id: 'sub-tens-numeric',
     family: 'subtraction',
-    outcomeFamily: 'multiples_of_ten_minus_multiples_of_ten',
+    rung: 'multiples_of_ten_minus_multiples_of_ten',
     outcomeMatch: /subtract multiples of 10|multiples of 10 up to 90/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
@@ -323,8 +323,8 @@ export const SUBTRACTION_LADDER = [
   {
     id: 'sub-two-one-numeric',
     family: 'subtraction',
-    outcomeFamily: 'two_digit_minus_one_digit_no_borrow',
-    outcomeMatch: /1-digit number from a 2-digit|subtract a 1-digit|basic addition facts/i,
+    rung: 'two_digit_minus_one_digit_no_borrow',
+    outcomeMatch: /1-digit number from a 2-digit|subtract a 1-digit/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
     skillFocus: 'Subtract a 1-digit number from a 2-digit number without borrowing',
@@ -357,7 +357,7 @@ export const SUBTRACTION_LADDER = [
 export const GRADE2_TWO_DIGIT_MINUS_TWO_DIGIT = {
   id: 'sub-two-two-numeric',
   family: 'subtraction',
-  outcomeFamily: 'two_digit_minus_two_digit_no_borrow',
+  rung: 'two_digit_minus_two_digit_no_borrow',
   outcomeMatch: /2-digit numbers without regrouping|subtract up to 2-digit/i,
   difficulty: 'advanced',
   interactionType: 'numeric_entry',
@@ -414,13 +414,18 @@ export const familyFromContext = (ctx = {}) => {
 
 export const isGradeOneSubtractionContext = (ctx = {}) => familyFromContext(ctx) === 'subtraction';
 
-const FAMILY_ORDER = {
+/**
+ * Difficulty rungs within one operation family, easiest → hardest.
+ * `family` is the operation (`addition` | `subtraction` | …).
+ * `rung` is the difficulty tier inside that family.
+ */
+export const RUNG_ORDER = {
   addition: ['singles_to_10', 'two_digit_one_digit', 'multiples_of_ten'],
   number_concept: ['one_count', 'represent_numbers'],
   subtraction: [
     'single_digit_minus_single_digit',
-    'multiples_of_ten_minus_multiples_of_ten',
-    'two_digit_minus_one_digit_no_borrow'
+    'two_digit_minus_one_digit_no_borrow',
+    'multiples_of_ten_minus_multiples_of_ten'
   ]
 };
 
@@ -429,10 +434,77 @@ export const detectTemplatableSkill = (ctx = {}) => familyFromContext(ctx);
 const ladderForSkill = (skill, grade = '1') =>
   TEMPLATE_LADDERS[`${String(grade)}:${skill}`] || [];
 
+/** Rung id on a template. Accepts legacy `outcomeFamily` on stored lessons. */
+export const rungOf = (template = {}) =>
+  String(template.rung || template.outcomeFamily || '').trim();
+
+export const homeRungs = (family, outcomes = [], storedTemplates = [], grade = '1') => {
+  const homes = new Set();
+  const defs = ladderForSkill(family, grade);
+  for (const text of outcomes || []) {
+    for (const def of defs) {
+      if (def.outcomeMatch.test(String(text || ''))) homes.add(rungOf(def));
+    }
+  }
+  if (!homes.size) {
+    const order = RUNG_ORDER[family] || [];
+    if (order.length) homes.add(order[0]);
+    else {
+      for (const t of storedTemplates || []) {
+        const rung = rungOf(t);
+        if (rung) homes.add(rung);
+      }
+    }
+  }
+  return homes;
+};
+
+/** Rungs this lesson may serve: easiest through home (inclusive). Never harder than home. */
+export const attachedRungs = (family, homes) => {
+  const order = RUNG_ORDER[family] || [];
+  if (!order.length) return new Set();
+  const homeIdxes = [...(homes || [])].map((r) => order.indexOf(r)).filter((i) => i >= 0);
+  const cap = homeIdxes.length ? Math.max(...homeIdxes) : 0;
+  return new Set(order.slice(0, cap + 1));
+};
+
+/**
+ * BKT may step one rung down (struggle) or up (mastery), but never past
+ * this lesson's home rung — harder rungs belong to later lessons.
+ */
+export const targetRung = ({
+  family,
+  homeRungs: homes,
+  mastery = null,
+  failStreak = 0
+} = {}) => {
+  const order = RUNG_ORDER[family] || [];
+  const allowed = attachedRungs(family, homes);
+  const attachedOrder = order.filter((r) => allowed.has(r));
+  if (!attachedOrder.length) return null;
+  const homeIdxes = [...(homes || [])]
+    .map((r) => attachedOrder.indexOf(r))
+    .filter((i) => i >= 0);
+  const homeIdx = homeIdxes.length ? Math.max(...homeIdxes) : 0;
+  const pKnow = Number(mastery?.bktPKnow);
+  const status = mastery?.status;
+  const drop =
+    failStreak >= 2 ||
+    status === 'scaffolding' ||
+    status === 'struggling' ||
+    (Number.isFinite(pKnow) && pKnow < 0.4);
+  const escalate = status === 'mastered' || (Number.isFinite(pKnow) && pKnow >= 0.7);
+  let idx = homeIdx;
+  if (drop) idx = Math.max(0, homeIdx - 1);
+  else if (escalate) idx = Math.min(attachedOrder.length - 1, homeIdx + 1);
+  return attachedOrder[idx];
+};
+
 const toStoredTemplate = (def, { learningOutcomeIndex, learningOutcomeKey, skillFocus }) => {
-  const { outcomeMatch: _match, seed, ...rest } = def;
+  const { outcomeMatch: _match, seed, outcomeFamily: _legacy, ...rest } = def;
   return {
     ...rest,
+    rung: rungOf(def),
     seed: seed || null,
     learningOutcomeIndex,
     learningOutcomeKey,
@@ -459,9 +531,10 @@ const bindDef = (def, outcomes = []) => {
 };
 
 /**
- * Addition attaches the full skill ladder so a mastered learner has a harder
- * family to move into. Number Concept keeps family-filtered attachment
- * (represent vs one-count are different objectives).
+ * Operation family comes from the sub-strand. Within that family, a lesson
+ * attaches easiest→home rungs so BKT can drop, but never harder rungs that
+ * belong to a later lesson. Number Concept matches rungs exactly (represent
+ * vs one-count are different objectives, not a difficulty ladder).
  */
 export const laddersForOutcomes = (ctx, outcomes = []) => {
   const family = familyFromContext(ctx);
@@ -471,18 +544,19 @@ export const laddersForOutcomes = (ctx, outcomes = []) => {
 
   if (family === 'number_concept') {
     if (!outcomes.length) return [];
-    const matchedFamilies = new Set();
+    const matched = new Set();
     for (const text of outcomes) {
       for (const def of defs) {
-        if (def.outcomeMatch.test(String(text || ''))) matchedFamilies.add(def.outcomeFamily);
+        if (def.outcomeMatch.test(String(text || ''))) matched.add(rungOf(def));
       }
     }
-    if (!matchedFamilies.size) return [];
-    return defs.filter((def) => matchedFamilies.has(def.outcomeFamily)).map((def) => bindDef(def, outcomes));
+    if (!matched.size) return [];
+    return defs.filter((def) => matched.has(rungOf(def))).map((def) => bindDef(def, outcomes));
   }
 
-  const texts = outcomes.length ? outcomes : [''];
-  return defs.map((def) => bindDef(def, texts));
+  const homes = homeRungs(family, outcomes, [], ctx.grade);
+  const allowed = attachedRungs(family, homes);
+  return defs.filter((def) => allowed.has(rungOf(def))).map((def) => bindDef(def, outcomes));
 };
 
 export const resolveContentSource = (ctx, outcomes = []) => {
@@ -490,53 +564,12 @@ export const resolveContentSource = (ctx, outcomes = []) => {
   return rows.length > 0 ? QUIZ_SOURCE_TEMPLATES : QUIZ_SOURCE_FIXED_POOL;
 };
 
-export const homeOutcomeFamilies = (skill, outcomes = [], storedTemplates = []) => {
-  const homes = new Set();
-  const defs = ladderForSkill(skill);
-  for (const text of outcomes || []) {
-    for (const def of defs) {
-      if (def.outcomeMatch.test(String(text || ''))) homes.add(def.outcomeFamily);
-    }
-  }
-  if (!homes.size) {
-    for (const t of storedTemplates || []) {
-      if (t.outcomeFamily) homes.add(t.outcomeFamily);
-    }
-  }
-  return homes;
-};
-
-export const targetOutcomeFamily = ({
-  skill,
-  homeFamilies,
-  mastery = null,
-  failStreak = 0
-} = {}) => {
-  const order = FAMILY_ORDER[skill] || [];
-  if (!order.length) return null;
-  const homeIdxes = [...(homeFamilies || [])]
-    .map((f) => order.indexOf(f))
-    .filter((i) => i >= 0);
-  const homeIdx = homeIdxes.length ? Math.max(...homeIdxes) : 0;
-  const pKnow = Number(mastery?.bktPKnow);
-  const status = mastery?.status;
-  const drop =
-    failStreak >= 2 ||
-    status === 'scaffolding' ||
-    status === 'struggling' ||
-    (Number.isFinite(pKnow) && pKnow < 0.4);
-  const escalate = status === 'mastered' || (Number.isFinite(pKnow) && pKnow >= 0.7);
-  let idx = homeIdx;
-  if (drop) idx = Math.max(0, homeIdx - 1);
-  else if (escalate) idx = Math.min(order.length - 1, homeIdx + 1);
-  return order[idx];
-};
-
 const baseTemplateId = (id) => String(id || '').replace(/__\d+$/, '');
 
 /**
- * Session pool: stored templates plus any missing Addition ladder rungs.
- * Already-approved 2-template lessons can escalate without a regenerate.
+ * Session pool is this lesson's attached rungs only.
+ * Easier rungs may be filled in for drop; harder stored rungs are stripped.
+ * Never merges another lesson's content.
  */
 export const templatesForSession = (lesson) => {
   const stored = Array.isArray(lesson?.quiz?.templates) ? lesson.quiz.templates : [];
@@ -549,11 +582,17 @@ export const templatesForSession = (lesson) => {
     subject: { name: 'Mathematics' },
     subStrand: { name: lesson.subStrand?.name || lesson.subStrandName || family }
   };
-  const outcomes = lesson.learningObjectives || [];
-  const full = laddersForOutcomes(ctx, outcomes);
+  const attached = laddersForOutcomes(ctx, lesson.learningObjectives || []);
+  if (!attached.length) return stored;
+
+  const allowedIds = new Set(attached.map((t) => baseTemplateId(t.id)));
+  const allowedRungSet = new Set(attached.map((t) => rungOf(t)));
   const byId = new Map();
-  for (const t of stored) byId.set(baseTemplateId(t.id), t);
-  for (const t of full) {
+  for (const t of stored) {
+    const id = baseTemplateId(t.id);
+    if (allowedIds.has(id) || allowedRungSet.has(rungOf(t))) byId.set(id, t);
+  }
+  for (const t of attached) {
     const id = baseTemplateId(t.id);
     if (!byId.has(id)) byId.set(id, t);
   }

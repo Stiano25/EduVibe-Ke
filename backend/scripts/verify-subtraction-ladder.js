@@ -21,7 +21,12 @@ import {
   isGradeOneSubtractionContext,
   laddersForOutcomes,
   resolveContentSource,
-  seedQuestionsFromTemplates
+  seedQuestionsFromTemplates,
+  homeRungs,
+  targetRung,
+  templatesForSession,
+  rungOf,
+  templateCoverageReport
 } from '../utils/templateLadders.js';
 import { QUIZ_SOURCE_TEMPLATES } from '../utils/quizSessionSize.js';
 import {
@@ -103,10 +108,13 @@ assert(
 );
 
 const inverseAttached = laddersForOutcomes(subtractionCtx, [INVERSE_OUTCOME]);
-assert(inverseAttached.length === SUBTRACTION_LADDER.length, 'subtraction lesson keeps subtraction ladder');
 assert(
-  inverseAttached.every((t) => t.family === 'subtraction'),
-  'no addition templates attach to a subtraction sub-strand'
+  inverseAttached.length >= 1 && inverseAttached.every((t) => t.family === 'subtraction'),
+  'unmatched inverse outcome defaults to the easiest subtraction rung, never addition'
+);
+assert(
+  inverseAttached.every((t) => rungOf(t) === 'single_digit_minus_single_digit'),
+  'inverse-relationship lesson homes at singles, not 2-digit drills'
 );
 assert(
   inverseAttached.every((t) => t.answerFormula === 'a - b'),
@@ -180,7 +188,7 @@ for (const row of cross) {
 
 assert(SUBTRACTION_LADDER.length === 3, 'Grade 1 ladder has three families (2-digit−2-digit removed)');
 assert(
-  !SUBTRACTION_LADDER.some((t) => t.outcomeFamily === 'two_digit_minus_two_digit_no_borrow'),
+  !SUBTRACTION_LADDER.some((t) => rungOf(t) === 'two_digit_minus_two_digit_no_borrow'),
   '2-digit minus 2-digit is not on the Grade 1 ladder'
 );
 
@@ -225,9 +233,9 @@ const validateFamily = (family, label) => {
 
 const reports = {};
 for (const family of g1Families) {
-  reports[family.outcomeFamily] = validateFamily(family, family.outcomeFamily);
+  reports[rungOf(family)] = validateFamily(family, rungOf(family));
 }
-reports[extra.outcomeFamily] = validateFamily(extra, extra.outcomeFamily + ' (Grade 2, not on G1 ladder)');
+reports[rungOf(extra)] = validateFamily(extra, rungOf(extra) + ' (Grade 2, not on G1 ladder)');
 
 assert(
   pairNeedsBorrow(42, 18) === true,
@@ -252,13 +260,46 @@ assert(
 
 const templates = laddersForOutcomes(subtractionCtx, ['subtract single digit numbers']);
 const seeds = seedQuestionsFromTemplates(templates);
-assert(seeds.length === 3, `G1 seeds = 3, got ${seeds.length}`);
+assert(seeds.length === 1, `singles home attaches 1 seed, got ${seeds.length}`);
+assert(templates.every((t) => rungOf(t) === 'single_digit_minus_single_digit'), 'singles outcome stays on singles rung');
 assert(seeds.every((q) => q.params?.operation === 'subtract'), 'seeds carry subtract');
 assert(seeds.every((q) => q.answerFormula === 'a - b'), 'seeds grade a - b');
+
+const TAKING_AWAY_OUTCOME = "model subtraction as 'taking away' using concrete objects";
+const takingAwayAttached = laddersForOutcomes(subtractionCtx, [TAKING_AWAY_OUTCOME]);
+const takingAwayHomes = homeRungs('subtraction', [TAKING_AWAY_OUTCOME], [], '1');
+assert(
+  [...takingAwayHomes].join() === 'single_digit_minus_single_digit',
+  `Taking Away home rung is singles, got ${[...takingAwayHomes]}`
+);
+assert(
+  takingAwayAttached.every((t) => rungOf(t) === 'single_digit_minus_single_digit'),
+  'Taking Away must not attach tens or 2-digit rungs'
+);
+assert(
+  takingAwayAttached.length === 1 && takingAwayAttached[0].id === 'sub-singles-numeric',
+  'Taking Away attached set is the singles seed only'
+);
+assert(
+  targetRung({
+    family: 'subtraction',
+    homeRungs: takingAwayHomes,
+    mastery: { status: 'mastered', bktPKnow: 1 }
+  }) === 'single_digit_minus_single_digit',
+  'mastered Taking Away learner cannot escalate past singles'
+);
+
+const twoOneOutcome = 'subtract a 1-digit number from a 2-digit number without regrouping';
+const twoOneAttached = laddersForOutcomes(subtractionCtx, [twoOneOutcome]);
+const twoOneRungs = new Set(twoOneAttached.map((t) => rungOf(t)));
+assert(twoOneRungs.has('single_digit_minus_single_digit'), '2-digit−1-digit lesson keeps singles for drop');
+assert(twoOneRungs.has('two_digit_minus_one_digit_no_borrow'), '2-digit−1-digit home attached');
+assert(!twoOneRungs.has('multiples_of_ten_minus_multiples_of_ten'), 'tens is a different lesson');
 
 const lesson = {
   id: 'subtraction-ladder-session',
   grade: '1',
+  subStrand: { name: '1.4 Subtraction' },
   learningObjectives: ['subtract single digit numbers'],
   quiz: {
     source: QUIZ_SOURCE_TEMPLATES,
@@ -286,4 +327,129 @@ console.log('live subtraction grade', {
   expectedValue: right.lastAnswer.expectedValue
 });
 
+const storedTakingAwayFullLadder = laddersForOutcomes(subtractionCtx, [SUB_TENS_OUTCOME]);
+assert(storedTakingAwayFullLadder.length === SUBTRACTION_LADDER.length, 'tens lesson still attaches 0..home (full G1 range)');
+const takingAwayLesson = {
+  id: '95b72793-58f1-4523-a52a-82ff8c361c1a',
+  title: 'Taking Away Objects: What Is Left?',
+  grade: '1',
+  subStrand: { name: '1.4 Subtraction' },
+  learningObjectives: [TAKING_AWAY_OUTCOME],
+  quiz: {
+    source: QUIZ_SOURCE_TEMPLATES,
+    templates: storedTakingAwayFullLadder,
+    questions: seedQuestionsFromTemplates(storedTakingAwayFullLadder)
+  }
+};
+const beforeRungs = [...new Set(storedTakingAwayFullLadder.map((t) => rungOf(t)))];
+const sessionPool = templatesForSession(takingAwayLesson);
+const afterRungs = [...new Set(sessionPool.map((t) => rungOf(t)))];
+console.log('\n=== TAKING AWAY HOME RUNG ===');
+console.log('stored (before):', beforeRungs);
+console.log('session pool (after):', afterRungs);
+assert(beforeRungs.length === 3, 'legacy stored lesson had the full G1 subtraction ladder');
+assert(
+  afterRungs.join() === 'single_digit_minus_single_digit',
+  `session strips harder rungs, got ${afterRungs}`
+);
+
+const rungFromTemplateId = (id) => {
+  const s = String(id || '');
+  if (s.includes('tens')) return 'tens';
+  if (s.includes('two-one') || s.includes('two-two')) return 'two_digit';
+  if (s.includes('singles')) return 'singles';
+  return s;
+};
+
+const runTakingAway = (masteryRows, n = 8) => {
+  const served = [];
+  let s = createAdaptiveSession({ lesson: takingAwayLesson, masteryRows });
+  const key = sessionPool[0]?.learningOutcomeKey;
+  for (let i = 0; i < n && s.question && !s.meta.done; i += 1) {
+    const live = s.session.twistedQuestions[s.question.id];
+    served.push({
+      templateId: live.templateId,
+      rung: rungFromTemplateId(live.templateId),
+      a: live.params?.a,
+      b: live.params?.b
+    });
+    const value = Number(live.params.a) - Number(live.params.b);
+    s = advanceAdaptiveSession({
+      session: s.session,
+      lesson: takingAwayLesson,
+      submittedValue: String(value),
+      responseTimeMs: 1800,
+      masteryRows: masteryRows || [{ learningOutcomeKey: key, status: 'developing', bktPKnow: 0.55 }]
+    });
+  }
+  return { served, done: s.meta?.done, progressLabel: s.meta?.progressLabel, phase: s.meta?.phase };
+};
+
+const strugglingTrace = runTakingAway(
+  [{ learningOutcomeKey: sessionPool[0].learningOutcomeKey, status: 'struggling', bktPKnow: 0.2 }],
+  8
+);
+assert(
+  strugglingTrace.served.every((row) => row.rung === 'singles'),
+  `struggling Taking Away stayed on singles, got ${strugglingTrace.served.map((r) => r.rung).join(',')}`
+);
+
+const masteredTrace = runTakingAway(
+  [{ learningOutcomeKey: sessionPool[0].learningOutcomeKey, status: 'mastered', bktPKnow: 0.95 }],
+  8
+);
+assert(
+  masteredTrace.served.every((row) => row.rung === 'singles'),
+  `mastered Taking Away must not enter tens/2-digit, got ${masteredTrace.served.map((r) => r.rung).join(',')}`
+);
+assert(masteredTrace.served.length >= 6, 'session still serves a full main set from the home rung');
+console.log('struggling trace', strugglingTrace.served.map((r) => `${r.rung}:${r.a}-${r.b}`));
+console.log('mastered trace', masteredTrace.served.map((r) => `${r.rung}:${r.a}-${r.b}`));
+console.log('mastery-beyond-home UX', {
+  lastProgressLabel: masteredTrace.progressLabel,
+  phase: masteredTrace.phase,
+  done: masteredTrace.done,
+  note: 'Session ends with meta.phase=done / progressLabel Complete after mainTarget items. No copy says this lesson has no harder rung — next lesson is unit gating.'
+});
+
 console.log('\nverify-subtraction-ladder: OK', reports);
+
+const TAKING_AWAY_ID = '95b72793-58f1-4523-a52a-82ff8c361c1a';
+const persistTakingAway = async () => {
+  try {
+    const { Lesson } = await import('../models/Lesson.js');
+    const existing = await Lesson.findById(TAKING_AWAY_ID);
+    if (!existing) {
+      console.log('Taking Away lesson not in DB; skipped persist');
+      return;
+    }
+    const rebound = laddersForOutcomes(
+      {
+        grade: String(existing.grade || '1'),
+        subject: { name: 'Mathematics' },
+        subStrand: { name: '1.4 Subtraction' }
+      },
+      existing.learningObjectives || [TAKING_AWAY_OUTCOME]
+    );
+    const reboundSeeds = seedQuestionsFromTemplates(rebound);
+    const coverageReport = templateCoverageReport(rebound, existing.learningObjectives || []);
+    await Lesson.update(TAKING_AWAY_ID, {
+      quiz: {
+        ...existing.quiz,
+        source: QUIZ_SOURCE_TEMPLATES,
+        templates: rebound,
+        questions: reboundSeeds,
+        coverageReport
+      }
+    });
+    console.log('Persisted Taking Away templates', {
+      id: TAKING_AWAY_ID,
+      before: beforeRungs,
+      after: rebound.map((t) => t.id)
+    });
+  } catch (err) {
+    console.log('Taking Away persist skipped:', err.message);
+  }
+};
+
+await persistTakingAway();

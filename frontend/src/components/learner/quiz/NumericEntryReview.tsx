@@ -1,8 +1,8 @@
 import { CheckCircle, XCircle } from 'lucide-react'
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
-import { resolveAdditionLayout } from '@/lib/additionLayout'
-import { ColumnAddition } from './ColumnAddition'
+import { resolveAdditionLayout, resolveColumnOperation } from '@/lib/additionLayout'
+import { ColumnOperation } from './ColumnAddition'
 import type { MultipleChoiceReviewProps } from './types'
 
 export const NumericEntryReview = ({
@@ -14,6 +14,7 @@ export const NumericEntryReview = ({
   const submitted = item.submittedValue ?? item.selectedOptionIndex
   const expected = item.expectedValue
   const layout = resolveAdditionLayout(item.layout)
+  const operation = resolveColumnOperation(item.operation)
   const addends = item.addends
   const vertical =
     layout === 'vertical' &&
@@ -42,11 +43,12 @@ export const NumericEntryReview = ({
 
       {vertical ? (
         <div className="flex justify-center mb-3">
-          <ColumnAddition
+          <ColumnOperation
             a={addends.a}
             b={addends.b}
+            operation={operation}
             sumText={submitted == null ? '' : String(submitted)}
-            scaffoldCarry={item.scaffoldCarry !== false}
+            scaffoldCarry={operation === 'subtract' ? false : item.scaffoldCarry !== false}
             reveal="sum"
             animate={false}
           />

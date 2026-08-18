@@ -17,6 +17,7 @@ import {
 import {
   hasIntegerAddends,
   resolveAdditionLayout,
+  resolveColumnOperation,
   resolveScaffoldCarry,
   verticalAdditionInstruction
 } from '../../utils/additionLayout.js';
@@ -145,12 +146,17 @@ const publicNumericFields = (q) => {
   const a = Number(q.params.a);
   const b = Number(q.params.b);
   const layout = resolveAdditionLayout(q.params.layout);
-  const scaffoldCarry = resolveScaffoldCarry(q.params.scaffoldCarry, { layout });
+  const operation = resolveColumnOperation(q.params.operation);
+  const scaffoldCarry =
+    operation === 'subtract'
+      ? false
+      : resolveScaffoldCarry(q.params.scaffoldCarry, { layout });
   const worked =
     q.modality === 'text_steps' && layout === 'vertical' ? additionWorkedSteps(a, b) : null;
   return {
     layout,
     addends: { a, b },
+    operation,
     scaffoldCarry,
     ...(worked ? { workedSteps: worked.map(({ id, text, reveal }) => ({ id, text, reveal })) } : {}),
     ...(layout === 'vertical' ? { question: verticalAdditionInstruction(q.question) } : {})
@@ -192,6 +198,7 @@ const publicQuestion = (q, indexInBank, session = null) => {
       ? {
           layout: numericFields.layout,
           addends: numericFields.addends,
+          operation: numericFields.operation,
           scaffoldCarry: numericFields.scaffoldCarry,
           ...(numericFields.workedSteps ? { workedSteps: numericFields.workedSteps } : {})
         }
@@ -1135,9 +1142,13 @@ export const buildReviewView = (lesson, sessionReview) => {
         ? {
             layout: resolveAdditionLayout(q.params.layout),
             addends: { a: Number(q.params.a), b: Number(q.params.b) },
-            scaffoldCarry: resolveScaffoldCarry(q.params.scaffoldCarry, {
-              layout: resolveAdditionLayout(q.params.layout)
-            }),
+            operation: resolveColumnOperation(q.params.operation),
+            scaffoldCarry:
+              resolveColumnOperation(q.params.operation) === 'subtract'
+                ? false
+                : resolveScaffoldCarry(q.params.scaffoldCarry, {
+                    layout: resolveAdditionLayout(q.params.layout)
+                  }),
             question:
               resolveAdditionLayout(q.params.layout) === 'vertical'
                 ? verticalAdditionInstruction(q.question)

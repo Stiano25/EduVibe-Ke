@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { ColumnAddition } from './ColumnAddition'
-import type { ColumnReveal, WorkedStep } from '@/lib/additionLayout'
+import { ColumnOperation } from './ColumnAddition'
+import { columnResult, resolveColumnOperation, type ColumnOperation as ColumnOp, type ColumnReveal, type WorkedStep } from '@/lib/additionLayout'
 
 type AdditionWorkedExampleProps = {
   a: number
   b: number
+  operation?: ColumnOp
   steps: WorkedStep[]
   scaffoldCarry?: boolean
 }
@@ -12,6 +13,7 @@ type AdditionWorkedExampleProps = {
 export const AdditionWorkedExample = ({
   a,
   b,
+  operation = 'add',
   steps,
   scaffoldCarry = true,
 }: AdditionWorkedExampleProps) => {
@@ -24,14 +26,15 @@ export const AdditionWorkedExample = ({
   return (
     <div className="rounded-ev-md border-2 border-ev-pink bg-ev-pink-soft/70 p-3 space-y-3">
       <div className="flex justify-center">
-        <ColumnAddition
+        <ColumnOperation
           a={a}
           b={b}
+          operation={resolveColumnOperation(operation)}
           scaffoldCarry={scaffoldCarry}
           fillCarry={reveal === 'carry' || reveal === 'sum'}
           reveal={reveal}
           highlightOnes={reveal === 'ones' || reveal === 'carry'}
-          sumText={reveal === 'sum' ? String(a + b) : ''}
+          sumText={reveal === 'sum' ? String(columnResult(a, b, operation)) : ''}
           animate
         />
       </div>

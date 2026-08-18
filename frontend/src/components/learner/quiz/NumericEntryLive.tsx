@@ -5,13 +5,14 @@ import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
 import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
 import {
   resolveAdditionLayout,
+  resolveColumnOperation,
   applyColumnDigit,
   columnSumMaxDigits,
   expectedSumDigitCount,
   digitChoicesForSum,
   shuffleWithSeed,
 } from '@/lib/additionLayout'
-import { ColumnAddition } from './ColumnAddition'
+import { ColumnOperation } from './ColumnAddition'
 import { AdditionWorkedExample } from './AdditionWorkedExample'
 import { LEARNER_PANEL, learnerButton } from '@/lib/learnerUi'
 import type { MultipleChoiceLiveProps } from './types'
@@ -53,20 +54,21 @@ export const NumericEntryLive = ({
   const { measureResponseTimeMs } = useVisibleResponseTimer(question.id, interactiveRef)
   const disabled = submitting || !!flash
   const layout = resolveAdditionLayout(question.layout)
+  const operation = resolveColumnOperation(question.operation)
   const addends = question.addends
   const hasAddends = addends != null && Number.isInteger(addends.a) && Number.isInteger(addends.b)
   const vertical = layout === 'vertical' && hasAddends
-  const scaffoldCarry = question.scaffoldCarry !== false
+  const scaffoldCarry = operation === 'subtract' ? false : question.scaffoldCarry !== false
   const workedSteps = Array.isArray(question.workedSteps) ? question.workedSteps : []
-  const maxDigits = hasAddends ? columnSumMaxDigits(addends.a, addends.b) : 6
-  const autoLen = hasAddends ? expectedSumDigitCount(addends.a, addends.b) : null
+  const maxDigits = hasAddends ? columnSumMaxDigits(addends.a, addends.b, operation) : 6
+  const autoLen = hasAddends ? expectedSumDigitCount(addends.a, addends.b, operation) : null
   const padDigits = useMemo(() => {
     if (!hasAddends) return FALLBACK_DIGITS
     return shuffleWithSeed(
-      digitChoicesForSum(addends.a, addends.b, question.difficulty),
+      digitChoicesForSum(addends.a, addends.b, question.difficulty, operation),
       question.id
     )
-  }, [hasAddends, addends, question.difficulty, question.id])
+  }, [hasAddends, addends, question.difficulty, question.id, operation])
   const allowed = useMemo(() => new Set(padDigits.map(String)), [padDigits])
   const sent = useRef(false)
 
@@ -153,6 +155,7 @@ export const NumericEntryLive = ({
             <AdditionWorkedExample
               a={addends.a}
               b={addends.b}
+              operation={operation}
               steps={workedSteps}
               scaffoldCarry={scaffoldCarry}
             />
@@ -167,9 +170,10 @@ export const NumericEntryLive = ({
           </>
         ) : vertical ? (
           <div className="flex justify-center rounded-ev-md border-2 border-ev-blue bg-ev-blue-soft">
-            <ColumnAddition
+            <ColumnOperation
               a={addends.a}
               b={addends.b}
+              operation={operation}
               sumText={digits}
               scaffoldCarry={scaffoldCarry}
               reveal="sum"

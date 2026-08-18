@@ -29,6 +29,7 @@ export type AdaptiveQuestion = {
   objectKind?: string
   layout?: AdditionLayout | string
   addends?: { a: number; b: number }
+  operation?: 'add' | 'subtract'
   scaffoldCarry?: boolean
   workedSteps?: WorkedStep[]
   bankEntryId?: string
@@ -58,6 +59,7 @@ export type ReviewItem = {
   submittedValue?: number | null
   layout?: AdditionLayout | string
   addends?: { a: number; b: number }
+  operation?: 'add' | 'subtract'
   scaffoldCarry?: boolean
   phase?: string
 }

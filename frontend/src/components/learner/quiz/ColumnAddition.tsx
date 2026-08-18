@@ -1,8 +1,9 @@
-import { columnWorking, placeValueRows, type ColumnReveal } from '@/lib/additionLayout'
+import { columnWorking, placeValueRows, resolveColumnOperation, type ColumnOperation, type ColumnReveal } from '@/lib/additionLayout'
 
-type ColumnAdditionProps = {
+type ColumnOperationProps = {
   a: number
   b: number
+  operation?: ColumnOperation
   sumText?: string
   showSumSlot?: boolean
   scaffoldCarry?: boolean
@@ -83,10 +84,11 @@ const revealRank: Record<ColumnReveal, number> = {
   sum: 3,
 }
 
-/** Stacked addends, plus, line, optional tens carry box, answer row. */
-export const ColumnAddition = ({
+/** Stacked operands, plus or minus, line, optional tens carry box, answer row. */
+export const ColumnOperation = ({
   a,
   b,
+  operation = 'add',
   sumText = '',
   showSumSlot = true,
   scaffoldCarry = true,
@@ -95,13 +97,15 @@ export const ColumnAddition = ({
   animate = true,
   highlightOnes = false,
   className = '',
-}: ColumnAdditionProps) => {
+}: ColumnOperationProps) => {
+  const op = resolveColumnOperation(operation)
+  const subtract = op === 'subtract'
   const work = columnWorking(a, b)
-  const minCols = Math.max(scaffoldCarry ? 2 : 1, work.cols)
+  const minCols = Math.max(scaffoldCarry && !subtract ? 2 : 1, work.cols)
   const typed = String(sumText || '').replace(/\D/g, '')
   const rows = placeValueRows(a, b, typed, minCols)
   const rank = revealRank[reveal] ?? 3
-  const showCarryDigit = scaffoldCarry && fillCarry && work.onesCarry > 0
+  const showCarryDigit = scaffoldCarry && !subtract && fillCarry && work.onesCarry > 0
   const onesIndex = rows.cols - 1
   const partialSum =
     rank >= revealRank.sum
@@ -112,14 +116,16 @@ export const ColumnAddition = ({
   const sumRows = placeValueRows(a, b, partialSum, minCols)
   const nextCol =
     rank >= revealRank.sum && typed.length < rows.cols ? rows.cols - 1 - typed.length : -1
+  const sign = subtract ? '−' : '+'
+  const spoken = subtract ? 'minus' : 'plus'
 
   return (
     <div
       className={`inline-flex flex-col items-end gap-1 px-4 py-3 ${className}`}
       role="img"
-      aria-label={`${a} plus ${b}`}
+      aria-label={`${a} ${spoken} ${b}`}
     >
-      {scaffoldCarry ? (
+      {scaffoldCarry && !subtract ? (
         <div className="flex items-center gap-1">
           <span className="inline-flex h-8 w-8" />
           {Array.from({ length: rows.cols }, (_, i) =>
@@ -150,7 +156,7 @@ export const ColumnAddition = ({
           }`}
           style={{ animationDelay: animate ? '120ms' : undefined }}
         >
-          +
+          {sign}
         </span>
         {rows.b.map((ch, i) => (
           <DigitCell key={`b-${i}`} ch={ch} animate={animate} delayMs={160 + 40 * i} />
@@ -179,3 +185,6 @@ export const ColumnAddition = ({
     </div>
   )
 }
+
+/** @deprecated Use ColumnOperation. Same renderer; operation defaults to add. */
+export const ColumnAddition = ColumnOperation

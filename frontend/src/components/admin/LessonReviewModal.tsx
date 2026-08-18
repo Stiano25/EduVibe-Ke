@@ -7,9 +7,9 @@ import { MathText } from '@/components/ui/MathText'
 import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlocks'
 import { LiveDiagram, isLiveDiagramType } from '@/components/learner/diagrams/LiveDiagram'
 import { OptionVisual } from '@/components/learner/OptionVisual'
-import { ColumnAddition } from '@/components/learner/quiz/ColumnAddition'
+import { ColumnOperation } from '@/components/learner/quiz/ColumnAddition'
 import { AdditionWorkedExample } from '@/components/learner/quiz/AdditionWorkedExample'
-import { additionWorkedSteps, resolveAdditionLayout } from '@/lib/additionLayout'
+import { additionWorkedSteps, resolveAdditionLayout, resolveColumnOperation } from '@/lib/additionLayout'
 import type { Lesson, LessonVisualBrief, QuizQuestion } from '@/types'
 
 const DIAGRAM_TYPES = [
@@ -79,7 +79,7 @@ export const LessonReviewModal = ({
     setBriefs(initialLesson.visualBriefs || [])
     setBriefIndex(0)
     setCurrentQuestionIndex(0)
-    setReviewTab('quiz')
+    setReviewTab((initialLesson.quiz?.questions || []).length > 0 ? 'quiz' : 'content')
     setPreviewSvg(null)
     setVisualError(null)
     setModalityFilter('all')
@@ -136,12 +136,16 @@ export const LessonReviewModal = ({
   }, [questions, modalityFilter, bloomFilter, qaFilter])
 
   const qCount = questions.length
+  const canApprove = templateBacked || qCount > 0
   const safeIndex = Math.min(Math.max(currentQuestionIndex, 0), Math.max(qCount - 1, 0))
   const q = questions[safeIndex] as QuizQuestion | undefined
   const numericLayout =
     q?.interactionType === 'numeric_entry'
       ? resolveAdditionLayout(typeof q.params?.layout === 'string' ? q.params.layout : undefined)
       : null
+  const columnOperation = resolveColumnOperation(
+    typeof q?.params?.operation === 'string' ? q.params.operation : undefined
+  )
   const showColumnAddition =
     numericLayout === 'vertical' &&
     Number.isInteger(Number(q?.params?.a)) &&
@@ -449,8 +453,14 @@ export const LessonReviewModal = ({
           </button>
           <button
             type="button"
-            disabled={approving}
+            disabled={approving || !canApprove}
+            title={
+              canApprove
+                ? 'Approve lesson'
+                : 'Cannot approve until the quiz has questions. Review the question bank, then top up.'
+            }
             onClick={async () => {
+              if (!canApprove) return
               setApproving(true)
               try {
                 if (briefs.length > 0) {
@@ -509,6 +519,14 @@ export const LessonReviewModal = ({
 
         {reviewTab === 'content' && (
           <div className="space-y-3">
+            {!canApprove && (
+              <p
+                className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-[10px] px-3 py-2"
+                style={{ fontFamily: 'Manrope, sans-serif' }}
+              >
+                You can review the teaching content. Approve stays off until this lesson has quiz questions.
+              </p>
+            )}
             {lesson.learningObjectives && lesson.learningObjectives.length > 0 && (
               <div className="rounded-[16px] border-2 border-indigo-100 bg-indigo-50/60 p-4">
                 <p
@@ -822,7 +840,7 @@ export const LessonReviewModal = ({
             {qCount === 0 && !templateBacked ? (
               <div className="space-y-3">
                 <p className="text-sm text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  No quiz questions on this lesson.
+                  No quiz questions yet. Switch to Content to review the lesson. Approve pending bank items, then top up.
                 </p>
                 <button
                   type="button"
@@ -1161,27 +1179,39 @@ export const LessonReviewModal = ({
 
                     <MathText
                       as="p"
-                      text={showColumnAddition ? 'Add.' : q.question || ''}
+                      text={
+                        showColumnAddition
+                          ? columnOperation === 'subtract'
+                            ? 'Subtract.'
+                            : 'Add.'
+                          : q.question || ''
+                      }
                       className="text-base sm:text-lg font-semibold text-[#0F172A]"
                     />
 
                     {q.interactionType === 'numeric_entry' && (
                       <div className="rounded-[16px] border-2 border-indigo-200 bg-indigo-50 p-4 space-y-2">
                         <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
-                          {showColumnAddition ? 'Column addition' : 'Numeric entry'}
+                          {showColumnAddition
+                            ? columnOperation === 'subtract'
+                              ? 'Column subtraction'
+                              : 'Column addition'
+                            : 'Numeric entry'}
                         </p>
                         {showColumnAddition && q.modality === 'text_steps' ? (
                           <AdditionWorkedExample
                             a={Number(q.params?.a)}
                             b={Number(q.params?.b)}
+                            operation={columnOperation}
                             steps={additionWorkedSteps(Number(q.params?.a), Number(q.params?.b))}
                           />
                         ) : showColumnAddition ? (
                           <div className="flex justify-center bg-white rounded-[12px] border border-indigo-100">
-                            <ColumnAddition
+                            <ColumnOperation
                               a={Number(q.params?.a)}
                               b={Number(q.params?.b)}
-                              scaffoldCarry
+                              operation={columnOperation}
+                              scaffoldCarry={columnOperation !== 'subtract'}
                               animate
                             />
                           </div>

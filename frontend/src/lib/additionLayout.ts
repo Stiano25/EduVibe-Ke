@@ -7,6 +7,30 @@ export type AdditionLayout = (typeof ADDITION_LAYOUTS)[number]
 
 export const DEFAULT_ADDITION_LAYOUT: AdditionLayout = 'vertical'
 export const VERTICAL_ADDITION_INSTRUCTION = 'Add.'
+export const VERTICAL_SUBTRACTION_INSTRUCTION = 'Subtract.'
+
+export type ColumnOperation = 'add' | 'subtract'
+export const DEFAULT_COLUMN_OPERATION: ColumnOperation = 'add'
+
+export const resolveColumnOperation = (value?: string | null): ColumnOperation => {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase()
+  if (raw === 'subtract' || raw === 'subtraction' || raw === '-') return 'subtract'
+  return DEFAULT_COLUMN_OPERATION
+}
+
+export const columnResult = (
+  a: number,
+  b: number,
+  operation: ColumnOperation | string | null | undefined = 'add'
+) => {
+  const left = asAbsInt(a)
+  const right = asAbsInt(b)
+  return resolveColumnOperation(operation) === 'subtract'
+    ? Math.max(0, left - right)
+    : left + right
+}
 
 export type ColumnReveal = 'addends' | 'ones' | 'carry' | 'sum'
 
@@ -58,12 +82,18 @@ export const applyColumnDigit = (prev: string, key: string, maxLen = 6) => {
   return `${key}${cur}`
 }
 
-export const columnSumMaxDigits = (a: number, b: number) =>
-  Math.min(6, Math.max(2, String(asAbsInt(a + b)).length))
+export const columnSumMaxDigits = (
+  a: number,
+  b: number,
+  operation: ColumnOperation | string | null | undefined = 'add'
+) => Math.min(6, Math.max(2, String(columnResult(a, b, operation)).length))
 
-/** Digit count of a + b. Used to auto-submit once ones (then tens) are filled. */
-export const expectedSumDigitCount = (a: number, b: number) =>
-  String(asAbsInt(a) + asAbsInt(b)).length
+/** Digit count of the result. Used to auto-submit once ones (then tens) are filled. */
+export const expectedSumDigitCount = (
+  a: number,
+  b: number,
+  operation: ColumnOperation | string | null | undefined = 'add'
+) => String(columnResult(a, b, operation)).length
 
 export type DigitPadTier = 'easy' | 'intermediate' | 'advanced'
 
@@ -94,14 +124,19 @@ const pushDigit = (list: number[], d: number) => {
 export const digitChoicesForSum = (
   a: number,
   b: number,
-  difficulty: string | null | undefined = 'intermediate'
+  difficulty: string | null | undefined = 'intermediate',
+  operation: ColumnOperation | string | null | undefined = 'add'
 ): number[] => {
   const left = asAbsInt(a)
   const right = asAbsInt(b)
-  const needed = uniqueDigitsOf(left + right)
+  const op = resolveColumnOperation(operation)
+  const needed = uniqueDigitsOf(columnResult(left, right, op))
   const pool: number[] = []
   uniqueDigitsOf(left).forEach((d) => pushDigit(pool, d))
   uniqueDigitsOf(right).forEach((d) => pushDigit(pool, d))
+  if (op === 'subtract') {
+    uniqueDigitsOf(left + right).forEach((d) => pushDigit(pool, d))
+  }
   const onesSum = (left % 10) + (right % 10)
   pushDigit(pool, onesSum % 10)
   if (onesSum >= 10) pushDigit(pool, Math.floor(onesSum / 10))

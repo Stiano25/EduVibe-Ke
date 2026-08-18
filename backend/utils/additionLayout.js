@@ -11,7 +11,25 @@
 export const ADDITION_LAYOUTS = Object.freeze(['vertical', 'horizontal']);
 export const DEFAULT_ADDITION_LAYOUT = 'vertical';
 export const VERTICAL_ADDITION_INSTRUCTION = 'Add.';
+export const VERTICAL_SUBTRACTION_INSTRUCTION = 'Subtract.';
 export const HORIZONTAL_ADDITION_PATTERN = 'What is {a} + {b}?';
+export const DEFAULT_COLUMN_OPERATION = 'add';
+
+export const resolveColumnOperation = (value) => {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
+  if (raw === 'subtract' || raw === 'subtraction' || raw === '-') return 'subtract';
+  return DEFAULT_COLUMN_OPERATION;
+};
+
+export const columnResult = (a, b, operation = 'add') => {
+  const left = asAbsInt(a);
+  const right = asAbsInt(b);
+  return resolveColumnOperation(operation) === 'subtract'
+    ? Math.max(0, left - right)
+    : left + right;
+};
 
 export const resolveAdditionLayout = (value, { defaultLayout = DEFAULT_ADDITION_LAYOUT } = {}) => {
   const raw = String(value || '')
@@ -81,11 +99,11 @@ export const applyColumnDigit = (prev, key, maxLen = 6) => {
   return `${key}${cur}`;
 };
 
-export const columnSumMaxDigits = (a, b) =>
-  Math.min(6, Math.max(2, String(asAbsInt(a + b)).length));
+export const columnSumMaxDigits = (a, b, operation = 'add') =>
+  Math.min(6, Math.max(2, String(columnResult(a, b, operation)).length));
 
-export const expectedSumDigitCount = (a, b) =>
-  String(asAbsInt(a) + asAbsInt(b)).length;
+export const expectedSumDigitCount = (a, b, operation = 'add') =>
+  String(columnResult(a, b, operation)).length;
 
 const EXTRA_DISTRACTORS = { easy: 2, intermediate: 4, advanced: 6 };
 
@@ -104,13 +122,17 @@ const pushDigit = (list, d) => {
 };
 
 /** Answer digits plus a difficulty-scaled mix of distractors. */
-export const digitChoicesForSum = (a, b, difficulty = 'intermediate') => {
+export const digitChoicesForSum = (a, b, difficulty = 'intermediate', operation = 'add') => {
   const left = asAbsInt(a);
   const right = asAbsInt(b);
-  const needed = uniqueDigitsOf(left + right);
+  const op = resolveColumnOperation(operation);
+  const needed = uniqueDigitsOf(columnResult(left, right, op));
   const pool = [];
   uniqueDigitsOf(left).forEach((d) => pushDigit(pool, d));
   uniqueDigitsOf(right).forEach((d) => pushDigit(pool, d));
+  if (op === 'subtract') {
+    uniqueDigitsOf(left + right).forEach((d) => pushDigit(pool, d));
+  }
   const onesSum = (left % 10) + (right % 10);
   pushDigit(pool, onesSum % 10);
   if (onesSum >= 10) pushDigit(pool, Math.floor(onesSum / 10));

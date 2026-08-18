@@ -17,6 +17,7 @@ import {
   digitChoicesForSum,
   expectedSumDigitCount,
   resolveAdditionLayout,
+  resolveColumnOperation,
   resolveScaffoldCarry,
   verticalAdditionInstruction
 } from '../utils/additionLayout.js';
@@ -156,6 +157,7 @@ assert(
 );
 assert(state.question.question === VERTICAL_ADDITION_INSTRUCTION, 'live stem is Add.');
 assert(state.question.scaffoldCarry === true, 'live vertical has carry boxes');
+assert(state.question.operation === 'add', 'live payload defaults operation to add');
 assert(state.question.workedSteps == null, 'practice does not leak worked example');
 
 const originalAddends = { ...state.question.addends };
@@ -237,5 +239,33 @@ assert(Array.isArray(scaffolded.question.workedSteps), 'text_steps gets template
 assert(scaffolded.question.workedSteps.length === 4, 'four tap-to-reveal steps');
 assert(scaffolded.question.workedSteps[2].text.includes('Carry'), 'carry step present');
 assert(scaffolded.question.answerFormula == null, 'formula still not leaked on scaffold');
+
+assert(resolveColumnOperation(undefined) === 'add', 'missing operation defaults to add');
+assert(resolveColumnOperation(null) === 'add', 'null operation defaults to add');
+assert(legacy.question.operation === 'add', 'live payload defaults operation to add');
+assert(expectedScalarForQuestion(vertical) === 32 + 6, 'grades a + b when operation is missing');
+
+const addRows = placeValueRows(32, 6, String(32 + 6), { minCols: 2 });
+const addChips = digitChoicesForSum(32, 6, 'easy');
+console.log('\n=== PHASE 1 ADDITION EVIDENCE ===');
+console.log('sign: + (operation default)', resolveColumnOperation(vertical.params?.operation));
+console.log('instruction:', vertical.question);
+console.log('rendered column:');
+console.log(`  ${addRows.a.join('')}`);
+console.log(`+ ${addRows.b.join('')}`);
+console.log('  --');
+console.log(`  ${addRows.sum.join('')}`);
+console.log('chips:', addChips);
+console.log('grading:', {
+  a: 32,
+  b: 6,
+  operation: resolveColumnOperation(vertical.params?.operation),
+  answerFormula: vertical.answerFormula,
+  expected: expectedScalarForQuestion(vertical),
+  submittedCorrect: 38,
+  submittedWrong: 26,
+  correctMatch: expectedScalarForQuestion(vertical) === 38,
+  wrongRejected: expectedScalarForQuestion(vertical) !== 26
+});
 
 console.log('verify-column-addition: OK');

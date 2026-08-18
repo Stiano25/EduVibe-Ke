@@ -33,6 +33,10 @@ export const expectedScalarForQuestion = (question = {}) => {
   if (Number.isInteger(Number(params.answer))) return Number(params.answer);
   const a = asInt(params.a, NaN);
   const b = asInt(params.b, NaN);
-  if (Number.isInteger(a) && Number.isInteger(b)) return a + b;
+  if (Number.isInteger(a) && Number.isInteger(b)) {
+    const op = String(params.operation || '').trim().toLowerCase();
+    if (op === 'subtract' || op === 'subtraction' || op === '-') return a - b;
+    return a + b;
+  }
   return null;
 };

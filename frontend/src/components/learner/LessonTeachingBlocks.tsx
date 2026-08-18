@@ -63,7 +63,7 @@ export const LessonTeachingBlocks = ({
             return (
               <figure
                 key={block.id || `d-${i}`}
-                className="rounded-[16px] overflow-hidden border-2 border-slate-200 bg-slate-50"
+                className="rounded-ev-md overflow-hidden border-2 border-ev-line bg-white"
               >
                 <LiveDiagram diagramType={brief.diagramType} params={brief.params} />
               </figure>
@@ -73,7 +73,7 @@ export const LessonTeachingBlocks = ({
             return (
               <div
                 key={block.id || `d-${i}`}
-                className="rounded-[16px] border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500"
+                className="rounded-ev-md border-2 border-dashed border-ev-line bg-white px-4 py-6 text-center text-sm text-ev-muted"
                 style={{ fontFamily: 'Manrope, sans-serif' }}
               >
                 Diagram pending approval
@@ -84,7 +84,7 @@ export const LessonTeachingBlocks = ({
           return (
             <figure
               key={block.id || `d-${i}`}
-              className="rounded-[16px] overflow-hidden border-2 border-slate-200 bg-slate-50"
+              className="rounded-ev-md overflow-hidden border-2 border-ev-line bg-white"
             >
               <img
                 src={asset.url}
@@ -93,7 +93,7 @@ export const LessonTeachingBlocks = ({
               />
               {(brief?.brief || asset.alt || asset.skillFocus || brief?.skillFocus) && (
                 <figcaption
-                  className="px-3 py-2 text-xs italic text-slate-600 border-t border-slate-200 leading-relaxed"
+                  className="px-3 py-2 text-xs italic text-ev-muted border-t border-ev-line leading-relaxed"
                   style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
                   {brief?.brief || asset.alt || asset.skillFocus || brief?.skillFocus}

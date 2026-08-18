@@ -45,7 +45,7 @@ const NumberLine = ({ params }: { params: DiagramParams }) => {
     <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
       <rect width="100%" height="100%" fill="#F8FAFC" />
       {label ? (
-        <text x="320" y="36" textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
+        <text x="320" y="36" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
           {label}
         </text>
       ) : null}
@@ -89,7 +89,7 @@ const FractionBars = ({ params }: { params: DiagramParams }) => {
   return (
     <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
       <rect width="100%" height="100%" fill="#F8FAFC" />
-      <text x="320" y="48" textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
+      <text x="320" y="48" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
         {label}
       </text>
       {Array.from({ length: parts }, (_, i) => (
@@ -154,7 +154,7 @@ const LabeledBoxes = ({ params }: { params: DiagramParams }) => {
   return (
     <svg viewBox={`0 0 640 ${svgH}`} className="w-full h-auto" role="img">
       <rect width="100%" height="100%" fill="#F8FAFC" />
-      <text x="320" y="40" textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
+      <text x="320" y="40" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
         {title}
       </text>
       {items.map((it, i) => {
@@ -168,7 +168,7 @@ const LabeledBoxes = ({ params }: { params: DiagramParams }) => {
         return (
           <g key={i}>
             <rect x={x} y={y} width={boxW} height={boxH} fill="#ECFDF5" stroke="#0F766E" strokeWidth="2" rx="10" />
-            <text x={x + boxW / 2} y={y + 32} textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="14" fontWeight="600" fill="#0F172A">
+            <text x={x + boxW / 2} y={y + 32} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="14" fontWeight="600" fill="#0F172A">
               {formatLabel(it.label)}
             </text>
             <text x={x + boxW / 2} y={y + 58} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="12" fill="#334155">
@@ -199,7 +199,7 @@ const CountingCircles = ({ params }: { params: DiagramParams }) => {
     <svg viewBox={`0 0 640 ${svgH}`} className="w-full h-auto" role="img">
       <rect width="100%" height="100%" fill="#F8FAFC" />
       {title ? (
-        <text x="320" y="40" textAnchor="middle" fontFamily="Poppins, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
+        <text x="320" y="40" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
           {title}
         </text>
       ) : null}
@@ -371,7 +371,7 @@ export const LiveDiagram = ({ diagramType, params, className = '' }: LiveDiagram
   if (!isLiveDiagramType(diagramType)) return null
   const p = params && typeof params === 'object' ? params : {}
   return (
-    <div className={`rounded-[12px] border border-violet-100 overflow-hidden bg-slate-50 ${className}`}>
+    <div className={`rounded-ev-sm border border-violet-100 overflow-hidden bg-white ${className}`}>
       {diagramType === 'number_line' ? <NumberLine params={p} /> : null}
       {diagramType === 'fraction_bars' ? <FractionBars params={p} /> : null}
       {diagramType === 'labeled_boxes' ? <LabeledBoxes params={p} /> : null}

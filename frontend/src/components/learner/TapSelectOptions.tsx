@@ -60,14 +60,14 @@ export const TapSelectOptions = ({
             disabled={disabled}
             onClick={() => select(optionIndex)}
             aria-pressed={selected}
-            className={`min-h-12 w-full touch-manipulation rounded-[12px] border-2 p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-200 ${
+            className={`min-h-14 w-full touch-manipulation rounded-ev-sm border-2 p-4 text-left text-base transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ev-blue/40 ${
               showFeedback
                 ? feedback.correct
-                  ? 'border-emerald-400 bg-emerald-100'
-                  : 'border-red-400 bg-red-100'
+                  ? 'border-ev-green-edge bg-ev-green-soft'
+                  : 'border-ev-red-edge bg-ev-red-soft'
                 : selected
-                  ? 'border-primary-400 bg-primary-50'
-                  : 'border-slate-200 bg-white hover:border-primary-300 active:scale-[0.99]'
+                  ? 'border-ev-blue bg-ev-blue-soft'
+                  : 'border-ev-line bg-white hover:border-ev-blue active:scale-[0.99]'
             } disabled:cursor-not-allowed`}
           >
             <span className="mr-2 font-semibold">{String.fromCharCode(65 + optionIndex)}.</span>

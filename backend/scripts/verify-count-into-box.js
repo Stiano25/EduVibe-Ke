@@ -58,6 +58,21 @@ assert(
   'twisted expected matches a+b'
 );
 
+const showMany = makeCountIntoBoxQuestion({
+  target: 4,
+  answerFormula: 'target',
+  constraints: { target: [1, 5] },
+  questionText: 'Show this many.'
+});
+assert(showMany.params.target === 4, 'target-only seed');
+assert(showMany.answerFormula === 'target', 'target formula');
+assert(expectedCountForQuestion(showMany) === 4, 'expected from target');
+const twistedTarget = twistCountIntoBoxQuestion(showMany, { random: () => 0.9 });
+assert(twistedTarget.ok, 'target-only twist ok');
+assert(twistedTarget.question.params.target !== 4, 'target-only twist changes target');
+assert(objectPoolForTarget(17) <= 20, 'pool cap');
+assert(objectPoolForTarget(17) >= 17, 'pool covers advanced drag tier');
+
 const lesson = {
   id: 'count-box-verify',
   grade: '1',

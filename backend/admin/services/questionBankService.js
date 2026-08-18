@@ -200,8 +200,7 @@ export const pullApprovedBankQuestions = async ({
 } = {}) => {
   const approved = await QuestionBankEntry.findApprovedForPull({
     subStrandId,
-    grade,
-    interactionType: 'multiple_choice'
+    grade
   });
   const exclude = new Set(excludeBankEntryIds.filter(Boolean));
   const eligible = approved.filter((entry) => !exclude.has(entry.id));

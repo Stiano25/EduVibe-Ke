@@ -18,6 +18,7 @@ export type AdaptiveQuestion = {
   points?: number
   skillFocus?: string
   bloomLevel?: string
+  difficulty?: 'easy' | 'intermediate' | 'advanced' | string
   modality?: string
   diagramBriefId?: string | null
   steps?: string[]
@@ -64,6 +65,8 @@ export type ReviewItem = {
 export type LiveFlash = {
   correct: boolean
   correctAnswerIndex?: number
+  /** Numeric-entry only: the value the learner should have typed. */
+  expectedValue?: number
   explanation?: string
 }
 

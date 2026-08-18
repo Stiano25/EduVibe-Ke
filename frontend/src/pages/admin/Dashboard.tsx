@@ -11,6 +11,7 @@ import {
   Library,
   ArrowRight,
   BarChart3,
+  ClipboardList,
   Loader2,
 } from 'lucide-react'
 import { adminWorkflowSteps } from '@/config/adminNav'
@@ -140,7 +141,7 @@ export const AdminDashboard = () => {
                 >
                   Also available
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Link
                     to="/admin/users"
                     className="bg-white/80 rounded-[20px] border-2 border-slate-200 hover:border-orange-200 p-4 flex items-center gap-3"
@@ -160,6 +161,28 @@ export const AdminDashboard = () => {
                         style={{ fontFamily: 'Manrope, sans-serif' }}
                       >
                         Learners and admins
+                      </p>
+                    </div>
+                  </Link>
+                  <Link
+                    to="/admin/reports"
+                    className="bg-white/80 rounded-[20px] border-2 border-slate-200 hover:border-violet-200 p-4 flex items-center gap-3"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center">
+                      <ClipboardList className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p
+                        className="text-sm font-semibold text-[#0F172A]"
+                        style={{ fontFamily: 'Manrope, sans-serif' }}
+                      >
+                        Reports
+                      </p>
+                      <p
+                        className="text-xs text-text-secondary"
+                        style={{ fontFamily: 'Manrope, sans-serif' }}
+                      >
+                        Strengths and weaknesses
                       </p>
                     </div>
                   </Link>

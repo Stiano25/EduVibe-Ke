@@ -73,6 +73,57 @@ export const placeValueRows = (a, b, sumText = '', { minCols = 1 } = {}) => {
   };
 };
 
+/** Column addition: first digit is ones; the next digit fills tens to the left. */
+export const applyColumnDigit = (prev, key, maxLen = 6) => {
+  const cur = String(prev || '').replace(/\D/g, '');
+  if (key === 'back') return cur.slice(1);
+  if (!/^\d$/.test(key) || cur.length >= maxLen) return cur;
+  return `${key}${cur}`;
+};
+
+export const columnSumMaxDigits = (a, b) =>
+  Math.min(6, Math.max(2, String(asAbsInt(a + b)).length));
+
+export const expectedSumDigitCount = (a, b) =>
+  String(asAbsInt(a) + asAbsInt(b)).length;
+
+const EXTRA_DISTRACTORS = { easy: 2, intermediate: 4, advanced: 6 };
+
+const uniqueDigitsOf = (n) => {
+  const out = [];
+  for (const ch of String(asAbsInt(n))) {
+    const d = Number(ch);
+    if (!out.includes(d)) out.push(d);
+  }
+  return out;
+};
+
+const pushDigit = (list, d) => {
+  const n = ((Math.trunc(d) % 10) + 10) % 10;
+  if (!list.includes(n)) list.push(n);
+};
+
+/** Answer digits plus a difficulty-scaled mix of distractors. */
+export const digitChoicesForSum = (a, b, difficulty = 'intermediate') => {
+  const left = asAbsInt(a);
+  const right = asAbsInt(b);
+  const needed = uniqueDigitsOf(left + right);
+  const pool = [];
+  uniqueDigitsOf(left).forEach((d) => pushDigit(pool, d));
+  uniqueDigitsOf(right).forEach((d) => pushDigit(pool, d));
+  const onesSum = (left % 10) + (right % 10);
+  pushDigit(pool, onesSum % 10);
+  if (onesSum >= 10) pushDigit(pool, Math.floor(onesSum / 10));
+  needed.forEach((d) => {
+    pushDigit(pool, d + 1);
+    pushDigit(pool, d - 1);
+  });
+  ;[9, 0, 1, 4, 7, 2, 5, 8, 3, 6].forEach((d) => pushDigit(pool, d));
+  const distractors = pool.filter((d) => !needed.includes(d));
+  const extra = EXTRA_DISTRACTORS[difficulty] ?? EXTRA_DISTRACTORS.intermediate;
+  return [...needed, ...distractors.slice(0, extra)];
+};
+
 /**
  * Column working from the ones place leftward.
  * carryInto[i] is the digit carried into column i (0 = leftmost / highest place).

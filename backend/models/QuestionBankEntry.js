@@ -83,12 +83,12 @@ export class QuestionBankEntry {
     return (data || []).map((row) => this.mapToModel(row));
   }
 
-  static async findApprovedForPull({ subStrandId, grade, interactionType = 'multiple_choice' }) {
+  static async findApprovedForPull({ subStrandId, grade, interactionType = null }) {
     let q = getDbClient()
       .from(this.tableName)
       .select('*')
-      .eq('status', 'approved')
-      .eq('interaction_type', interactionType);
+      .eq('status', 'approved');
+    if (interactionType) q = q.eq('interaction_type', interactionType);
     if (subStrandId) q = q.eq('sub_strand_id', subStrandId);
     if (grade) q = q.eq('grade', String(grade));
     const { data, error } = await q;

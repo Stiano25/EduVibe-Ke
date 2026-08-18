@@ -19,6 +19,8 @@ interface ShellProps {
   children: ReactNode
 }
 
+const firstName = (name?: string | null) => (name || '').trim().split(/\s+/)[0] || ''
+
 const learnerNavItems = [
   { label: 'Dashboard', path: '/learner', icon: LayoutDashboard, exact: true },
   { label: 'Lessons', path: '/learner/lessons', icon: BookOpen, exact: false },
@@ -46,7 +48,7 @@ export const Shell = ({ children }: ShellProps) => {
 
   return (
     <div className="min-h-screen bg-[#F0F7FF] text-text-primary">
-      <header className="w-full sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200/80">
+      <header className="w-full sticky top-0 z-20 bg-white border-b-2 border-ev-line print:hidden">
         <div className="mx-auto max-w-7xl px-3 sm:px-6 py-3 flex items-center justify-between gap-3">
           <Link
             to={isAdmin ? '/admin' : '/learner'}
@@ -55,7 +57,7 @@ export const Shell = ({ children }: ShellProps) => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl border-2 border-ev-blue-edge bg-ev-blue flex items-center justify-center"
             >
               <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </motion.div>
@@ -80,8 +82,8 @@ export const Shell = ({ children }: ShellProps) => {
                       title={item.description}
                       className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] font-semibold transition-colors ${
                         active
-                          ? 'bg-indigo-100 text-indigo-800'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          ? 'bg-ev-blue-soft text-ev-blue-edge'
+                          : 'text-ev-muted hover:bg-ev-line/50 hover:text-ev-ink'
                       }`}
                       style={{ fontFamily: 'Manrope, sans-serif' }}
                     >
@@ -102,8 +104,8 @@ export const Shell = ({ children }: ShellProps) => {
                       to={item.path}
                       className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px] font-semibold transition-colors ${
                         active
-                          ? 'bg-indigo-100 text-indigo-800'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          ? 'bg-ev-blue-soft text-ev-blue-edge'
+                          : 'text-ev-muted hover:bg-ev-line/50 hover:text-ev-ink'
                       }`}
                       style={{ fontFamily: 'Manrope, sans-serif' }}
                     >
@@ -127,7 +129,7 @@ export const Shell = ({ children }: ShellProps) => {
                   key={item.path}
                   to={item.path}
                   className={`shrink-0 px-2.5 py-1.5 rounded-full text-xs font-semibold ${
-                    active ? 'bg-indigo-100 text-indigo-800' : 'text-slate-600 hover:bg-slate-100'
+                    active ? 'bg-ev-blue-soft text-ev-blue-edge' : 'text-ev-muted hover:bg-ev-line/50'
                   }`}
                   style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
@@ -138,22 +140,34 @@ export const Shell = ({ children }: ShellProps) => {
           </nav>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <button
-              type="button"
-              className="hidden sm:inline-flex p-2 rounded-2xl hover:bg-slate-100 transition-all relative"
-              aria-label="Notifications"
-            >
-              <Bell className="w-5 h-5 text-text-secondary" />
-            </button>
+            {/* The bell has no notification feed behind it yet, and a truncated
+                full name plus a role label means nothing to a young learner. */}
+            {isAdmin && (
+              <button
+                type="button"
+                className="hidden sm:inline-flex p-2 rounded-2xl hover:bg-ev-line/50 transition-all relative"
+                aria-label="Notifications"
+              >
+                <Bell className="w-5 h-5 text-text-secondary" />
+              </button>
+            )}
 
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-semibold text-text-primary truncate max-w-[100px]">
-                  {user?.name}
+              {isAdmin ? (
+                <div className="text-right hidden md:block">
+                  <p className="text-sm font-semibold text-text-primary truncate max-w-[100px]">
+                    {user?.name}
+                  </p>
+                  <p className="text-[11px] font-medium text-text-secondary capitalize">
+                    {user?.role}
+                  </p>
+                </div>
+              ) : (
+                <p className="hidden md:block text-sm font-semibold text-text-primary">
+                  {firstName(user?.name)}
                 </p>
-                <p className="text-[11px] font-medium text-text-secondary capitalize">{user?.role}</p>
-              </div>
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+              )}
+              <div className="w-9 h-9 rounded-2xl border-2 border-ev-blue-edge bg-ev-blue flex items-center justify-center text-white font-bold text-sm">
                 {user?.name?.charAt(0)}
               </div>
             </div>
@@ -161,7 +175,7 @@ export const Shell = ({ children }: ShellProps) => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-2xl hover:bg-slate-100 transition-all"
+              className="md:hidden p-2 rounded-2xl hover:bg-ev-line/50 transition-all"
               aria-label="Menu"
             >
               {isMobileMenuOpen ? (
@@ -175,7 +189,7 @@ export const Shell = ({ children }: ShellProps) => {
               whileHover={{ y: 1 }}
               whileTap={{ y: 2 }}
               onClick={handleLogout}
-              className="hidden md:inline-flex items-center gap-1.5 text-indigo-600 hover:bg-indigo-50 font-semibold rounded-2xl px-3 py-2 text-[13px] transition-all"
+              className="hidden md:inline-flex items-center gap-1.5 text-ev-blue-edge hover:bg-ev-blue-soft font-semibold rounded-2xl px-3 py-2 text-[13px] transition-all"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -186,10 +200,10 @@ export const Shell = ({ children }: ShellProps) => {
 
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[55] md:hidden animate-fade-in">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeMobile} />
+          <div className="absolute inset-0 bg-black/40" onClick={closeMobile} />
           <div className="absolute right-0 top-0 bottom-0 w-[min(100%,20rem)] bg-white border-l border-slate-200 p-5 flex flex-col shadow-xl">
             <div className="flex items-center gap-3 mb-5 pb-5 border-b border-slate-200">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-lg">
+              <div className="w-11 h-11 rounded-2xl border-2 border-ev-blue-edge bg-ev-blue flex items-center justify-center text-white font-bold text-lg">
                 {user?.name?.charAt(0)}
               </div>
               <div>
@@ -200,7 +214,7 @@ export const Shell = ({ children }: ShellProps) => {
 
             {isAdmin && (
               <p
-                className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1"
+                className="text-[10px] font-bold uppercase tracking-wider text-ev-muted mb-2 px-1"
                 style={{ fontFamily: 'Manrope, sans-serif' }}
               >
                 Navigate
@@ -219,8 +233,8 @@ export const Shell = ({ children }: ShellProps) => {
                         onClick={closeMobile}
                         className={`flex items-start gap-3 px-3 py-3 rounded-2xl transition-all ${
                           active
-                            ? 'bg-indigo-50 text-indigo-800 border-2 border-indigo-200'
-                            : 'text-slate-700 hover:bg-slate-50 border-2 border-transparent'
+                            ? 'bg-ev-blue-soft text-ev-blue-edge border-2 border-ev-blue'
+                            : 'text-slate-700 hover:bg-white border-2 border-transparent'
                         }`}
                       >
                         <Icon className="w-5 h-5 mt-0.5 shrink-0" />
@@ -232,7 +246,7 @@ export const Shell = ({ children }: ShellProps) => {
                             {item.label}
                           </span>
                           <span
-                            className="block text-[11px] text-slate-500 mt-0.5"
+                            className="block text-[11px] text-ev-muted mt-0.5"
                             style={{ fontFamily: 'Manrope, sans-serif' }}
                           >
                             {item.description}
@@ -253,8 +267,8 @@ export const Shell = ({ children }: ShellProps) => {
                         onClick={closeMobile}
                         className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold ${
                           active
-                            ? 'bg-indigo-50 text-indigo-600 border-2 border-indigo-200'
-                            : 'text-text-secondary hover:bg-slate-50'
+                            ? 'bg-ev-blue-soft text-ev-blue-edge border-2 border-ev-blue'
+                            : 'text-text-secondary hover:bg-white'
                         }`}
                       >
                         <Icon className="w-5 h-5" />
@@ -270,7 +284,7 @@ export const Shell = ({ children }: ShellProps) => {
                 handleLogout()
                 closeMobile()
               }}
-              className="mt-auto px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-text-primary font-semibold text-sm transition-all flex items-center justify-center gap-2"
+              className="mt-auto px-4 py-3 rounded-2xl bg-ev-line/50 hover:bg-slate-200 text-text-primary font-semibold text-sm transition-all flex items-center justify-center gap-2"
             >
               <LogOut className="w-4 h-4" />
               Logout

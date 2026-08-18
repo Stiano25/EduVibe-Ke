@@ -39,7 +39,10 @@ export const makeNumericEntryQuestion = ({
   bloomLevel = 'apply',
   learningOutcomeIndex = 1,
   objectKind = null,
-  layout = DEFAULT_ADDITION_LAYOUT
+  layout = DEFAULT_ADDITION_LAYOUT,
+  constraints: rawConstraints = null,
+  difficulty = 'easy',
+  answerFormula: rawFormula = null
 } = {}) => {
   const pair = { a: asInt(a, 4), b: asInt(b, 6) };
   const resolvedLayout = resolveAdditionLayout(layout);
@@ -69,12 +72,14 @@ export const makeNumericEntryQuestion = ({
       scaffoldCarry: resolveScaffoldCarry(null, { layout: resolvedLayout }),
       ...(kind ? { objectKind: kind } : {})
     },
-    constraints: normalizeAdditionConstraints({ a: [1, 9], b: [1, 9], sumMax: 10 }),
-    answerFormula: 'a + b',
+    constraints: normalizeAdditionConstraints(
+      rawConstraints || { a: [1, 9], b: [1, 9], sumMax: 10 }
+    ),
+    answerFormula: rawFormula || 'a + b',
     skillFocus,
     bloomLevel,
     modality: kind ? 'visual' : 'practice',
-    difficulty: 'easy',
+    difficulty,
     learningOutcomeIndex,
     explanation: 'Add the two numbers.'
   };
@@ -82,10 +87,86 @@ export const makeNumericEntryQuestion = ({
 
 export const expectedNumericForQuestion = (question = {}) => expectedScalarForQuestion(question);
 
+export const isTargetOnlyNumericQuestion = (question = {}) => {
+  const formula = String(question.answerFormula || '').trim();
+  const hasAddends =
+    Number.isInteger(Number(question.params?.a)) &&
+    Number.isInteger(Number(question.params?.b));
+  return (
+    isNumericEntryQuestion(question) &&
+    (formula === 'target' || (!hasAddends && Number.isInteger(Number(question.params?.target))))
+  );
+};
+
+export const makeHowManyNumericQuestion = ({
+  target = 20,
+  questionText = 'How many?',
+  skillFocus = 'Number Concept',
+  bloomLevel = 'apply',
+  learningOutcomeIndex = 1,
+  constraints: rawConstraints = null,
+  difficulty = 'advanced'
+} = {}) => {
+  const t = Math.max(1, asInt(target, 20));
+  const range = Array.isArray(rawConstraints?.target) ? rawConstraints.target : [18, 30];
+  return {
+    id: `how-many-${t}`,
+    question: String(questionText || 'How many?').replaceAll('{target}', String(t)),
+    questionText: questionText || 'How many?',
+    type: 'numeric-entry',
+    interactionType: 'numeric_entry',
+    activity: 'numeric_entry',
+    template: true,
+    templateVersion: 1,
+    options: [],
+    correctAnswerIndex: 0,
+    params: { target: t },
+    constraints: { target: [asInt(range[0], 18), asInt(range[1], 30)] },
+    answerFormula: 'target',
+    skillFocus,
+    bloomLevel,
+    modality: 'practice',
+    difficulty,
+    learningOutcomeIndex,
+    explanation: 'Write how many there are.'
+  };
+};
+
 export const twistNumericEntryQuestion = (question = {}, { random = Math.random } = {}) => {
   const base = isNumericEntryQuestion(question)
     ? question
     : makeNumericEntryQuestion(question.params || {});
+
+  if (isTargetOnlyNumericQuestion(base)) {
+    const original = Number(base.params?.target);
+    const range = Array.isArray(base.constraints?.target) ? base.constraints.target : [18, 30];
+    const min = Math.max(1, asInt(range[0], 18));
+    const max = Math.max(min, asInt(range[1], 30));
+    const candidates = [];
+    for (let t = min; t <= max; t += 1) {
+      if (t !== original) candidates.push(t);
+    }
+    if (!candidates.length) return { ok: false, reason: 'no alternative target' };
+    const index = Math.min(candidates.length - 1, Math.floor(random() * candidates.length));
+    return {
+      ok: true,
+      question: {
+        ...makeHowManyNumericQuestion({
+          target: candidates[index],
+          questionText: base.questionText || 'How many?',
+          skillFocus: base.skillFocus,
+          bloomLevel: base.bloomLevel,
+          learningOutcomeIndex: base.learningOutcomeIndex,
+          constraints: base.constraints,
+          difficulty: base.difficulty
+        }),
+        id: base.id,
+        templateId: base.templateId,
+        learningOutcomeKey: base.learningOutcomeKey
+      }
+    };
+  }
+
   const original = base.params || {};
   const layout = resolveAdditionLayout(original.layout);
   const shared = {
@@ -108,6 +189,7 @@ export const twistNumericEntryQuestion = (question = {}, { random = Math.random 
           questionText: HORIZONTAL_ADDITION_PATTERN
         }),
         id: base.id,
+        templateId: base.templateId,
         learningOutcomeKey: base.learningOutcomeKey,
         answerFormula: String(base.answerFormula || 'a + b'),
         constraints: normalizeAdditionConstraints(base.constraints)
@@ -147,6 +229,7 @@ export const twistNumericEntryQuestion = (question = {}, { random = Math.random 
         questionText: HORIZONTAL_ADDITION_PATTERN
       }),
       id: base.id,
+      templateId: base.templateId,
       learningOutcomeKey: base.learningOutcomeKey,
       answerFormula: String(base.answerFormula || 'a + b')
     }

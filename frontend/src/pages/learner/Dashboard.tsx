@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Download, BookOpen, CheckCircle2, TrendingUp } from 'lucide-react'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
+import { LearnerPage } from '@/components/layout/LearnerPage'
 import { WelcomeHeader } from '@/components/learner/WelcomeHeader'
 import { SearchBar } from '@/components/learner/SearchBar'
 import { SubjectNavigation } from '@/components/learner/SubjectNavigation'
 import { DailyExerciseCard } from '@/components/learner/DailyExerciseCard'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
-import { QuestLessonPicker } from '@/components/learner/QuestLessonPicker'
+import { LessonJourney } from '@/components/learner/LessonJourney'
 import { ModalityPreferencePrompt } from '@/components/learner/ModalityPreferencePrompt'
 import { useLessonStore } from '@/store/useLessonStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { api } from '@/lib/api'
+import { useLessonChoices } from '@/hooks/useLessonChoices'
 import { usesQuestNavigation } from '@/lib/complexityBands'
 
 type ProgressReport = {
@@ -49,6 +51,9 @@ export const LearnerDashboard = () => {
   const [loadingReport, setLoadingReport] = useState(true)
   const [nextTask, setNextTask] = useState<NextTaskResponse | null>(null)
   const [loadingNextTask, setLoadingNextTask] = useState(questNav)
+  const { choices: lessonChoices } = useLessonChoices({ enabled: questNav })
+  const hasOpenLessons = lessonChoices.some((c) => c.isUnlocked && !c.isCompleted)
+  const doneCount = lessonChoices.filter((c) => c.isCompleted).length
 
   useEffect(() => {
     if (questNav) {
@@ -110,17 +115,32 @@ export const LearnerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
-      <div className="p-[5px] pt-[5px] print:p-0">
-        <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6 print:bg-white print:rounded-none print:border-0 print:shadow-none">
-          <StaggeredEntry>
+    <LearnerPage>
+      <StaggeredEntry>
             <div className="print:hidden">
               <WelcomeHeader />
               {questNav ? (
-                <>
-                  <QuestNextCard data={nextTask} loading={loadingNextTask} />
-                  <QuestLessonPicker compact />
-                </>
+                <div className="space-y-6">
+                  <QuestNextCard
+                    data={nextTask}
+                    loading={loadingNextTask}
+                    showPickerLink={false}
+                    hasOpenLessons={hasOpenLessons}
+                  />
+                  {lessonChoices.length > 0 ? (
+                    <div>
+                      <div className="mb-3 flex items-end justify-between gap-3">
+                        <h2 className="text-xl font-black text-ev-ink">Your lessons</h2>
+                        {doneCount > 0 ? (
+                          <p className="text-sm font-bold text-ev-muted">
+                            {doneCount}/{lessonChoices.length} done
+                          </p>
+                        ) : null}
+                      </div>
+                      <LessonJourney compact />
+                    </div>
+                  ) : null}
+                </div>
               ) : (
                 <>
                   <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -133,17 +153,17 @@ export const LearnerDashboard = () => {
             {!questNav && (
             <div
               id="learner-progress-report"
-              className="mt-6 bg-white/90 rounded-[24px] border-2 border-slate-200 p-5 sm:p-6 print:border-0 print:p-0"
+              className="mt-6 bg-white/90 rounded-ev-lg border-2 border-ev-line p-5 sm:p-6 print:border-0 print:p-0"
             >
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div>
                   <h2
-                    className="text-xl font-black text-[#0F172A]"
-                    style={{ fontFamily: 'Fredoka, sans-serif' }}
+                    className="text-xl font-black text-ev-ink"
+                   
                   >
                     My progress
                   </h2>
-                  <p className="text-xs text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                  <p className="text-xs text-ev-muted" style={{ fontFamily: 'Manrope, sans-serif' }}>
                     {report?.learner?.name ? `${report.learner.name} · ` : ''}
                     {report?.learner?.grade ? `Grade ${report.learner.grade}` : 'Learner report'}
                     {report?.generatedAt
@@ -154,7 +174,7 @@ export const LearnerDashboard = () => {
                 <button
                   type="button"
                   onClick={handlePrintReport}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 print:hidden"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ev-blue text-white text-sm font-semibold hover:brightness-105 print:hidden"
                   style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
                   <Download className="w-4 h-4" />
@@ -163,42 +183,42 @@ export const LearnerDashboard = () => {
               </div>
 
               {loadingReport ? (
-                <p className="text-sm text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                <p className="text-sm text-ev-muted" style={{ fontFamily: 'Manrope, sans-serif' }}>
                   Loading progress…
                 </p>
               ) : reportError ? (
-                <p className="text-sm text-red-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                <p className="text-sm text-ev-red-edge" style={{ fontFamily: 'Manrope, sans-serif' }}>
                   {reportError}
                 </p>
               ) : report ? (
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="rounded-[14px] bg-indigo-50 border border-indigo-100 p-3">
-                      <div className="flex items-center gap-2 text-indigo-700 mb-1">
+                    <div className="rounded-ev-sm bg-ev-blue-soft border border-indigo-100 p-3">
+                      <div className="flex items-center gap-2 text-ev-blue-edge mb-1">
                         <BookOpen className="w-4 h-4" />
                         <span className="text-[10px] font-bold uppercase tracking-wide">Tracked</span>
                       </div>
-                      <p className="text-2xl font-black text-[#0F172A]">{report.summary.lessonsTracked}</p>
+                      <p className="text-2xl font-black text-ev-ink">{report.summary.lessonsTracked}</p>
                     </div>
-                    <div className="rounded-[14px] bg-emerald-50 border border-emerald-100 p-3">
-                      <div className="flex items-center gap-2 text-emerald-700 mb-1">
+                    <div className="rounded-ev-sm bg-emerald-50 border border-emerald-100 p-3">
+                      <div className="flex items-center gap-2 text-ev-green-edge mb-1">
                         <CheckCircle2 className="w-4 h-4" />
                         <span className="text-[10px] font-bold uppercase tracking-wide">Done</span>
                       </div>
-                      <p className="text-2xl font-black text-[#0F172A]">{report.summary.completed}</p>
+                      <p className="text-2xl font-black text-ev-ink">{report.summary.completed}</p>
                     </div>
-                    <div className="rounded-[14px] bg-amber-50 border border-amber-100 p-3">
-                      <div className="flex items-center gap-2 text-amber-700 mb-1">
+                    <div className="rounded-ev-sm bg-ev-pink-soft border border-amber-100 p-3">
+                      <div className="flex items-center gap-2 text-ev-pink-edge mb-1">
                         <TrendingUp className="w-4 h-4" />
                         <span className="text-[10px] font-bold uppercase tracking-wide">In progress</span>
                       </div>
-                      <p className="text-2xl font-black text-[#0F172A]">{report.summary.inProgress}</p>
+                      <p className="text-2xl font-black text-ev-ink">{report.summary.inProgress}</p>
                     </div>
-                    <div className="rounded-[14px] bg-violet-50 border border-violet-100 p-3">
+                    <div className="rounded-ev-sm bg-violet-50 border border-violet-100 p-3">
                       <div className="flex items-center gap-2 text-violet-700 mb-1">
                         <span className="text-[10px] font-bold uppercase tracking-wide">Avg score</span>
                       </div>
-                      <p className="text-2xl font-black text-[#0F172A]">
+                      <p className="text-2xl font-black text-ev-ink">
                         {report.summary.averageScore != null ? `${report.summary.averageScore}%` : '—'}
                       </p>
                     </div>
@@ -207,8 +227,8 @@ export const LearnerDashboard = () => {
                   {report.skillsNeedingPractice.length > 0 && (
                     <div>
                       <h3
-                        className="text-sm font-bold text-[#0F172A] mb-2"
-                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                        className="text-sm font-bold text-ev-ink mb-2"
+                        style={{ fontFamily: 'Manrope, sans-serif' }}
                       >
                         Skills needing practice
                       </h3>
@@ -220,7 +240,7 @@ export const LearnerDashboard = () => {
                             style={{ fontFamily: 'Manrope, sans-serif' }}
                           >
                             {s.skillFocus}{' '}
-                            <span className="text-xs text-amber-700 capitalize">({s.status})</span>
+                            <span className="text-xs text-ev-pink-edge capitalize">({s.status})</span>
                           </li>
                         ))}
                       </ul>
@@ -229,13 +249,13 @@ export const LearnerDashboard = () => {
 
                   <div>
                     <h3
-                      className="text-sm font-bold text-[#0F172A] mb-2"
-                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                      className="text-sm font-bold text-ev-ink mb-2"
+                      style={{ fontFamily: 'Manrope, sans-serif' }}
                     >
                       Recent lessons
                     </h3>
                     {report.recentLessons.length === 0 ? (
-                      <p className="text-sm text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      <p className="text-sm text-ev-muted" style={{ fontFamily: 'Manrope, sans-serif' }}>
                         No lesson progress yet. Start a lesson to build your report.
                       </p>
                     ) : (
@@ -244,21 +264,21 @@ export const LearnerDashboard = () => {
                           <Link
                             key={row.lessonId}
                             to={`/learner/lessons/${row.lessonId}`}
-                            className="flex items-center justify-between gap-3 p-3 rounded-[12px] border border-slate-200 bg-white hover:border-indigo-300 transition-all print:border-slate-300"
+                            className="flex items-center justify-between gap-3 p-3 rounded-ev-sm border border-ev-line bg-white hover:border-ev-blue transition-all print:border-ev-line"
                           >
                             <div className="min-w-0">
                               <p
-                                className="text-sm font-semibold text-[#0F172A] truncate"
+                                className="text-sm font-semibold text-ev-ink truncate"
                                 style={{ fontFamily: 'Manrope, sans-serif' }}
                               >
                                 {row.title}
                               </p>
-                              <p className="text-[11px] text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                              <p className="text-[11px] text-ev-muted" style={{ fontFamily: 'Manrope, sans-serif' }}>
                                 {row.completed ? 'Completed' : `${row.progress}% progress`}
                               </p>
                             </div>
                             <span
-                              className="text-sm font-bold text-indigo-700 shrink-0"
+                              className="text-sm font-bold text-ev-blue-edge shrink-0"
                               style={{ fontFamily: 'Manrope, sans-serif' }}
                             >
                               {row.scorePercentage != null ? `${row.scorePercentage}%` : '—'}
@@ -272,28 +292,26 @@ export const LearnerDashboard = () => {
               ) : null}
             </div>
             )}
-          </StaggeredEntry>
-        </div>
-      </div>
+      </StaggeredEntry>
 
       <div className="print:hidden">
         <ModalityPreferencePrompt />
       </div>
 
       {searchQuery && filteredLessons.length === 0 && (
-        <div className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-2xl p-8 overflow-y-auto animate-fade-in print:hidden">
+        <div className="fixed inset-0 z-[100] bg-white/95 p-8 overflow-y-auto animate-fade-in print:hidden">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <h2
-                className="text-2xl font-black tracking-tight text-[#0F172A]"
-                style={{ fontFamily: 'Fredoka, sans-serif' }}
+                className="text-2xl font-black tracking-tight text-ev-ink"
+               
               >
                 No lessons found for "<span className="text-gradient">{searchQuery}</span>"
               </h2>
               <button
                 onClick={() => setSearchQuery('')}
-                className="p-3 rounded-3xl bg-white border-2 border-slate-200 hover:bg-slate-50 transition-all font-black text-sm"
-                style={{ fontFamily: 'Fredoka, sans-serif' }}
+                className="p-3 rounded-3xl bg-white border-2 border-ev-line hover:bg-white transition-all font-black text-sm"
+               
               >
                 Close
               </button>
@@ -301,6 +319,6 @@ export const LearnerDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </LearnerPage>
   )
 }

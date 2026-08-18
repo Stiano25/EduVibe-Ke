@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
+import { Play } from 'lucide-react'
 import { LazyLottie } from '@/components/ui/LazyLottie'
 import { animationKeyForSubjectName } from '@/lib/lottieAnimations'
 import { QUEST_COPY } from '@/lib/complexityBands'
+import { learnerButton } from '@/lib/learnerUi'
 
 export type NextTaskPayload = {
   lessonId: string
@@ -33,16 +35,25 @@ export type NextTaskResponse = {
 type QuestNextCardProps = {
   data: NextTaskResponse | null
   loading?: boolean
+  showPickerLink?: boolean
+  hasOpenLessons?: boolean
 }
 
-export const QuestNextCard = ({ data, loading }: QuestNextCardProps) => {
+/**
+ * Wide coloured hero. Copy sits on the left; the character hangs off the
+ * right edge so it feels part of the card instead of sitting in a box.
+ */
+export const QuestNextCard = ({
+  data,
+  loading,
+  showPickerLink = true,
+  hasOpenLessons = false,
+}: QuestNextCardProps) => {
   if (loading) {
     return (
-      <div className="mb-4 sm:mb-6 px-2 sm:px-3 md:px-5">
-        <div className="max-w-md mx-auto rounded-[28px] bg-white/80 border-2 border-slate-200 p-6 flex justify-center">
-          <div className="w-20 h-20">
-            <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
-          </div>
+      <div className="flex min-h-[168px] items-center justify-center rounded-ev-lg bg-white shadow-ev-card">
+        <div className="h-16 w-16">
+          <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
         </div>
       </div>
     )
@@ -51,23 +62,20 @@ export const QuestNextCard = ({ data, loading }: QuestNextCardProps) => {
   const task = data?.task
   if (!task) {
     return (
-      <div className="mb-4 sm:mb-6 px-2 sm:px-3 md:px-5">
-        <div className="max-w-md mx-auto rounded-[28px] bg-white/90 border-2 border-slate-200 p-6 text-center">
-          <div className="w-24 h-24 mx-auto mb-3">
-            <LazyLottie animationKey="happyBoy" style={{ width: '100%', height: '100%' }} />
-          </div>
-          <p
-            className="text-xl font-black text-[#0F172A]"
-            style={{ fontFamily: 'Fredoka, sans-serif' }}
-          >
-            {QUEST_COPY.done}
+      <div className="relative min-h-[168px] overflow-hidden rounded-ev-lg bg-ev-green shadow-ev-card">
+        <div className="relative z-10 flex min-h-[168px] max-w-[62%] flex-col justify-center p-5 sm:p-6">
+          <p className="text-2xl font-black leading-tight text-white sm:text-3xl">
+            {hasOpenLessons ? QUEST_COPY.chooseAny : QUEST_COPY.done}
           </p>
-          <Link
-            to="/learner/lessons"
-            className="mt-4 inline-flex items-center justify-center px-6 py-2 rounded-full bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700"
-          >
-            {QUEST_COPY.pick}
-          </Link>
+          {showPickerLink ? (
+            <Link to="/learner/lessons" className={learnerButton('onColor', 'md', 'mt-4 self-start')}>
+              <Play className="h-4 w-4 fill-current" aria-hidden />
+              {QUEST_COPY.pick}
+            </Link>
+          ) : null}
+        </div>
+        <div className="pointer-events-none absolute -bottom-6 -right-4 h-44 w-44 sm:-bottom-8 sm:-right-2 sm:h-56 sm:w-56">
+          <LazyLottie animationKey="happyBoy" style={{ width: '100%', height: '100%' }} />
         </div>
       </div>
     )
@@ -76,33 +84,38 @@ export const QuestNextCard = ({ data, loading }: QuestNextCardProps) => {
   const href = `/learner/lessons/${task.lessonId}`
   const label = task.progress > 0 ? QUEST_COPY.keepGoing : QUEST_COPY.start
   const animationKey = animationKeyForSubjectName(task.subjectName)
+  const progress = Math.max(0, Math.min(100, task.progress || 0))
+  const fill = task.progress > 0 ? 'bg-ev-blue' : 'bg-ev-green'
 
   return (
-    <div className="mb-4 sm:mb-6 px-2 sm:px-3 md:px-5">
-      <div className="max-w-md mx-auto overflow-hidden rounded-[28px] border-2 border-white/40 shadow-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-600">
-        <div className="p-5 sm:p-6 text-center" style={{ fontFamily: 'Fredoka, sans-serif' }}>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-white/80 font-semibold mb-2">
-            {QUEST_COPY.next}
-          </p>
-          <div className="w-28 h-28 mx-auto mb-3">
-            <LazyLottie animationKey={animationKey} style={{ width: '100%', height: '100%' }} />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black text-white leading-snug px-1">{task.title}</h2>
-          <Link
-            to={href}
-            className="mt-4 inline-flex items-center justify-center px-8 py-3 rounded-full bg-white text-indigo-700 text-base font-bold shadow-lg hover:bg-indigo-50"
-          >
+    <div className={`relative min-h-[176px] overflow-hidden rounded-ev-lg ${fill} shadow-ev-card`}>
+      <div className="relative z-10 flex min-h-[176px] flex-col justify-between p-5 pr-28 sm:p-6 sm:pr-40">
+        <div>
+          <p className="text-sm font-bold text-white/80">{task.subjectName || QUEST_COPY.next}</p>
+          <h2 className="mt-1 text-2xl font-black leading-tight text-white sm:text-3xl">{task.title}</h2>
+          {progress > 0 ? (
+            <div className="mt-3 h-2.5 w-36 overflow-hidden rounded-full bg-white/30">
+              <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
+            </div>
+          ) : null}
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Link to={href} className={learnerButton('onColor', 'md')}>
+            <Play className="h-4 w-4 fill-current" aria-hidden />
             {label}
           </Link>
-          <div className="mt-3">
+          {showPickerLink ? (
             <Link
               to="/learner/lessons"
-              className="inline-flex items-center justify-center px-5 py-2 rounded-full bg-white/15 text-white text-sm font-bold hover:bg-white/25"
+              className="text-sm font-bold text-white/90 underline underline-offset-4 hover:text-white"
             >
               {QUEST_COPY.pick}
             </Link>
-          </div>
+          ) : null}
         </div>
+      </div>
+      <div className="pointer-events-none absolute -bottom-8 -right-4 h-48 w-48 sm:-bottom-10 sm:-right-2 sm:h-60 sm:w-60">
+        <LazyLottie animationKey={animationKey} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>
   )

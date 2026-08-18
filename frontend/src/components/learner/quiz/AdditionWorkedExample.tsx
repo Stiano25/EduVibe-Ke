@@ -22,7 +22,7 @@ export const AdditionWorkedExample = ({
   const last = safeIndex >= steps.length - 1
 
   return (
-    <div className="rounded-[16px] border-2 border-amber-200 bg-amber-50/70 p-3 space-y-3">
+    <div className="rounded-ev-md border-2 border-ev-pink bg-ev-pink-soft/70 p-3 space-y-3">
       <div className="flex justify-center">
         <ColumnAddition
           a={a}
@@ -38,7 +38,7 @@ export const AdditionWorkedExample = ({
       <p
         className="text-sm font-semibold text-amber-950 text-center ev-digit-in"
         key={current?.id || safeIndex}
-        style={{ fontFamily: 'Fredoka, sans-serif' }}
+       
       >
         {current?.text}
       </p>
@@ -47,7 +47,7 @@ export const AdditionWorkedExample = ({
           type="button"
           disabled={safeIndex === 0}
           onClick={() => setIndex((i) => Math.max(0, i - 1))}
-          className="px-3 py-1.5 rounded-full text-xs font-bold border-2 border-amber-200 bg-white disabled:opacity-40"
+          className="px-3 py-1.5 rounded-full text-xs font-bold border-2 border-ev-pink bg-white disabled:opacity-40"
         >
           Back
         </button>
@@ -58,7 +58,7 @@ export const AdditionWorkedExample = ({
           type="button"
           disabled={last}
           onClick={() => setIndex((i) => Math.min(steps.length - 1, i + 1))}
-          className="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white disabled:opacity-40"
+          className="px-3 py-1.5 rounded-full text-xs font-bold bg-ev-pink text-white disabled:opacity-40"
         >
           {last ? 'Done' : 'Next step'}
         </button>

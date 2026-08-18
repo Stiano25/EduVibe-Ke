@@ -20,24 +20,34 @@ const DigitCell = ({
   tone = 'ink',
   animate = false,
   delayMs = 0,
+  slot = false,
+  active = false,
 }: {
   ch: string
   tone?: 'ink' | 'sum' | 'muted'
   animate?: boolean
   delayMs?: number
+  slot?: boolean
+  active?: boolean
 }) => {
   const empty = ch === ' '
   const color =
-    tone === 'sum' ? 'text-indigo-700' : tone === 'muted' ? 'text-slate-400' : 'text-[#0F172A]'
+    tone === 'sum' ? 'text-ev-blue-edge' : tone === 'muted' ? 'text-ev-muted' : 'text-ev-ink'
+  const box = slot
+    ? `rounded-md border-2 ${
+        active
+          ? 'border-ev-blue bg-white ring-4 ring-ev-blue/30'
+          : empty
+            ? 'border-dashed border-ev-line bg-white/70'
+            : 'border-ev-blue/40 bg-white'
+      }`
+    : ''
   return (
     <span
-      className={`inline-flex h-10 w-8 items-center justify-center text-3xl font-black tabular-nums ${color} ${
+      className={`inline-flex h-10 w-8 items-center justify-center text-3xl font-black tabular-nums ${color} ${box} ${
         animate && !empty ? 'ev-digit-in' : ''
       }`}
-      style={{
-        fontFamily: 'Fredoka, sans-serif',
-        animationDelay: animate && !empty ? `${delayMs}ms` : undefined,
-      }}
+      style={{ animationDelay: animate && !empty ? `${delayMs}ms` : undefined }}
     >
       {empty ? '' : ch}
     </span>
@@ -56,10 +66,10 @@ const CarryBox = ({
   <span
     className={`inline-flex h-8 w-8 items-center justify-center rounded-md border-2 text-lg font-black tabular-nums ${
       filled
-        ? 'border-amber-400 bg-amber-50 text-amber-800'
-        : 'border-dashed border-amber-300 bg-amber-50/40 text-amber-300'
+        ? 'border-amber-400 bg-ev-pink-soft text-amber-800'
+        : 'border-dashed border-amber-300 bg-ev-pink-soft/40 text-amber-300'
     } ${pop && filled ? 'ev-carry-pop' : ''}`}
-    style={{ fontFamily: 'Fredoka, sans-serif' }}
+   
     aria-label={filled ? `carry ${digit}` : 'carry box'}
   >
     {filled && digit > 0 ? digit : ''}
@@ -100,7 +110,8 @@ export const ColumnAddition = ({
         ? String(work.written[onesIndex] ?? '')
         : ''
   const sumRows = placeValueRows(a, b, partialSum, minCols)
-  const sumEmpty = !partialSum
+  const nextCol =
+    rank >= revealRank.sum && typed.length < rows.cols ? rows.cols - 1 - typed.length : -1
 
   return (
     <div
@@ -134,10 +145,10 @@ export const ColumnAddition = ({
       </div>
       <div className="flex items-center gap-1">
         <span
-          className={`inline-flex h-10 w-8 items-center justify-center text-2xl font-black text-[#0F172A] ${
+          className={`inline-flex h-10 w-8 items-center justify-center text-2xl font-black text-ev-ink ${
             animate ? 'ev-digit-in' : ''
           }`}
-          style={{ fontFamily: 'Fredoka, sans-serif', animationDelay: animate ? '120ms' : undefined }}
+          style={{ animationDelay: animate ? '120ms' : undefined }}
         >
           +
         </span>
@@ -152,24 +163,17 @@ export const ColumnAddition = ({
       {showSumSlot ? (
         <div className="flex items-center gap-1 min-h-10">
           <span className="inline-flex h-10 w-8" />
-          {sumEmpty ? (
-            <span
-              className="inline-flex h-10 items-center text-3xl font-black text-indigo-300 tracking-widest"
-              style={{ fontFamily: 'Fredoka, sans-serif', minWidth: `${rows.cols * 2}rem` }}
-            >
-              —
-            </span>
-          ) : (
-            sumRows.sum.map((ch, i) => (
-              <DigitCell
-                key={`s-${i}`}
-                ch={ch}
-                tone="sum"
-                animate={animate && rank >= revealRank.ones}
-                delayMs={80 * i}
-              />
-            ))
-          )}
+          {sumRows.sum.map((ch, i) => (
+            <DigitCell
+              key={`s-${i}`}
+              ch={ch}
+              tone="sum"
+              slot={rank >= revealRank.sum}
+              active={i === nextCol}
+              animate={animate && rank >= revealRank.ones && ch !== ' '}
+              delayMs={80 * i}
+            />
+          ))}
         </div>
       ) : null}
     </div>

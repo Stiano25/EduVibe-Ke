@@ -2,10 +2,15 @@ import { useRef, useState } from 'react'
 import { MathText } from '@/components/ui/MathText'
 import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
 import { ObjectIcon, resolveObjectKind } from '../diagrams/objectIcons'
+import { LEARNER_PANEL, learnerButton } from '@/lib/learnerUi'
 import type { MultipleChoiceLiveProps } from './types'
 
 const DONE = 'Done'
 const BOX = 'Box'
+
+/** 56px floor: small children consistently miss the old 40px icons. */
+const TARGET =
+  'grid place-items-center min-h-14 min-w-14 rounded-ev-sm touch-manipulation transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ev-blue/40'
 
 export const DragToTargetLive = ({
   question,
@@ -51,43 +56,43 @@ export const DragToTargetLive = ({
   }
 
   return (
-    <div className="p-5 rounded-[16px] border-2 border-slate-200 bg-white space-y-4">
+    <div className={`${LEARNER_PANEL} p-5 space-y-4`}>
       <div ref={interactiveRef} className="space-y-4">
-        <MathText as="p" text={question.question} className="text-lg font-bold text-[#0F172A]" />
+        <MathText as="p" text={question.question} className="text-lg font-bold text-ev-ink" />
 
-        <div className="flex flex-wrap gap-2 min-h-[52px] p-2 rounded-[12px] bg-slate-50 border border-slate-200">
+        <div className="flex flex-wrap gap-2 min-h-16 p-2 rounded-ev-sm bg-white border border-ev-line">
           {pool.map((id) => (
             <button
               key={id}
               type="button"
               disabled={disabled}
-              aria-label={objectKind}
-              className={`touch-manipulation ${dragging === id ? 'opacity-50' : ''}`}
+              aria-label={`Put one ${objectKind} in the box`}
+              className={`${TARGET} ${dragging === id ? 'opacity-50' : ''}`}
               onClick={() => dropIntoBox(id)}
               onPointerDown={() => setDragging(id)}
               onPointerUp={(e) => onPointerUp(id, e.clientX, e.clientY)}
             >
-              <ObjectIcon kind={objectKind} className="h-10 w-10" />
+              <ObjectIcon kind={objectKind} className="h-14 w-14" />
             </button>
           ))}
         </div>
 
         <div
           ref={boxRef}
-          className="min-h-[140px] rounded-[16px] border-4 border-dashed border-indigo-300 bg-indigo-50 p-3"
+          className="min-h-[140px] rounded-ev-md border-4 border-dashed border-ev-blue bg-ev-blue-soft p-3"
         >
-          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-2">{BOX}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ev-blue-edge mb-2">{BOX}</p>
           <div className="flex flex-wrap gap-2">
             {inBox.map((id) => (
               <button
                 key={id}
                 type="button"
                 disabled={disabled}
-                aria-label={`${objectKind} in box`}
-                className="touch-manipulation"
+                aria-label={`Take one ${objectKind} out of the box`}
+                className={TARGET}
                 onClick={() => returnToPool(id)}
               >
-                <ObjectIcon kind={objectKind} className="h-10 w-10" />
+                <ObjectIcon kind={objectKind} className="h-14 w-14" />
               </button>
             ))}
           </div>
@@ -97,8 +102,7 @@ export const DragToTargetLive = ({
           type="button"
           disabled={disabled}
           onClick={submit}
-          className="w-full py-3 rounded-full bg-indigo-600 text-white font-bold disabled:opacity-50"
-          style={{ fontFamily: 'Fredoka, sans-serif' }}
+          className={learnerButton('primary', 'lg', 'w-full')}
         >
           {flash ? (flash.correct ? flashCopy.correct : flashCopy.incorrect) : DONE}
         </button>

@@ -17,7 +17,7 @@ export const Button = ({
   
   const variantStyles = {
     primary: 'bg-indigo-600 hover:bg-indigo-700 text-white border-b-4 border-indigo-800 hover:translate-y-[2px] hover:border-b-2 focus:ring-primary transition-all',
-    secondary: 'bg-white text-indigo-600 border-2 border-indigo-200 border-b-4 border-slate-300 hover:bg-indigo-50 hover:translate-y-[2px] hover:border-b-2 hover:shadow-soft focus:ring-primary transition-all',
+    secondary: 'bg-white text-indigo-600 border-2 border-indigo-200 border-b-4 border-b-indigo-300 hover:bg-indigo-50 hover:translate-y-[2px] hover:border-b-2 hover:shadow-soft focus:ring-primary transition-all',
     ghost: 'text-indigo-600 hover:bg-indigo-50 focus:ring-primary transition-all',
     'accent-peach': 'bg-accent-peach text-white hover:shadow-glow-orange hover:scale-105 focus:ring-accent-peach active:scale-95',
     'accent-mint': 'gradient-success text-white hover:shadow-glow-teal hover:scale-105 focus:ring-accent-mint active:scale-95',

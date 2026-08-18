@@ -1,6 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useCallback } from 'react'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
+import { LearnerPage } from '@/components/layout/LearnerPage'
+import { learnerButton } from '@/lib/learnerUi'
 import { ArrowLeft, Clock, BookOpen, Play, CheckCircle, Sparkles, TrendingUp, AlertCircle } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -10,7 +12,7 @@ import { LessonTeachingFromLesson } from '@/components/learner/LessonTeachingBlo
 import { AdaptiveQuizPanel } from '@/components/learner/AdaptiveQuizPanel'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
-import { QuestLessonSwitch } from '@/components/learner/QuestLessonPicker'
+import { QuestLessonSwitch } from '@/components/learner/QuestLessonSwitch'
 import { usesQuestNavigation } from '@/lib/complexityBands'
 
 export const LessonView = () => {
@@ -74,57 +76,71 @@ export const LessonView = () => {
     return 'exceeding'
   }
 
+  /**
+   * Two registers for the same result. Young learners get plain praise; the
+   * CBC rubric wording is kept for older grades where it is the shared
+   * vocabulary with teachers and reports.
+   */
   const getPerformanceMessage = (
     category: string,
     percentage: number,
-    masteredTopic = false
+    masteredTopic = false,
+    young = false
   ) => {
     switch (category) {
       case 'below':
         return {
-          title: 'Below Expectations',
-          message: `You got ${percentage}%! Don't worry, everyone learns at their own pace. Let's try some easier exercises to help you understand better!`,
-          color: 'from-red-50 to-orange-50',
-          borderColor: 'border-red-200',
-          textColor: 'text-red-700',
+          title: young ? 'Good try!' : 'Below Expectations',
+          message: young
+            ? `You got ${percentage}%. Let's practise this one more.`
+            : `You got ${percentage}%! Don't worry, everyone learns at their own pace. Let's try some easier exercises to help you understand better!`,
+          color: 'bg-ev-pink-soft',
+          borderColor: 'border-ev-pink',
+          textColor: 'text-ev-ink',
           icon: <Sparkles className="w-6 h-6" />,
         }
       case 'approaching':
         return {
-          title: 'Approaching Expectations',
-          message: `Great effort! You got ${percentage}%. You're getting there! Try these practice exercises to help you master this topic.`,
-          color: 'from-yellow-50 to-amber-50',
-          borderColor: 'border-yellow-200',
-          textColor: 'text-yellow-700',
+          title: young ? 'Nearly there!' : 'Approaching Expectations',
+          message: young
+            ? `You got ${percentage}%. A little more practice and you have it.`
+            : `Great effort! You got ${percentage}%. You're getting there! Try these practice exercises to help you master this topic.`,
+          color: 'bg-ev-pink-soft',
+          borderColor: 'border-ev-pink',
+          textColor: 'text-ev-ink',
           icon: <TrendingUp className="w-6 h-6" />,
         }
       case 'meeting':
         return {
-          title: 'Meeting Expectations',
-          message: `Awesome work! You got ${percentage}%. You understand this topic well! Ready for the next challenge?`,
-          color: 'from-primary-50 to-teal-50',
-          borderColor: 'border-blue-200',
-          textColor: 'text-blue-700',
+          title: young ? 'Well done!' : 'Meeting Expectations',
+          message: young
+            ? `You got ${percentage}%. You know this one.`
+            : `Awesome work! You got ${percentage}%. You understand this topic well! Ready for the next challenge?`,
+          color: 'bg-ev-blue-soft',
+          borderColor: 'border-ev-blue',
+          textColor: 'text-ev-blue-edge',
           icon: <CheckCircle className="w-6 h-6" />,
         }
       case 'exceeding':
         return {
-          title: 'Exceeding Expectations',
-          message: masteredTopic
-            ? `Wow! You got ${percentage}%! You're doing amazing! You've mastered this topic. Let's move on to something new!`
-            : `Wow! You got ${percentage}%! You're doing amazing! Keep practicing to lock in mastery. Let's move on to something new!`,
-          color: 'from-emerald-50 to-teal-50',
-          borderColor: 'border-emerald-200',
-          textColor: 'text-emerald-700',
+          title: young ? 'Amazing!' : 'Exceeding Expectations',
+          message: young
+            ? `You got ${percentage}%. Time for something new.`
+            : masteredTopic
+              ? `Wow! You got ${percentage}%! You're doing amazing! You've mastered this topic. Let's move on to something new!`
+              : `Wow! You got ${percentage}%! You're doing amazing! Keep practicing to lock in mastery. Let's move on to something new!`,
+          color: 'bg-ev-green-soft',
+          borderColor: 'border-ev-green',
+          textColor: 'text-ev-green-edge',
           icon: <Sparkles className="w-6 h-6" />,
         }
       default:
         return {
-          title: 'Great Job!',
+          title: 'Great job!',
           message: `You got ${percentage}%!`,
-          color: 'from-primary-50 to-primary-100',
-          borderColor: 'border-primary-200',
-          textColor: 'text-primary-700',
+          color: 'bg-ev-blue-soft',
+          borderColor: 'border-ev-blue',
+          textColor: 'text-ev-blue-edge',
           icon: <CheckCircle className="w-6 h-6" />,
         }
     }
@@ -365,8 +381,8 @@ export const LessonView = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen premium-mesh flex items-center justify-center p-4">
-        <div className="bg-white/80 backdrop-blur-md rounded-[32px] border-2 border-slate-200 p-8 text-center max-w-md">
+      <div className="min-h-screen bg-ev-page flex items-center justify-center p-4">
+        <div className="bg-white rounded-ev-lg border-2 border-ev-line p-8 text-center max-w-md">
           <div className="w-40 h-40 sm:w-48 sm:h-48 mx-auto">
             <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
           </div>
@@ -377,17 +393,17 @@ export const LessonView = () => {
 
   if (error || !lesson) {
     return (
-      <div className="min-h-screen premium-mesh flex items-center justify-center p-4">
-        <div className="bg-white/80 backdrop-blur-md rounded-[32px] border-2 border-slate-200 p-8 text-center max-w-md">
-          <h1 className="text-3xl font-black text-[#0F172A] mb-4">
+      <div className="min-h-screen bg-ev-page flex items-center justify-center p-4">
+        <div className="bg-white rounded-ev-lg border-2 border-ev-line p-8 text-center max-w-md">
+          <h1 className="text-3xl font-black text-ev-ink mb-4">
             {error ? 'Error' : 'Lesson Not Found'}
           </h1>
-          <p className="text-text-secondary mb-6"  >
+          <p className="text-ev-muted mb-6"  >
             {error || 'The lesson you\'re looking for doesn\'t exist or has been removed.'}
           </p>
           <Link 
             to="/learner" 
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ev-pink text-white font-semibold hover:brightness-105 transition-all"
              
           >
             <ArrowLeft className="w-4 h-4" />
@@ -398,99 +414,94 @@ export const LessonView = () => {
     )
   }
 
+  const questNav = usesQuestNavigation(lesson.grade)
   const quizScore = showResults ? { percentage: sessionPct, score: 0, total: 0 } : null
   const performanceCategory = quizScore ? getPerformanceCategory(quizScore.percentage) : null
   const performanceMessage = performanceCategory
-    ? getPerformanceMessage(performanceCategory, quizScore!.percentage, topicMastered)
+    ? getPerformanceMessage(performanceCategory, quizScore!.percentage, topicMastered, questNav)
     : null
-  const questNav = usesQuestNavigation(lesson.grade)
 
   return (
-    <div className="min-h-screen premium-mesh">
-      <div className="p-[5px] pt-[5px]">
-        <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
-          <StaggeredEntry>
-            <div className="max-w-4xl mx-auto">
+    <LearnerPage>
+      <StaggeredEntry>
+            <div className="max-w-4xl xl:max-w-5xl mx-auto">
               <button
+                type="button"
                 onClick={() => (questNav ? navigate('/learner/lessons') : navigate(-1))}
-                className="mb-6 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
-                 
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = ''
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = ''
-                }}
+                className={learnerButton('secondary', 'md', 'mb-6')}
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-5 h-5" />
                 Back
               </button>
 
               {questNav && id ? <QuestLessonSwitch currentLessonId={id} /> : null}
 
               <div className="mb-6">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A] mb-4">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-ev-ink mb-4">
                   {lesson.title}
                 </h1>
-                <p className="text-lg sm:text-xl text-text-secondary mb-6"  >
-                  {lesson.description}
-                </p>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary mb-6"  >
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4" />
-                    <span>Grade {lesson.grade}</span>
-                  </div>
-                  <span>•</span>
-                  <span className="capitalize px-3 py-1 bg-primary-100 text-primary-700 rounded-full font-semibold">
-                    {lesson.difficulty}
-                  </span>
-                  <span>•</span>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span>{lesson.duration} minutes</span>
-                  </div>
-                  <span>•</span>
-                  <span className="capitalize">{lesson.contentType}</span>
-                </div>
+                {/* Grade, difficulty, duration and tags are teacher metadata.
+                    A six-year-old cannot read them and they push the lesson down. */}
+                {!questNav && (
+                  <>
+                    <p className="text-lg sm:text-xl text-ev-muted mb-6">
+                      {lesson.description}
+                    </p>
 
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {lesson.tags.map((tag) => (
-                    <span 
-                      key={tag} 
-                      className="px-3 py-1 text-xs bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 rounded-full font-semibold"
-                       
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-ev-muted mb-6">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        <span>Grade {lesson.grade}</span>
+                      </div>
+                      <span>•</span>
+                      <span className="capitalize px-3 py-1 bg-ev-blue-soft text-ev-blue-edge rounded-full font-semibold">
+                        {lesson.difficulty}
+                      </span>
+                      <span>•</span>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        <span>{lesson.duration} minutes</span>
+                      </div>
+                      <span>•</span>
+                      <span className="capitalize">{lesson.contentType}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {lesson.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-3 py-1 text-xs bg-ev-blue-soft text-ev-blue-edge rounded-full font-semibold"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
-              <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-6 sm:p-8">
-                {preferredModality && preferredModality !== 'mixed' && (
-                  <p className="text-xs font-semibold text-primary-700 mb-4"  >
+              <div className="bg-white rounded-ev-lg border-2 border-ev-line p-6 sm:p-8">
+                {!questNav && preferredModality && preferredModality !== 'mixed' && (
+                  <p className="text-xs font-semibold text-ev-blue-edge mb-4">
                     Practice mode: {modalityLabel(preferredModality)}. Questions mix styles; we lean
                     toward what has worked for you on this topic
                   </p>
                 )}
 
                 {lesson.contentType === 'video' && lesson.videoUrl ? (
-                  <div className="aspect-video bg-slate-100 rounded-[16px] flex items-center justify-center mb-6">
+                  <div className="aspect-video bg-ev-line/50 rounded-ev-md flex items-center justify-center mb-6">
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-600 flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-ev-pink flex items-center justify-center">
                         <Play className="w-8 h-8 text-white fill-current" />
                       </div>
                       <p className="text-lg font-semibold text-slate-700 mb-2"  >
                         Video Lesson
                       </p>
-                      <p className="text-sm text-text-secondary"  >
+                      <p className="text-sm text-ev-muted"  >
                         Video player will be integrated with backend
                       </p>
-                      <p className="text-xs text-text-secondary mt-2"  >
+                      <p className="text-xs text-ev-muted mt-2"  >
                         URL: {lesson.videoUrl}
                       </p>
                     </div>
@@ -506,14 +517,14 @@ export const LessonView = () => {
                     }
                   />
                 ) : (
-                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-[16px] p-8 sm:p-12 text-center">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-600 flex items-center justify-center">
+                  <div className="bg-ev-pink-soft rounded-ev-md p-8 sm:p-12 text-center">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-ev-pink flex items-center justify-center">
                       <BookOpen className="w-10 h-10 text-white" />
                     </div>
                     <p className="text-lg font-semibold text-slate-700 mb-2"  >
                       Interactive Content
                     </p>
-                    <p className="text-sm text-text-secondary"  >
+                    <p className="text-sm text-ev-muted"  >
                       Interactive content will be displayed here
                     </p>
                   </div>
@@ -522,7 +533,7 @@ export const LessonView = () => {
                 {/* Quiz Section — live one-by-one; review = all answers at once */}
                 {lesson.quiz &&
                   ((lesson.quiz.questionCount ?? lesson.quiz.questions?.length) || 0) > 0 && (
-                  <div className="mt-8 pt-8 border-t border-slate-200 space-y-6">
+                  <div className="mt-8 pt-8 border-t border-ev-line space-y-6">
                     <AdaptiveQuizPanel
                       lesson={lesson as Lesson & { isCompleted?: boolean; progress?: number }}
                       lessonId={id!}
@@ -533,7 +544,7 @@ export const LessonView = () => {
 
                     {showResults && performanceMessage && (
                       <div className="space-y-6">
-                        <div className={`p-6 rounded-[16px] bg-gradient-to-br ${performanceMessage.color} border-2 ${performanceMessage.borderColor}`}>
+                        <div className={`p-6 rounded-ev-md border-2 border-b-4 ${performanceMessage.color} ${performanceMessage.borderColor}`}>
                           <div className="flex items-start gap-4">
                             <div className={`flex-shrink-0 ${performanceMessage.textColor}`}>
                               {performanceMessage.icon}
@@ -542,19 +553,19 @@ export const LessonView = () => {
                               <h3 className={`text-2xl font-black ${performanceMessage.textColor} mb-2`}>
                                 {performanceMessage.title} {sessionPct}%
                               </h3>
-                              <p className="text-base mb-2"  >
-                                {performanceMessage.message}
-                              </p>
-                              <p className="text-sm text-slate-600"  >
-                                Scroll up to see every question and your choices in review mode.
-                              </p>
+                              <p className="text-base mb-2">{performanceMessage.message}</p>
+                              {!questNav && (
+                                <p className="text-sm text-ev-muted">
+                                  Scroll up to see every question and your choices in review mode.
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
 
-                        {missedSkills.length > 0 && (
-                          <div className="p-5 rounded-[16px] bg-amber-50 border-2 border-amber-200">
-                            <h4 className="text-lg font-bold text-amber-900 mb-2"  >
+                        {!questNav && missedSkills.length > 0 && (
+                          <div className="p-5 rounded-ev-md bg-ev-pink-soft border-2 border-ev-pink">
+                            <h4 className="text-lg font-bold text-amber-900 mb-2">
                               Skills to practice
                             </h4>
                             <ul className="space-y-2">
@@ -573,20 +584,23 @@ export const LessonView = () => {
                         )}
 
                         {scaffoldOffer?.needsScaffold && scaffoldOffer.lesson && (
-                          <div className="p-5 rounded-[16px] bg-emerald-50 border-2 border-emerald-200">
-                            <h4 className="text-lg font-bold text-emerald-900 mb-2"  >
-                              Confidence builder (Grade {scaffoldOffer.lesson.grade})
+                          <div className="p-5 rounded-ev-md bg-emerald-50 border-2 border-ev-green">
+                            <h4 className="text-lg font-bold text-emerald-900 mb-2">
+                              {questNav
+                                ? 'Try this one first'
+                                : `Confidence builder (Grade ${scaffoldOffer.lesson.grade})`}
                             </h4>
-                            <p className="text-sm text-emerald-800 mb-3"  >
-                              You missed this skill twice at your grade. Try this lower-grade lesson next, then come back stronger.
+                            <p className="text-sm text-emerald-800 mb-3">
+                              {questNav
+                                ? 'This lesson is a little easier. Come back after.'
+                                : 'You missed this skill twice at your grade. Try this lower-grade lesson next, then come back stronger.'}
                             </p>
                             <Link
                               to={`/learner/lessons/${scaffoldOffer.lesson.id}`}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold text-sm"
-                               
+                              className={learnerButton('primary', 'md')}
                             >
                               <Play className="w-4 h-4" />
-                              Open: {scaffoldOffer.lesson.title}
+                              {scaffoldOffer.lesson.title}
                             </Link>
                           </div>
                         )}
@@ -600,7 +614,7 @@ export const LessonView = () => {
                             performanceCategory === 'approaching' ||
                             (quizScore && quizScore.percentage < 60)) && (
                           <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-[#0F172A]"  >
+                            <h4 className="text-lg font-bold text-ev-ink"  >
                               Practice from a lower grade
                             </h4>
                             {loadingSimilar ? (
@@ -615,28 +629,28 @@ export const LessonView = () => {
                                   <Link
                                     key={similarLesson.id}
                                     to={`/learner/lessons/${similarLesson.id}`}
-                                    className="block p-4 rounded-[12px] bg-white border-2 border-slate-200 hover:border-primary-300 hover:shadow-md transition-all"
+                                    className="block p-4 rounded-ev-sm bg-white border-2 border-ev-line hover:border-ev-pink hover:shadow-md transition-all"
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 rounded-full bg-gradient-to-br bg-primary-600 flex items-center justify-center flex-shrink-0">
+                                      <div className="w-10 h-10 rounded-full bg-ev-pink flex items-center justify-center flex-shrink-0">
                                         <Play className="w-5 h-5 text-white" />
                                       </div>
                                       <div className="flex-1">
-                                        <h5 className="font-bold text-[#0F172A] mb-1"  >
+                                        <h5 className="font-bold text-ev-ink mb-1"  >
                                           {similarLesson.title}
                                         </h5>
-                                        <p className="text-sm text-text-secondary"  >
+                                        <p className="text-sm text-ev-muted"  >
                                           Grade {similarLesson.grade} • {similarLesson.difficulty}
                                         </p>
                                       </div>
-                                      <Play className="w-5 h-5 text-primary-700" />
+                                      <Play className="w-5 h-5 text-ev-pink-edge" />
                                     </div>
                                   </Link>
                                 ))}
                               </div>
                             ) : (
-                              <div className="p-4 rounded-[12px] bg-slate-50 border-2 border-slate-200">
-                                <p className="text-sm text-text-secondary"  >
+                              <div className="p-4 rounded-ev-sm bg-white border-2 border-ev-line">
+                                <p className="text-sm text-ev-muted"  >
                                   No practice exercises available at the moment. Keep practicing with what you have!
                                 </p>
                               </div>
@@ -645,7 +659,7 @@ export const LessonView = () => {
                         )}
 
                         {showRetakePrompt && failedLessonId && failedLessonTitle && (
-                          <div className="p-6 rounded-[16px] bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
+                          <div className="p-6 rounded-ev-md bg-ev-pink-soft border-2 border-ev-pink">
                             <div className="flex items-start gap-4">
                               <div className="flex-shrink-0 text-amber-600">
                                 <AlertCircle className="w-6 h-6" />
@@ -675,7 +689,7 @@ export const LessonView = () => {
                           (performanceCategory === 'meeting' || performanceCategory === 'exceeding') &&
                           !showRetakePrompt && (
                           <div className="space-y-4">
-                            <h4 className="text-lg font-bold text-[#0F172A]"  >
+                            <h4 className="text-lg font-bold text-ev-ink"  >
                               What's Next?
                             </h4>
                             {loadingNext ? (
@@ -686,7 +700,7 @@ export const LessonView = () => {
                               </div>
                             ) : nextLessons.length > 0 ? (
                               <>
-                                <p className="text-sm text-text-secondary mb-3"  >
+                                <p className="text-sm text-ev-muted mb-3"  >
                                   Continue with more lessons in this topic:
                                 </p>
                                 <div className="space-y-3">
@@ -694,17 +708,17 @@ export const LessonView = () => {
                                     <Link
                                       key={nextLesson.id}
                                       to={`/learner/lessons/${nextLesson.id}`}
-                                      className="block p-4 rounded-[12px] bg-white border-2 border-slate-200 hover:border-primary-300 hover:shadow-md transition-all"
+                                      className="block p-4 rounded-ev-sm bg-white border-2 border-ev-line hover:border-ev-pink hover:shadow-md transition-all"
                                     >
                                       <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-ev-green flex items-center justify-center flex-shrink-0">
                                           <Play className="w-5 h-5 text-white" />
                                         </div>
                                         <div className="flex-1">
-                                          <h5 className="font-bold text-[#0F172A] mb-1"  >
+                                          <h5 className="font-bold text-ev-ink mb-1"  >
                                             {nextLesson.title}
                                           </h5>
-                                          <p className="text-sm text-text-secondary"  >
+                                          <p className="text-sm text-ev-muted"  >
                                             {nextLesson.description || 'Continue learning'}
                                           </p>
                                         </div>
@@ -714,11 +728,11 @@ export const LessonView = () => {
                                   ))}
                                 </div>
                                 {canProceedToNextSubstrand && nextSubstrand && (
-                                  <div className="mt-4 p-4 rounded-[12px] bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
+                                  <div className="mt-4 p-4 rounded-ev-sm bg-ev-pink-soft border-2 border-ev-pink">
                                     <p className="text-sm font-semibold text-amber-800 mb-2"  >
                                       Great progress! You've completed {completedCount} lessons in this topic.
                                     </p>
-                                    <p className="text-sm text-amber-700 mb-3"  >
+                                    <p className="text-sm text-ev-pink-edge mb-3"  >
                                       You can now move on to the next topic: <strong>{nextSubstrand.name}</strong>
                                     </p>
                                     <Link
@@ -737,7 +751,7 @@ export const LessonView = () => {
                                 )}
                               </>
                             ) : (
-                              <div className="p-6 rounded-[12px] bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200">
+                              <div className="p-6 rounded-ev-sm bg-ev-pink-soft border-2 border-ev-pink">
                                 <p className="text-base mb-2"  >
                                   {canProceedToNextSubstrand && nextSubstrand ? (
                                     <>
@@ -757,7 +771,7 @@ export const LessonView = () => {
                                         ? `/learner/lessons?subject=${nextSubstrand.subjectId}&strand=${nextSubstrand.strandId}&substrand=${nextSubstrand.id}`
                                         : `/learner/lessons?substrand=${nextSubstrand.id}`
                                     }
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-all mt-3"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ev-pink text-white font-semibold hover:brightness-105 transition-all mt-3"
                                      
                                   >
                                     <ArrowLeft className="w-4 h-4 rotate-180" />
@@ -766,7 +780,7 @@ export const LessonView = () => {
                                 ) : (
                                   <Link
                                     to="/learner"
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-all mt-3"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ev-pink text-white font-semibold hover:brightness-105 transition-all mt-3"
                                      
                                   >
                                     <BookOpen className="w-4 h-4" />
@@ -784,9 +798,7 @@ export const LessonView = () => {
 
               </div>
             </div>
-          </StaggeredEntry>
-        </div>
-      </div>
-    </div>
+      </StaggeredEntry>
+    </LearnerPage>
   )
 }

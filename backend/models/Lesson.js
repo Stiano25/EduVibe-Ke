@@ -128,6 +128,48 @@ export class Lesson {
     return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
+  /**
+   * Adaptive start/next only need identity, objectives, and quiz JSON —
+   * not content, images, or teaching blobs. Cuts the per-answer lesson round-trip.
+   */
+  static async findByIdForAdaptive(id) {
+    const { data, error } = await getDbClient()
+      .from(this.tableName)
+      .select(
+        'id, title, status, grade, sub_strand_id, subject_id, strand_id, learning_objectives, quiz'
+      )
+      .eq('id', id)
+      .maybeSingle();
+
+    return oneOrNull(data, error, (row) => this.mapToModel(this.slimAdaptiveRow(row)));
+  }
+
+  static slimAdaptiveRow(row) {
+    if (!row) return row;
+    const quiz = row.quiz && typeof row.quiz === 'object' ? row.quiz : null;
+    if (!quiz) return row;
+    const { visualBriefs: _vb, visualAssets: _va, contentBlocks: _cb, ...quizRest } = quiz;
+    return { ...row, quiz: quizRest };
+  }
+
+  static async findTitlesByIds(ids) {
+    const unique = [...new Set((ids || []).filter(Boolean))];
+    const titles = new Map();
+    if (!unique.length) return titles;
+    for (let i = 0; i < unique.length; i += 80) {
+      const slice = unique.slice(i, i + 80);
+      const { data, error } = await getDbClient()
+        .from(this.tableName)
+        .select('id, title')
+        .in('id', slice);
+      if (error) throw error;
+      for (const row of data || []) {
+        titles.set(row.id, row.title || 'Lesson');
+      }
+    }
+    return titles;
+  }
+
   static async findByStrand(strandId) {
     const { data, error } = await getDbClient()
       .from(this.tableName)

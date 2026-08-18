@@ -23,7 +23,7 @@ export const LearnerRecommendations = () => {
   return (
     <StaggeredEntry>
       <div className="section-spacing">
-        <h1 className="text-4xl font-bold tracking-tight text-[#0F172A] mb-4">AI Recommendations</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-ev-ink mb-4">AI Recommendations</h1>
         <p className="text-lg text-gray-600 mb-section">
           Personalized lesson recommendations based on your learning progress
         </p>

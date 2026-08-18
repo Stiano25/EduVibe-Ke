@@ -55,12 +55,12 @@ export const ModalityPreferencePrompt = () => {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[180] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white rounded-[28px] border-2 border-slate-200 shadow-2xl p-6">
-        <h2 className="text-xl font-bold text-[#0F172A] mb-1">
+    <div className="fixed inset-0 z-[180] flex items-center justify-center p-4 bg-slate-900/50">
+      <div className="w-full max-w-md bg-white rounded-ev-lg border-2 border-ev-line  p-6">
+        <h2 className="text-xl font-bold text-ev-ink mb-1">
           How do you like to learn?
         </h2>
-        <p className="text-sm text-text-secondary mb-4"  >
+        <p className="text-sm text-ev-muted mb-4"  >
           Pick one. You can change this later — we also learn from how you do on quizzes.
         </p>
         <div className="space-y-2 mb-4">
@@ -69,15 +69,15 @@ export const ModalityPreferencePrompt = () => {
               key={opt.id}
               type="button"
               onClick={() => setSelected(opt.id)}
-              className={`w-full text-left px-4 py-3 rounded-[16px] border-2 transition-all ${
+              className={`w-full text-left px-4 py-3 rounded-ev-md border-2 transition-all ${
                 selected === opt.id
-                  ? 'border-primary-400 bg-primary-50'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
+                  ? 'border-ev-pink bg-ev-pink-soft'
+                  : 'border-ev-line bg-white hover:border-ev-line'
               }`}
                
             >
-              <span className="block text-sm font-semibold text-[#0F172A]">{opt.label}</span>
-              <span className="block text-xs text-text-secondary mt-0.5">{opt.hint}</span>
+              <span className="block text-sm font-semibold text-ev-ink">{opt.label}</span>
+              <span className="block text-xs text-ev-muted mt-0.5">{opt.hint}</span>
             </button>
           ))}
         </div>
@@ -85,8 +85,7 @@ export const ModalityPreferencePrompt = () => {
           type="button"
           disabled={saving}
           onClick={() => save(selected)}
-          className="w-full py-3 rounded-full bg-gradient-to-r bg-primary-600 text-white font-semibold disabled:opacity-50"
-           
+          className="w-full min-h-12 py-3 rounded-full bg-ev-pink text-white font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ev-pink/40"
         >
           {saving ? 'Saving...' : 'Continue'}
         </button>

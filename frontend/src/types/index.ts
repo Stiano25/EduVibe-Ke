@@ -72,6 +72,26 @@ export interface QuizQuestion {
   qa_issue?: string | null
   /** Set when this quiz item was pulled from the reviewed question bank */
   bankEntryId?: string
+  template?: boolean
+  templateId?: string
+}
+
+export type QuizSource = 'templates' | 'fixed_pool'
+
+export interface QuizTemplate {
+  id: string
+  family?: string
+  outcomeFamily?: string
+  difficulty?: 'easy' | 'intermediate' | 'advanced'
+  interactionType?: 'multiple_choice' | 'drag_to_target' | 'numeric_entry'
+  skillFocus?: string
+  learningOutcomeIndex?: number
+  learningOutcomeKey?: string
+  bloomLevel?: BloomLevel
+  modality?: Exclude<LearnerModality, 'mixed'> | 'practice' | 'visual' | 'text_steps'
+  constraints?: Record<string, unknown>
+  questionText?: string
+  answerFormula?: string
 }
 
 export interface QuizBankStats {
@@ -79,6 +99,11 @@ export interface QuizBankStats {
   byBloom: Record<string, number>
   byModality: Record<string, number>
   byOutcome: Record<string, { total: number; visual: number; text_steps: number; practice: number }>
+  templates?: {
+    total: number
+    byTier: Record<string, number>
+    byOutcome: Record<string, number>
+  }
 }
 
 /** Post-generation outcome coverage summary (1-based learningOutcomeIndex) */
@@ -87,6 +112,8 @@ export interface QuizCoverageReport {
   remapped: number[]
   stillMissing: number[]
   outcomes: string[]
+  templateCount?: number
+  templateTiers?: string[]
 }
 
 // Standalone Quiz / lesson quiz envelope
@@ -96,6 +123,8 @@ export interface Quiz {
   description?: string
   grade?: Grade
   difficulty?: Difficulty
+  source?: QuizSource
+  templates?: QuizTemplate[]
   questions: QuizQuestion[]
   /** Present on learner-sanitized payloads (stems stripped) */
   questionCount?: number

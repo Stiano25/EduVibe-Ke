@@ -672,7 +672,7 @@ export const AdminLessons = () => {
                 ))}
               </select>
               <p className="mt-2 text-xs text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                Each lesson gets a shorter ~18-question bank (learners still see 10–12 live). Fewer lessons = faster.
+                Template-backed lessons use a reviewed ladder; live sessions draw twists (10–12 items). Other topics pull from the approved question bank.
               </p>
             </div>
             <div className="flex items-center gap-3 pt-4 border-t-2 border-slate-200">

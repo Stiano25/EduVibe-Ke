@@ -22,7 +22,7 @@ export const OptionVisual = ({
     return (
       <div className="space-y-1">
         <ObjectQuantityStrip params={option.params} compact={compact} />
-        {option.text ? <MathText text={option.text} className="text-xs text-slate-600" /> : null}
+        {option.text ? <MathText text={option.text} className="text-xs text-ev-muted" /> : null}
       </div>
     )
   }
@@ -30,7 +30,7 @@ export const OptionVisual = ({
     return (
       <div className="space-y-1">
         <LiveDiagram diagramType={option.diagramType} params={option.params} />
-        {option.text ? <MathText text={option.text} className="text-xs text-slate-600" /> : null}
+        {option.text ? <MathText text={option.text} className="text-xs text-ev-muted" /> : null}
       </div>
     )
   }

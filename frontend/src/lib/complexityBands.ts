@@ -18,8 +18,14 @@ export const QUEST_COPY = {
   start: 'Start',
   keepGoing: 'Keep going',
   done: 'All done for now.',
+  /** No task queued, but lessons remain — never say "all done" over a full list. */
+  chooseAny: 'Pick any lesson below.',
   home: 'Home',
   lessons: 'Lessons',
   pick: 'Pick a lesson',
   locked: 'Locked',
+  /** Row status words. A tick alone is not readable at this age. */
+  statusDone: 'Done',
+  statusKeepGoing: 'Keep going',
+  statusNew: 'New',
 } as const

@@ -320,6 +320,8 @@ class ApiClient {
         added: number
         bankSize: number
         bankStats: Record<string, unknown>
+        reason?: string | null
+        pendingEnqueued?: number
       }>,
     previewDiagram: (brief: Record<string, unknown>) =>
       this.request('/admin/lessons/preview-diagram', {
@@ -394,6 +396,13 @@ class ApiClient {
     getUsers: () => this.request('/admin/users'),
     getUser: (id: string) => this.request(`/admin/users/${id}`),
     getActiveLearners: () => this.request('/admin/users/active-learners'),
+
+    generateLearnerReports: (userIds: string[]) =>
+      this.request('/admin/reports/learners', {
+        method: 'POST',
+        body: JSON.stringify({ userIds }),
+      }),
+    getLearnerReport: (userId: string) => this.request(`/admin/reports/learners/${userId}`),
 
     // Analytics
     getAnalytics: () => this.request('/admin/analytics'),

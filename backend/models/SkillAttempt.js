@@ -144,14 +144,36 @@ export class SkillAttempt {
   }
 
   /**
+   * Consecutive incorrect non-twin attempts at this grade, newest-first streak.
+   * Same rules as countRecentFails, for use on an already-fetched history.
+   */
+  static consecutiveFailStreak(attemptsOldestFirst = [], gradeLevel = null) {
+    const grade = gradeLevel == null || gradeLevel === '' ? null : String(gradeLevel);
+    const rows = (attemptsOldestFirst || []).filter((a) => {
+      if (a?.twinRole === 'twist') return false;
+      if (grade == null) return true;
+      return String(a.gradeLevel ?? '') === grade;
+    });
+    let streak = 0;
+    for (let i = rows.length - 1; i >= 0; i -= 1) {
+      if (rows[i].correct) break;
+      streak += 1;
+    }
+    return streak;
+  }
+
+  /**
    * Full history for BKT replay, oldest first, including twin twists.
    * Heuristic 3-of-4 still uses listByUserOutcome (twists excluded).
    */
-  static async listByUserOutcomeAll(userId, learningOutcomeKey, { limit = 500 } = {}) {
+  static async listByUserOutcomeAll(userId, learningOutcomeKey, { limit = 500, lean = false } = {}) {
     const db = getDbClient();
+    const select = lean
+      ? 'id, correct, created_at, grade_level, twin_role, twin_pair_id, modality_shown'
+      : '*';
     let { data, error } = await db
       .from(this.tableName)
-      .select('*')
+      .select(select)
       .eq('user_id', userId)
       .eq('learning_outcome_key', learningOutcomeKey)
       .order('created_at', { ascending: true })
@@ -160,7 +182,7 @@ export class SkillAttempt {
     if (error && isMissingTwinColumn(error)) {
       ({ data, error } = await db
         .from(this.tableName)
-        .select('*')
+        .select(lean ? 'id, correct, created_at, grade_level, modality_shown' : '*')
         .eq('user_id', userId)
         .eq('learning_outcome_key', learningOutcomeKey)
         .order('created_at', { ascending: true })
@@ -168,6 +190,36 @@ export class SkillAttempt {
     }
     if (error) throw error;
     return (data || []).map((row) => this.mapToModel(row));
+  }
+
+  static async listByUserIds(userIds, { limitPerUser = 200 } = {}) {
+    const ids = [...new Set((userIds || []).filter(Boolean))];
+    if (!ids.length) return [];
+    const cap = Math.min(8000, Math.max(ids.length, ids.length * Math.max(1, limitPerUser)));
+    const db = getDbClient();
+    let data = [];
+    for (let i = 0; i < ids.length; i += 80) {
+      const slice = ids.slice(i, i + 80);
+      let { data: chunk, error } = await db
+        .from(this.tableName)
+        .select('*')
+        .in('user_id', slice)
+        .or('twin_role.is.null,twin_role.neq.twist')
+        .order('created_at', { ascending: false })
+        .limit(cap);
+
+      if (error && isMissingTwinColumn(error)) {
+        ({ data: chunk, error } = await db
+          .from(this.tableName)
+          .select('*')
+          .in('user_id', slice)
+          .order('created_at', { ascending: false })
+          .limit(cap));
+      }
+      if (error) throw error;
+      data = data.concat(chunk || []);
+    }
+    return data.map((row) => this.mapToModel(row));
   }
 
   /**
@@ -321,6 +373,23 @@ export class SkillMastery {
     return (data || []).map((row) => this.mapToModel(row));
   }
 
+  static async findByUserIds(userIds) {
+    const ids = [...new Set((userIds || []).filter(Boolean))];
+    if (!ids.length) return [];
+    const rows = [];
+    for (let i = 0; i < ids.length; i += 80) {
+      const slice = ids.slice(i, i + 80);
+      const { data, error } = await getDbClient()
+        .from(this.tableName)
+        .select('*')
+        .in('user_id', slice)
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      rows.push(...(data || []));
+    }
+    return rows.map((row) => this.mapToModel(row));
+  }
+
   /**
    * Mastered requires ≥3 of the most recent 4 attempts correct (not 2-in-a-row).
    * Fail side unchanged: struggling (<2 consecutive fails) / scaffolding (≥2).
@@ -433,6 +502,91 @@ export class SkillMastery {
     if (error && isMissingBktColumn(error)) {
       console.warn('BKT columns missing; heuristic status stored without p(Know)');
       return existing || this.mapToModel({ ...payload, id: null });
+    }
+
+    if (error) throw error;
+    return this.mapToModel(data);
+  }
+
+  /**
+   * One mastery upsert: 3-of-4 heuristic (non-twins) plus BKT replay.
+   * Twins skip the heuristic, matching upsertFromAttempt + recomputeBkt.
+   */
+  static async applyAttemptAndBkt({
+    userId,
+    learningOutcomeKey,
+    skillFocus = null,
+    gradeLevel = null,
+    correct,
+    consecutiveFails,
+    modalityShown,
+    isTwin = false,
+    existing = null,
+    attemptsOldestFirst = [],
+    bktParams = null
+  }) {
+    const { replayBkt } = await import('../utils/bkt.js');
+    const params = bktParams || (await BktSkillParams.getOrCreate(learningOutcomeKey));
+    const { pKnow, observations } = replayBkt(attemptsOldestFirst, params);
+    const now = new Date().toISOString();
+
+    let status = existing?.status || 'unknown';
+    let lastSuccessGrade = existing?.lastSuccessGrade || null;
+    let preferredModalityObserved = existing?.preferredModalityObserved || null;
+    let consecutiveFailsAtLevel = existing?.consecutiveFailsAtLevel ?? 0;
+    let updatedAt = existing?.updatedAt || now;
+
+    if (!isTwin) {
+      if (correct) {
+        const recent = [...(attemptsOldestFirst || [])]
+          .filter((a) => a?.twinRole !== 'twist')
+          .reverse()
+          .slice(0, 4);
+        status = SkillAttempt.meetsMasteredWindow(recent) ? 'mastered' : 'developing';
+        lastSuccessGrade = gradeLevel;
+        if (modalityShown && modalityShown !== 'mixed') {
+          preferredModalityObserved = modalityShown;
+        }
+      } else if (consecutiveFails >= 2) {
+        status = 'scaffolding';
+      } else {
+        status = 'struggling';
+      }
+      consecutiveFailsAtLevel = correct ? 0 : consecutiveFails;
+      updatedAt = now;
+    }
+
+    const payload = {
+      user_id: userId,
+      learning_outcome_key: learningOutcomeKey,
+      skill_focus: skillFocus || existing?.skillFocus || null,
+      status,
+      consecutive_fails_at_level: consecutiveFailsAtLevel,
+      current_grade_level: gradeLevel || existing?.currentGradeLevel || null,
+      last_success_grade: lastSuccessGrade,
+      preferred_modality_observed: preferredModalityObserved,
+      updated_at: updatedAt,
+      bkt_p_know: pKnow,
+      bkt_n_observations: observations,
+      bkt_updated_at: now
+    };
+
+    let { data, error } = await getDbClient()
+      .from(this.tableName)
+      .upsert(payload, { onConflict: 'user_id,learning_outcome_key' })
+      .select()
+      .single();
+
+    if (error && isMissingBktColumn(error)) {
+      const heuristicOnly = { ...payload };
+      delete heuristicOnly.bkt_p_know;
+      delete heuristicOnly.bkt_n_observations;
+      delete heuristicOnly.bkt_updated_at;
+      ({ data, error } = await getDbClient()
+        .from(this.tableName)
+        .upsert(heuristicOnly, { onConflict: 'user_id,learning_outcome_key' })
+        .select()
+        .single());
     }
 
     if (error) throw error;

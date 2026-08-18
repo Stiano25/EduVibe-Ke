@@ -43,6 +43,22 @@ export class User {
     return data.map(item => this.mapToModel(item));
   }
 
+  static async findByIds(ids) {
+    const unique = [...new Set((ids || []).filter(Boolean))];
+    if (!unique.length) return [];
+    const rows = [];
+    for (let i = 0; i < unique.length; i += 80) {
+      const slice = unique.slice(i, i + 80);
+      const { data, error } = await getDbClient()
+        .from(this.tableName)
+        .select('*')
+        .in('id', slice);
+      if (error) throw error;
+      rows.push(...(data || []));
+    }
+    return rows.map((item) => this.mapToModel(item));
+  }
+
   static async findByRole(role) {
     const { data, error } = await getDbClient()
       .from(this.tableName)

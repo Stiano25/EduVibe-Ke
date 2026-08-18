@@ -1,14 +1,17 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
+import { LearnerPage } from '@/components/layout/LearnerPage'
+import { learnerButton } from '@/lib/learnerUi'
 import { ArrowLeft, Play, Clock, Lock } from 'lucide-react'
 import { api } from '@/lib/api'
 import { LazyLottie } from '@/components/ui/LazyLottie'
 import { animationKeyForSubjectId, type AnimationKey } from '@/lib/lottieAnimations'
-import { QuestLessonPicker } from '@/components/learner/QuestLessonPicker'
+import { LessonJourney } from '@/components/learner/LessonJourney'
 import type { Lesson, Subject, Strand, SubStrand } from '@/types'
 import { useAuthStore } from '@/store/useAuthStore'
 import { QUEST_COPY, usesQuestNavigation } from '@/lib/complexityBands'
+import { subjectTone } from '@/lib/learnerUi'
 
 interface LessonWithUnlock extends Lesson {
   isUnlocked: boolean
@@ -180,55 +183,40 @@ export const LearnerLessons = () => {
     return unlocked || lessons[0]
   }, [lessons])
 
-  const iconColor = subject?.color || 'bg-primary-600'
+  const iconTone = subjectTone(subject?.name)
 
   if (catalogMode) {
     return (
-      <div className="min-h-screen premium-mesh" style={{ fontFamily: 'Fredoka, sans-serif' }}>
-        <div className="p-[5px] pt-[5px]">
-          <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] text-center mb-4">
-              {QUEST_COPY.lessons}
-            </h1>
-            <QuestLessonPicker heading={QUEST_COPY.pick} />
-          </div>
-        </div>
-      </div>
+      <LearnerPage width="wide">
+        <Link to="/learner" className={learnerButton('secondary', 'md', 'mb-6')}>
+          <ArrowLeft className="w-5 h-5" />
+          Back
+        </Link>
+        <LessonJourney heading={QUEST_COPY.lessons} />
+      </LearnerPage>
     )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen premium-mesh" className="">
-        <div className="p-[5px] pt-[5px]">
-          <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-40 h-40 sm:w-48 sm:h-48">
-                <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
-              </div>
-            </div>
+      <LearnerPage>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-40 h-40 sm:w-48 sm:h-48">
+            <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
           </div>
         </div>
-      </div>
+      </LearnerPage>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen premium-mesh" className="">
-        <div className="p-[5px] pt-[5px]">
-          <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
-            <div className="bg-red-50 backdrop-blur-md rounded-[24px] border-2 border-red-200 p-8 text-center">
-              <p className="text-lg font-semibold text-red-700 mb-2"  >
-                Error loading lessons
-              </p>
-              <p className="text-sm text-red-600"  >
-                {error}
-              </p>
-            </div>
-          </div>
+      <LearnerPage>
+        <div className="bg-ev-red-soft rounded-ev-lg border-2 border-ev-red p-8 text-center">
+          <p className="text-lg font-semibold text-ev-red-edge mb-2">Error loading lessons</p>
+          <p className="text-sm text-ev-red-edge">{error}</p>
         </div>
-      </div>
+      </LearnerPage>
     )
   }
 
@@ -241,93 +229,61 @@ export const LearnerLessons = () => {
     const isPartiallyCompleted = progressPercentage >= 60 && progressPercentage < 100
     const isIncomplete = progressPercentage < 60
 
-    // Different color gradients based on status
-    let cardTheme = 'from-primary-400 via-primary-500 to-teal-400'
-    let cardBorderColor = 'border-slate-200'
-    let cardBgColor = 'bg-white/80'
-    
+    // Flat status theming: one solid fill, one solid edge, per state.
+    let barTone = 'bg-ev-pink'
+    let cardBorderColor = 'border-ev-line'
+    let cardBgColor = 'bg-white'
+
     if (isMainPriority && isIncomplete) {
-      // Main incomplete lesson - special gradient
-      cardTheme = 'from-amber-400 via-orange-400 to-red-400'
-      cardBorderColor = 'border-amber-300'
-      cardBgColor = 'bg-gradient-to-br from-amber-50/90 to-orange-50/90'
+      barTone = 'bg-ev-pink'
+      cardBorderColor = 'border-ev-pink'
+      cardBgColor = 'bg-ev-pink-soft'
     } else if (isFullyCompleted) {
-      // Fully completed - green/emerald
-      cardTheme = 'from-emerald-400 via-teal-400 to-cyan-400'
-      cardBorderColor = 'border-emerald-300'
-      cardBgColor = 'bg-gradient-to-br from-emerald-50/90 to-teal-50/90'
+      barTone = 'bg-ev-green'
+      cardBorderColor = 'border-ev-green'
+      cardBgColor = 'bg-ev-green-soft'
     } else if (isPartiallyCompleted) {
-      // Partially completed - blue/indigo
-      cardTheme = 'from-primary-400 via-teal-400 to-primary-500'
-      cardBorderColor = 'border-blue-300'
-      cardBgColor = 'bg-gradient-to-br from-blue-50/90 to-indigo-50/90'
-    } else {
-      // Incomplete (not main) - default purple
-      cardTheme = 'from-primary-400 via-primary-500 to-teal-400'
-      cardBorderColor = 'border-slate-200'
-      cardBgColor = 'bg-white/80'
-    }
-
-    const handleMouseDown = (e: React.MouseEvent<HTMLElement>) => {
-      if (!isLocked) {
-        e.currentTarget.style.transform = 'translateY(4px)'
-        e.currentTarget.style.boxShadow = '0 0 0 0 rgba(0,0,0,0)'
-      }
-    }
-
-    const resetTransform = (e: React.MouseEvent<HTMLElement>) => {
-      if (!isLocked) {
-        e.currentTarget.style.transform = ''
-        e.currentTarget.style.boxShadow = '0 10px 0 0 rgba(0,0,0,0.05)'
-      }
+      barTone = 'bg-ev-blue'
+      cardBorderColor = 'border-ev-blue'
+      cardBgColor = 'bg-ev-blue-soft'
     }
 
     const LessonCard = (
       <div
         className={`
-          h-full flex flex-col ${cardBgColor} backdrop-blur-md rounded-[24px]
-          border-2 ${cardBorderColor} relative overflow-hidden
-          ${isLocked ? 'opacity-60 cursor-not-allowed' : 'hover:scale-[1.03] transition-transform'}
-          ${isMainPriority && isIncomplete ? 'sm:col-span-2 xl:col-span-2 ring-2 ring-amber-400/50' : ''}
-          ${isFullyCompleted ? 'opacity-90' : ''}
+          h-full flex flex-col ${cardBgColor} rounded-ev-lg
+          border-2 border-b-4 ${cardBorderColor} relative overflow-hidden
+          ${isLocked ? 'opacity-60 cursor-not-allowed' : 'ev-edge'}
+          ${isMainPriority && isIncomplete ? 'sm:col-span-2 xl:col-span-2' : ''}
         `}
-        style={{ 
-          borderWidth: isMainPriority && isIncomplete ? '3px' : '2.5px',
-          boxShadow: isLocked ? 'none' : isMainPriority && isIncomplete 
-            ? '0 12px 0 0 rgba(251, 191, 36, 0.15)' 
-            : '0 10px 0 0 rgba(0,0,0,0.05)'
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseUp={resetTransform}
-        onMouseLeave={resetTransform}
       >
         {isMainPriority && isIncomplete && (
           <div className="absolute -top-2 right-3 rotate-[-3deg] z-20">
-            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-[10px] font-black text-white shadow-lg"  >
+            <span className="inline-flex px-3 py-1 rounded-2xl border-2 border-ev-pink-edge bg-ev-pink text-[10px] font-black text-white">
               Focus Lesson
             </span>
           </div>
         )}
         {isFullyCompleted && (
           <div className="absolute -top-2 right-3 rotate-[-3deg] z-20">
-            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-[10px] font-black text-white shadow-lg"  >
+            <span className="inline-flex px-3 py-1 rounded-2xl border-2 border-ev-green-edge bg-ev-green text-[10px] font-black text-white">
               Completed ✓
             </span>
           </div>
         )}
         {isPartiallyCompleted && !isFullyCompleted && (
           <div className="absolute -top-2 right-3 rotate-[-3deg] z-20">
-            <span className="inline-flex px-3 py-1 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-700 text-[10px] font-black text-white shadow-lg"  >
+            <span className="inline-flex px-3 py-1 rounded-2xl border-2 border-ev-blue-edge bg-ev-blue text-[10px] font-black text-white">
               In Progress
             </span>
           </div>
         )}
 
         {isLocked && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-[24px] z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-ev-lg z-10">
             <div className="text-center">
-              <Lock className="w-8 h-8 text-slate-400 mx-auto mb-2" strokeWidth={2.5} />
-              <p className="text-xs font-semibold text-slate-600"  >
+              <Lock className="w-8 h-8 text-ev-muted mx-auto mb-2" strokeWidth={2.5} />
+              <p className="text-xs font-semibold text-ev-muted"  >
                 Complete previous lesson to unlock
               </p>
             </div>
@@ -336,15 +292,9 @@ export const LearnerLessons = () => {
 
         <div className="p-4 sm:p-5 flex flex-col h-full">
           <div className="flex items-start justify-between mb-3">
-            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${
-              isMainPriority && isIncomplete 
-                ? 'from-amber-500 to-orange-600' 
-                : isFullyCompleted
-                ? 'from-emerald-500 to-teal-600'
-                : isPartiallyCompleted
-                ? 'from-primary-500 to-primary-700'
-                : 'bg-primary-600'
-            } flex items-center justify-center shadow-lg flex-shrink-0 overflow-hidden`}>
+            <div
+              className={`w-12 h-12 rounded-full border-2 ${barTone} ${cardBorderColor} flex items-center justify-center flex-shrink-0 overflow-hidden`}
+            >
               {(() => {
                 const lessonKey = animationKeyForSubjectId(lesson.id)
                 return (
@@ -354,26 +304,26 @@ export const LearnerLessons = () => {
                 )
               })()}
             </div>
-            <span className="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize border border-emerald-200"  >
+            <span className="px-3 py-1 text-xs font-bold bg-ev-green-soft text-ev-green-edge rounded-full capitalize border-2 border-ev-green">
               {lesson.contentType}
             </span>
           </div>
 
-          <h3 className="text-lg sm:text-xl font-black text-[#0F172A] mb-2 group-hover:text-primary-700 transition-colors leading-snug" className="">
+          <h3 className="text-lg sm:text-xl font-black text-ev-ink mb-2 group-hover:text-ev-pink-edge transition-colors leading-snug">
             {lesson.title}
           </h3>
-          <p className="text-sm text-text-secondary mb-4 line-clamp-2 leading-relaxed"  >
+          <p className="text-sm text-ev-muted mb-4 line-clamp-2 leading-relaxed"  >
             {lesson.description}
           </p>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 rounded-full"  >
+            <span className="px-2.5 py-1 text-xs font-semibold bg-ev-pink-soft text-ev-pink-edge rounded-full"  >
               Grade {lesson.grade}
             </span>
-            <span className="px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full capitalize"  >
+            <span className="px-2.5 py-1 text-xs font-bold bg-ev-green-soft text-ev-green-edge rounded-full capitalize">
               {lesson.difficulty}
             </span>
-            <div className="flex items-center gap-1 ml-auto text-xs text-text-secondary font-medium"  >
+            <div className="flex items-center gap-1 ml-auto text-xs text-ev-muted font-medium"  >
               <Clock className="w-3.5 h-3.5" strokeWidth={2.5} />
               <span>{lesson.duration}m</span>
             </div>
@@ -383,41 +333,41 @@ export const LearnerLessons = () => {
             {lesson.tags.slice(0, 3).map((tag) => (
               <span 
                 key={tag} 
-                className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded-full font-medium"
+                className="px-2 py-0.5 text-[10px] bg-ev-line/50 text-slate-700 rounded-full font-medium"
                  
               >
                 {tag}
               </span>
             ))}
             {lesson.tags.length > 3 && (
-              <span className="px-2 py-0.5 text-[10px] bg-slate-100 text-slate-700 rounded-full font-medium"  >
+              <span className="px-2 py-0.5 text-[10px] bg-ev-line/50 text-slate-700 rounded-full font-medium"  >
                 +{lesson.tags.length - 3}
               </span>
             )}
           </div>
 
-          <div className="mt-auto pt-4 border-t border-slate-200">
+          <div className="mt-auto pt-4 border-t border-ev-line">
             <div className="flex items-center justify-between mb-2">
               {isLocked ? (
-                <div className="flex items-center gap-1.5 text-slate-400 font-semibold text-sm"  >
+                <div className="flex items-center gap-1.5 text-ev-muted font-semibold text-sm"  >
                   <Lock className="w-4 h-4" strokeWidth={2.5} />
                   <span>Locked</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 text-primary-700 font-semibold text-sm group-hover:gap-2 transition-all"  >
+                <div className="flex items-center gap-1.5 text-ev-pink-edge font-semibold text-sm group-hover:gap-2 transition-all"  >
                   <Play className="w-4 h-4 fill-current" strokeWidth={2.5} />
                   <span>Start Lesson</span>
                 </div>
               )}
-              <span className="text-xs font-semibold text-slate-600"  >
+              <span className="text-xs font-semibold text-ev-muted"  >
                 {progressPercentage}%
               </span>
             </div>
 
             {/* Progress bar */}
-            <div className="h-2.5 w-full rounded-full bg-slate-200/60 overflow-hidden">
+            <div className="h-3 w-full rounded-full border-2 border-ev-line bg-white overflow-hidden">
               <div
-                className={`h-full bg-gradient-to-r ${cardTheme} transition-all duration-300`}
+                className={`h-full ${barTone} transition-all duration-300`}
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -449,26 +399,11 @@ export const LearnerLessons = () => {
   }
 
   return (
-    <div className="min-h-screen premium-mesh" className="">
-      <div className="p-[5px] pt-[5px]">
-        <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] md:rounded-[32px] lg:rounded-[40px] border-white/40 p-4 sm:p-5 md:p-6">
-          <StaggeredEntry>
+    <LearnerPage width="wide">
+      <StaggeredEntry>
             {/* Back Button */}
-            <Link
-              to="/learner"
-              className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
-               
-              onMouseDown={(e) => {
-                e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.transform = ''
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = ''
-              }}
-            >
-              <ArrowLeft className="w-4 h-4" />
+            <Link to="/learner" className={learnerButton('secondary', 'md', 'mb-6')}>
+              <ArrowLeft className="w-5 h-5" />
               Back
             </Link>
 
@@ -485,28 +420,28 @@ export const LearnerLessons = () => {
                         />
                       </div>
                     ) : (
-                      <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${iconColor} flex items-center justify-center shadow-lg`}>
+                      <div className={`w-14 h-14 rounded-full border-2 border-b-4 ${iconTone} flex items-center justify-center`}>
                         <span className="text-white text-2xl font-bold">
                           {substrand.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                     <div>
-                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-[#0F172A]" className="">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-ev-ink">
                         {substrand.name}
                       </h1>
-                      <p className="text-text-secondary mt-1"  >
+                      <p className="text-ev-muted mt-1"  >
                         {strand.name} • {subject.name}
                       </p>
                     </div>
                   </div>
-                  <p className="text-base text-text-secondary max-w-2xl"  >
-                    Explore lessons and activities for <span className="font-semibold text-primary-700">{substrand.name}</span> in {strand.name}
+                  <p className="text-base text-ev-muted max-w-2xl"  >
+                    Explore lessons and activities for <span className="font-semibold text-ev-pink-edge">{substrand.name}</span> in {strand.name}
                   </p>
                 </>
               ) : (
                 <div className="flex items-center gap-4 mb-2">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br bg-primary-600 flex items-center justify-center shadow-lg overflow-hidden">
+                  <div className="w-14 h-14 rounded-full bg-ev-pink flex items-center justify-center  overflow-hidden">
                     {subjectLottieKey ? (
                       <LazyLottie
                         animationKey={subjectLottieKey}
@@ -519,10 +454,10 @@ export const LearnerLessons = () => {
                     )}
                   </div>
                   <div>
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#0F172A]" className="">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-ev-ink">
                       All Lessons
                     </h1>
-                    <p className="text-text-secondary mt-1"  >
+                    <p className="text-ev-muted mt-1"  >
                       Explore and discover new learning opportunities
                     </p>
                   </div>
@@ -541,11 +476,11 @@ export const LearnerLessons = () => {
                   return (
                     <div key={themeNum} className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]" className="">
+                        <h2 className="text-xl sm:text-2xl font-black text-ev-ink">
                           Theme {themeNum}
                         </h2>
-                        <div className="flex-1 h-px bg-gradient-to-r from-primary-200 via-primary-100 to-secondary-100" />
-                        <span className="text-sm font-semibold text-slate-600 px-3 py-1 bg-slate-100 rounded-full"  >
+                        <div className="flex-1 h-0.5 bg-ev-line" />
+                        <span className="text-sm font-semibold text-ev-muted px-3 py-1 bg-ev-line/50 rounded-full"  >
                           {themeLessons.length} {themeLessons.length === 1 ? 'lesson' : 'lessons'}
                         </span>
                       </div>
@@ -563,11 +498,11 @@ export const LearnerLessons = () => {
                 {lessonsByTheme.noTheme.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]" className="">
+                      <h2 className="text-xl sm:text-2xl font-black text-ev-ink">
                         Other Lessons
                       </h2>
-                      <div className="flex-1 h-px bg-gradient-to-r from-primary-200 via-primary-100 to-secondary-100" />
-                      <span className="text-sm font-semibold text-slate-600 px-3 py-1 bg-slate-100 rounded-full"  >
+                      <div className="flex-1 h-0.5 bg-ev-line" />
+                      <span className="text-sm font-semibold text-ev-muted px-3 py-1 bg-ev-line/50 rounded-full"  >
                         {lessonsByTheme.noTheme.length} {lessonsByTheme.noTheme.length === 1 ? 'lesson' : 'lessons'}
                       </span>
                     </div>
@@ -581,23 +516,21 @@ export const LearnerLessons = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+              <div className="bg-white rounded-ev-lg border-2 border-ev-line p-12 text-center">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-ev-line/50 flex items-center justify-center overflow-hidden">
                   <LazyLottie animationKey="student" style={{ width: '100%', height: '100%' }} />
                 </div>
-                <p className="text-lg font-semibold text-[#0F172A] mb-2"  >
+                <p className="text-lg font-semibold text-ev-ink mb-2"  >
                   No lessons found
                 </p>
-                <p className="text-sm text-text-secondary"  >
+                <p className="text-sm text-ev-muted"  >
                   {substrand 
                     ? `No approved lessons available for ${substrand.name} yet.`
                     : 'No lessons available at the moment.'}
                 </p>
               </div>
             )}
-          </StaggeredEntry>
-        </div>
-      </div>
-    </div>
+      </StaggeredEntry>
+    </LearnerPage>
   )
 }

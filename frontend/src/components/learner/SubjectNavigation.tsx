@@ -4,6 +4,7 @@ import { api } from '@/lib/api'
 import { SubStrandCards } from './SubStrandCards'
 import { LazyLottie } from '@/components/ui/LazyLottie'
 import { animationKeyForSubjectId } from '@/lib/lottieAnimations'
+import { subjectTone } from '@/lib/learnerUi'
 import type { Subject, Strand, SubStrand } from '@/types'
 
 type NavigationView = 'subjects' | 'strands' | 'substrands'
@@ -103,14 +104,14 @@ export const SubjectNavigation = () => {
   // Empty state: No subjects for grade
   if (!loading && navigationView === 'subjects' && subjects.length === 0 && !error) {
     return (
-      <div className="mb-6 bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-          <ArrowLeft className="w-8 h-8 text-slate-400" />
+      <div className="mb-6 bg-white rounded-ev-lg border-2 border-ev-line p-8 text-center">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-ev-line/50 flex items-center justify-center">
+          <ArrowLeft className="w-8 h-8 text-ev-muted" />
         </div>
-        <p className="text-lg font-semibold text-[#0F172A] mb-2"  >
+        <p className="text-lg font-semibold text-ev-ink mb-2"  >
           No subjects available
         </p>
-        <p className="text-sm text-text-secondary"  >
+        <p className="text-sm text-ev-muted"  >
           There are no subjects currently available for your grade. Please check back later.
         </p>
       </div>
@@ -120,11 +121,11 @@ export const SubjectNavigation = () => {
   // Error state
   if (error && navigationView === 'subjects') {
     return (
-      <div className="mb-6 bg-red-50 backdrop-blur-md rounded-[24px] border-2 border-red-200 p-8 text-center">
-        <p className="text-lg font-semibold text-red-700 mb-2"  >
+      <div className="mb-6 bg-ev-red-soft rounded-ev-lg border-2 border-ev-red p-8 text-center">
+        <p className="text-lg font-semibold text-ev-red-edge mb-2"  >
           Error loading subjects
         </p>
-        <p className="text-sm text-red-600"  >
+        <p className="text-sm text-ev-red-edge"  >
           {error}
         </p>
       </div>
@@ -136,7 +137,7 @@ export const SubjectNavigation = () => {
       {navigationView !== 'subjects' && (
         <button
           onClick={handleBack}
-          className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border-2 border-slate-200 hover:bg-white transition-all text-sm font-semibold text-slate-700"
+          className="mb-4 flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-ev-line hover:bg-white transition-all text-sm font-semibold text-slate-700"
            
           onMouseDown={(e) => {
             e.currentTarget.style.transform = 'translateY(2px) scale(0.98)'
@@ -188,7 +189,7 @@ export const SubjectNavigation = () => {
                     style={{ width: '100%', height: '100%' }}
                   />
                 </div>
-                <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight"  >
+                <span className="text-xs sm:text-sm font-semibold text-ev-ink text-center leading-tight"  >
                   {subject.name}
                 </span>
               </button>
@@ -199,15 +200,15 @@ export const SubjectNavigation = () => {
       {!loading && navigationView === 'strands' && (
         <>
           {strands.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-8 text-center">
-              <p className="text-sm text-text-secondary"  >
+            <div className="bg-white rounded-ev-lg border-2 border-ev-line p-8 text-center">
+              <p className="text-sm text-ev-muted"  >
                 No strands available for this subject.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
               {strands.map((strand) => {
-                const iconColor = selectedSubject?.color || 'bg-primary-600'
+                const iconTone = subjectTone(strand.name)
                 return (
                   <button
                     key={strand.id}
@@ -227,12 +228,12 @@ export const SubjectNavigation = () => {
                       e.currentTarget.style.transform = ''
                     }}
                   >
-                    <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${iconColor} flex items-center justify-center shadow-lg`}>
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-b-4 ${iconTone} flex items-center justify-center`}>
                       <span className="text-white text-xl sm:text-2xl font-bold">
                         {strand.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-800 text-center leading-tight"  >
+                    <span className="text-xs sm:text-sm font-semibold text-ev-ink text-center leading-tight"  >
                       {strand.name}
                     </span>
                   </button>
@@ -246,8 +247,8 @@ export const SubjectNavigation = () => {
       {!loading && navigationView === 'substrands' && selectedStrand && selectedSubject && (
         <>
           {substrands.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur-md rounded-[24px] border-2 border-slate-200 p-8 text-center">
-              <p className="text-sm text-text-secondary"  >
+            <div className="bg-white rounded-ev-lg border-2 border-ev-line p-8 text-center">
+              <p className="text-sm text-ev-muted"  >
                 No substrands with approved lessons available for this strand.
               </p>
             </div>

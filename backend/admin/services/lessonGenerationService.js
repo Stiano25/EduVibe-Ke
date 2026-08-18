@@ -15,8 +15,22 @@ import {
 } from '../../utils/countIntoBox.js';
 import {
   isNumericEntryQuestion,
-  makeNumericEntryQuestion
+  makeNumericEntryQuestion,
+  isTargetOnlyNumericQuestion
 } from '../../utils/numericEntry.js';
+import {
+  resolveContentSource,
+  laddersForOutcomes,
+  seedQuestionsFromTemplates,
+  templateCoverageReport
+} from '../../utils/templateLadders.js';
+import {
+  BANK_SIZE,
+  SESSION_MAIN_MAX,
+  QUIZ_SOURCE_TEMPLATES,
+  isTemplateBackedQuiz,
+  fixedPoolTargetSize
+} from '../../utils/quizSessionSize.js';
 import {
   DEFAULT_ADDITION_LAYOUT,
   VERTICAL_ADDITION_INSTRUCTION,
@@ -355,7 +369,7 @@ export const normalizeQuiz = (
   quiz,
   outcomes,
   profile,
-  { additionTemplates = false, gradeNumber = null } = {}
+  { additionTemplates = false, gradeNumber = null, skipCoverageRemap = false } = {}
 ) => {
   if (!quiz || !Array.isArray(quiz.questions)) {
     return {
@@ -407,10 +421,15 @@ export const normalizeQuiz = (
       const seed = makeCountIntoBoxQuestion({
         a: q.params?.a,
         b: q.params?.b,
+        target: q.params?.target,
         questionText: q.questionText || q.question || 'How many is {a} plus {b}?',
         skillFocus: q.skillFocus,
         bloomLevel: q.bloomLevel,
-        learningOutcomeIndex: q.learningOutcomeIndex
+        learningOutcomeIndex: q.learningOutcomeIndex,
+        objectKind: q.params?.objectKind,
+        constraints: q.constraints,
+        difficulty: q.difficulty,
+        answerFormula: q.answerFormula
       });
       const params = { ...seed.params, ...(q.params && typeof q.params === 'object' ? q.params : {}) };
       if (params.target == null && Number.isInteger(Number(params.a)) && Number.isInteger(Number(params.b))) {
@@ -434,6 +453,24 @@ export const normalizeQuiz = (
         question: q.question || seed.question
       };
     } else if (incomingInteraction === 'numeric_entry' || isNumericEntryQuestion(q)) {
+      const targetOnly =
+        isTargetOnlyNumericQuestion(q) ||
+        String(q.answerFormula || '') === 'target' ||
+        (q.params?.target != null && q.params?.a == null);
+      if (targetOnly) {
+        const target = Number(q.params?.target);
+        q = {
+          ...q,
+          type: 'numeric-entry',
+          interactionType: 'numeric_entry',
+          activity: 'numeric_entry',
+          template: true,
+          params: { target },
+          answerFormula: 'target',
+          options: [],
+          question: q.question || q.questionText || 'How many?'
+        };
+      } else {
       const seed = makeNumericEntryQuestion({
         a: q.params?.a,
         b: q.params?.b,
@@ -464,6 +501,7 @@ export const normalizeQuiz = (
             ? VERTICAL_ADDITION_INSTRUCTION
             : q.question || seed.question
       };
+      }
     }
 
     const stem = String(q.question || q.questionText || '');
@@ -689,6 +727,7 @@ export const normalizeQuiz = (
         ? {
             template: true,
             templateVersion: Number(q.templateVersion) || 1,
+            templateId: q.templateId || undefined,
             questionText: q.questionText,
             params: q.params,
             constraints: q.constraints,
@@ -707,7 +746,7 @@ export const normalizeQuiz = (
     };
   });
 
-  if (outcomes.length > 0 && questions.length > 0) {
+  if (!skipCoverageRemap && outcomes.length > 0 && questions.length > 0) {
     const covered = new Set(questions.map((q) => q.learningOutcomeIndex));
     outcomes.forEach((_, i) => {
       const idx = i + 1;
@@ -896,10 +935,10 @@ const contentFromBlocks = (blocks) =>
 
 
 /**
- * Adaptive bank target. Generated in CHUNKS (small JSON per call, never truncates)
- * so the adaptive engine has surplus: ~30 in bank, 10–12 served per session.
+ * Adaptive bank target for unconverted (fixed-pool) lessons only.
+ * Template-backed lessons use a reviewed ladder and live twists instead.
+ * BANK_SIZE is imported from quizSessionSize.js.
  */
-const BANK_SIZE = 30;
 const CHUNK_SIZE = 10;
 const MIN_CHUNK_QUESTIONS = 6;
 
@@ -971,7 +1010,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * Bank composition summary stored on quiz.bankStats — lets admins see at a
  * glance whether the outcome × bloom × modality matrix was actually satisfied.
  */
-export const computeBankStats = (questions = []) => {
+export const computeBankStats = (questions = [], templates = []) => {
   const stats = { total: questions.length, byBloom: {}, byModality: {}, byOutcome: {} };
   for (const q of questions) {
     const bloom = q.bloomLevel || 'unknown';
@@ -984,6 +1023,22 @@ export const computeBankStats = (questions = []) => {
     }
     stats.byOutcome[oc].total += 1;
     if (stats.byOutcome[oc][mod] !== undefined) stats.byOutcome[oc][mod] += 1;
+  }
+  if (Array.isArray(templates) && templates.length > 0) {
+    const tiers = {};
+    for (const t of templates) {
+      const d = t.difficulty || 'unknown';
+      tiers[d] = (tiers[d] || 0) + 1;
+    }
+    stats.templates = {
+      total: templates.length,
+      byTier: tiers,
+      byOutcome: templates.reduce((acc, t) => {
+        const oc = String(t.learningOutcomeIndex || 0);
+        acc[oc] = (acc[oc] || 0) + 1;
+        return acc;
+      }, {})
+    };
   }
   return stats;
 };
@@ -1094,7 +1149,11 @@ const mergeShellAndQuiz = (shell, quizPayload) => {
       title: quiz.title || 'Quiz Challenge',
       passingScore: Number(quiz.passingScore) || 65,
       timeLimit: Number(quiz.timeLimit) || 12,
-      questions: Array.isArray(quiz.questions) ? quiz.questions : []
+      questions: Array.isArray(quiz.questions) ? quiz.questions : [],
+      ...(quiz.source ? { source: quiz.source } : {}),
+      ...(Array.isArray(quiz.templates) && quiz.templates.length
+        ? { templates: quiz.templates }
+        : {})
     }
   };
 };
@@ -1442,7 +1501,10 @@ const makeRoomForCoverageQuestions = (bankQuestions, addCount) => {
   }
 };
 
-export const buildCoverageReport = (questions = [], outcomes = []) => {
+export const buildCoverageReport = (questions = [], outcomes = [], { templates = null } = {}) => {
+  if (Array.isArray(templates) && templates.length > 0) {
+    return templateCoverageReport(templates, outcomes);
+  }
   const realCovered = [];
   const remapped = [];
   const stillMissing = [];
@@ -1602,11 +1664,18 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
   }
 
   const teachingBriefs = normalizeVisualBriefs(lesson.visualBriefs, learningObjectives, ctx.profile);
+  const quizTemplates = Array.isArray(lesson.quiz?.templates) ? lesson.quiz.templates : [];
+  const quizSource = lesson.quiz?.source || null;
+  const templateBacked = quizSource === QUIZ_SOURCE_TEMPLATES && quizTemplates.length > 0;
   const quizResult = normalizeQuiz(
     lesson.quiz,
     learningObjectives.length ? learningObjectives : sourceOutcomes,
     ctx.profile,
-    { additionTemplates: isGradeOneAdditionContext(ctx), gradeNumber: ctx.gradeNumber }
+    {
+      additionTemplates: isGradeOneAdditionContext(ctx),
+      gradeNumber: ctx.gradeNumber,
+      skipCoverageRemap: templateBacked
+    }
   );
   const outcomesForQuiz = learningObjectives.length ? learningObjectives : sourceOutcomes;
   const { questionBriefs, downgradedVisuals: _downgraded, ...quizNormalized } = quizResult;
@@ -1617,7 +1686,9 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     sanitizeContent(lesson.content || '')
   );
   const content = contentFromBlocks(contentBlocks) || sanitizeContent(lesson.content || '');
-  const coverageReport = buildCoverageReport(quizNormalized.questions, outcomesForQuiz);
+  const coverageReport = buildCoverageReport(quizNormalized.questions, outcomesForQuiz, {
+    templates: templateBacked ? quizTemplates : null
+  });
 
   return {
     title: lesson.title || `Lesson ${index + 1}: ${subStrand.name}`,
@@ -1640,7 +1711,9 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     lessonOrder: lesson.lessonOrder ?? index + 1,
     quiz: {
       ...quizNormalized,
-      bankStats: computeBankStats(quizNormalized.questions),
+      ...(quizSource ? { source: quizSource } : {}),
+      ...(quizTemplates.length ? { templates: quizTemplates } : {}),
+      bankStats: computeBankStats(quizNormalized.questions, quizTemplates),
       coverageReport,
       visualBriefs,
       contentBlocks,
@@ -1673,7 +1746,6 @@ export const generateLessonsFromSubStrand = async (
     reportProgress(onProgress, 12, 'Retrieving exam exemplars…');
 
     const lessons = [];
-    const MIN_TOTAL_QUESTIONS = 20;
 
     for (let i = 0; i < total; i++) {
       const span = 78 / total;
@@ -1705,9 +1777,12 @@ export const generateLessonsFromSubStrand = async (
         if (!retryParsed.parseFailed) shell = retryParsed.data;
       }
 
-      // ——— Phase 2: quiz bank in bloom-banded chunks (small JSON per call) ———
+      // ——— Phase 2: quiz — templates, or approved bank (no 30-item AI pad) ———
       const bankQuestions = [];
       const seenStems = new Set();
+      const targetOutcomes = resolveTargetOutcomes(shell, ctx);
+      const contentSource = resolveContentSource(ctx, targetOutcomes);
+      let quizTemplates = [];
 
       const appendChunkQuestions = (rawQuestions, chunkIdx) => {
         let added = 0;
@@ -1715,7 +1790,6 @@ export const generateLessonsFromSubStrand = async (
           const stemKey = normalizeStemKey(q?.question);
           if (!stemKey || seenStems.has(stemKey)) continue;
           seenStems.add(stemKey);
-          // Strip AI ids — they collide across chunks; normalizeQuiz reassigns by index
           const { id: _id, diagramBriefId: _dbid, ...rest } = q || {};
           bankQuestions.push({ ...rest, _chunk: chunkIdx });
           added++;
@@ -1723,157 +1797,69 @@ export const generateLessonsFromSubStrand = async (
         return added;
       };
 
-      if (!isGradeOneAdditionContext(ctx)) {
+      if (contentSource === QUIZ_SOURCE_TEMPLATES) {
+        reportProgress(
+          onProgress,
+          start + span * 0.55,
+          `Lesson ${i + 1}/${total}: attaching reviewed templates…`
+        );
+        quizTemplates = laddersForOutcomes(ctx, targetOutcomes);
+        const seeds = seedQuestionsFromTemplates(quizTemplates);
+        for (const q of seeds) {
+          bankQuestions.push({ ...q, _chunk: 'template' });
+        }
+        console.log(
+          `Lesson ${i + 1}: template-backed (${quizTemplates.length} templates, ${seeds.length} seeds)`
+        );
+      } else {
+        const pullCount = fixedPoolTargetSize(targetOutcomes.length);
         try {
-          const { pullApprovedBankQuestions } = await import('./questionBankService.js');
+          const { pullApprovedBankQuestions, generateQuestionBankBatch } = await import(
+            './questionBankService.js'
+          );
           const pulled = await pullApprovedBankQuestions({
             subStrandId: ctx.subStrand.id,
             grade: ctx.grade,
-            count: BANK_SIZE
+            count: pullCount
           });
           const added = appendChunkQuestions(pulled, 'bank');
           console.log(
             `Lesson ${i + 1}: pulled ${added} approved question-bank entries (${pulled.length} candidates)`
           );
+          const { uncovered } = checkOutcomeCoverage(bankQuestions, targetOutcomes);
+          const gap = Math.max(
+            0,
+            SESSION_MAIN_MAX - bankQuestions.length,
+            uncovered.length
+          );
+          if (gap > 0) {
+            reportProgress(
+              onProgress,
+              start + span * 0.7,
+              `Lesson ${i + 1}: enqueueing ${gap} pending bank item(s) for review…`
+            );
+            try {
+              const batch = await generateQuestionBankBatch(ctx.subStrand.id, { count: gap });
+              console.log(
+                `Lesson ${i + 1}: gap batch pending=${batch.pending} created=${batch.created} (not served live)`
+              );
+            } catch (gapErr) {
+              console.warn(
+                `Lesson ${i + 1}: pending gap batch skipped:`,
+                gapErr.message || gapErr
+              );
+            }
+          }
         } catch (bankErr) {
           console.warn(
             `Lesson ${i + 1}: question-bank pull skipped:`,
             bankErr.message || bankErr
           );
         }
-      }
 
-      for (let c = 0; c < QUIZ_CHUNKS.length; c++) {
-        if (bankQuestions.length >= BANK_SIZE) break;
-        const chunk = QUIZ_CHUNKS[c];
-        reportProgress(
-          onProgress,
-          start + span * (0.4 + 0.18 * c),
-          `Lesson ${i + 1}/${total}: quiz bank part ${c + 1}/${QUIZ_CHUNKS.length} (${chunk.label})…`
-        );
-
-        let quizExemplars = [];
-        try {
-          quizExemplars = await retrieveQuizExemplars({
-            subjectName: ctx.subject.name,
-            grade: ctx.grade,
-            topic: ctx.subStrand.name,
-            bloomBand: chunk.label,
-            queryText: ctx.queryText
-          });
-        } catch (retErr) {
+        if (bankQuestions.length < SESSION_MAIN_MAX) {
           console.warn(
-            `Lesson ${i + 1}: quiz exemplar retrieve failed (${chunk.label}):`,
-            retErr.message || retErr
-          );
-          quizExemplars = [];
-        }
-        const quizExemplarsBlock = formatQuizExemplarsForPrompt(quizExemplars);
-
-        let chunkAdded = 0;
-        for (let attempt = 0; attempt < 2; attempt++) {
-          await sleep(AI_CALL_GAP_MS);
-          let chunkText;
-          try {
-            const remaining = Math.max(0, BANK_SIZE - bankQuestions.length);
-            if (remaining < 1) break;
-            const targetCount = Math.min(CHUNK_SIZE, remaining);
-            const attemptAvoidStems = bankQuestions.map((q) => String(q.question || ''));
-            const chunkResult = await generateContent({
-              prompt: buildQuizChunkPrompt(
-                ctx,
-                shell,
-                i + 1,
-                total,
-                chunk,
-                attemptAvoidStems,
-                quizExemplarsBlock,
-                targetCount
-              ),
-              maxTokens: GENERATION_TOKEN_LIMITS.quizChunk,
-              label: `lesson ${i + 1} quiz ${chunk.label}`,
-              onWait: (msg) =>
-                reportProgress(onProgress, start + span * (0.4 + 0.18 * c), msg)
-            });
-            chunkText = chunkResult.text;
-          } catch (chunkError) {
-            // Quota fully exhausted or hard failure — keep what we have
-            console.error(
-              `Lesson ${i + 1}: chunk "${chunk.label}" failed: ${chunkError.message || chunkError}`
-            );
-            break;
-          }
-          const parsed = parseOneLessonJson(chunkText, ctx, i);
-          if (!parsed.parseFailed) {
-            const flagged = flagNearDuplicateQuestions(
-              chunkQuestions(parsed.data),
-              quizExemplars,
-              `lesson ${i + 1} ${chunk.label}`
-            );
-            chunkAdded += appendChunkQuestions(flagged, c);
-          }
-          if (chunkAdded >= MIN_CHUNK_QUESTIONS) break;
-          if (attempt === 0) {
-            console.warn(
-              `Lesson ${i + 1}: chunk "${chunk.label}" returned ${chunkAdded} usable qs — retrying chunk…`
-            );
-          }
-        }
-        console.log(
-          `Lesson ${i + 1}: chunk "${chunk.label}" contributed ${chunkAdded} questions (bank now ${bankQuestions.length})`
-        );
-      }
-
-      if (bankQuestions.length < MIN_TOTAL_QUESTIONS) {
-        console.warn(
-          `Lesson ${i + 1}: bank has only ${bankQuestions.length}/${BANK_SIZE} questions — adaptive selection will be limited`
-        );
-        reportProgress(
-          onProgress,
-          start + span * 0.92,
-          `Warning: lesson ${i + 1} quiz bank has only ${bankQuestions.length}/${BANK_SIZE} questions (quota or parse issues). You can top it up later.`
-        );
-      }
-
-      // ——— Outcome coverage enforcement (targeted regen before normalize remap) ———
-      const targetOutcomes = resolveTargetOutcomes(shell, ctx);
-      let { uncovered } = checkOutcomeCoverage(bankQuestions, targetOutcomes);
-      if (uncovered.length > 0) {
-        reportProgress(
-          onProgress,
-          start + span * 0.9,
-          `Lesson ${i + 1}: filling uncovered outcomes…`
-        );
-        try {
-          await sleep(AI_CALL_GAP_MS);
-          const avoidStems = bankQuestions.map((q) => String(q.question || ''));
-          const { text: gapText } = await generateContent({
-            prompt: buildCoverageGapPrompt(ctx, shell, targetOutcomes, uncovered, avoidStems),
-            maxTokens: GENERATION_TOKEN_LIMITS.coverageGap,
-            label: `lesson ${i + 1} coverage gap`,
-            onWait: (msg) => reportProgress(onProgress, start + span * 0.9, msg)
-          });
-          const gapParsed = parseOneLessonJson(gapText, ctx, i);
-          if (!gapParsed.parseFailed) {
-            const gapQs = chunkQuestions(gapParsed.data);
-            makeRoomForCoverageQuestions(bankQuestions, gapQs.length);
-            const added = appendChunkQuestions(gapQs, 'coverage');
-            console.log(
-              `Lesson ${i + 1}: coverage gap fill added ${added} questions for outcomes [${uncovered.join(', ')}]`
-            );
-          } else {
-            console.warn(`Lesson ${i + 1}: coverage gap fill parse failed — will remap in normalizeQuiz`);
-          }
-        } catch (gapErr) {
-          console.warn(
-            `Lesson ${i + 1}: coverage gap fill failed — will remap in normalizeQuiz:`,
-            gapErr?.message || gapErr
-          );
-        }
-        ({ uncovered } = checkOutcomeCoverage(bankQuestions, targetOutcomes));
-        if (uncovered.length > 0) {
-          console.warn(
-            `Lesson ${i + 1}: still uncovered after targeted regen: [${uncovered.join(', ')}] — normalizeQuiz may remap`
+            `Lesson ${i + 1}: approved bank has ${bankQuestions.length}/${SESSION_MAIN_MAX} items — session will be limited until pending review lands`
           );
         }
       }
@@ -1883,7 +1869,12 @@ export const generateLessonsFromSubStrand = async (
           title: 'Quiz Challenge',
           passingScore: 65,
           timeLimit: 12,
-          questions: bankQuestions.slice(0, BANK_SIZE)
+          source: contentSource,
+          ...(quizTemplates.length ? { templates: quizTemplates } : {}),
+          questions:
+            contentSource === QUIZ_SOURCE_TEMPLATES
+              ? bankQuestions
+              : bankQuestions.slice(0, BANK_SIZE)
         }
       });
 
@@ -1894,16 +1885,15 @@ export const generateLessonsFromSubStrand = async (
           `Lesson ${i + 1} coverage: real=[${report.realCovered.join(',')}] remapped=[${report.remapped.join(',')}] missing=[${report.stillMissing.join(',')}]`
         );
       }
-      if ((mapped.quiz?.questions || []).length === 0) {
-        console.error(`Lesson ${i + 1} still has empty quiz after split+retry`);
+      if ((mapped.quiz?.questions || []).length === 0 && contentSource !== QUIZ_SOURCE_TEMPLATES) {
+        console.warn(`Lesson ${i + 1}: no approved quiz items yet — pending bank review required`);
       } else {
         console.log(
-          `Lesson ${i + 1} ready: ${(mapped.quiz?.questions || []).length} questions`
+          `Lesson ${i + 1} ready: source=${mapped.quiz?.source || 'fixed_pool'} questions=${(mapped.quiz?.questions || []).length} templates=${(mapped.quiz?.templates || []).length}`
         );
       }
 
-      // ——— Mechanical quality gates always; LLM QA is env-gated ———
-      if ((mapped.quiz?.questions || []).length > 0) {
+      if (contentSource !== QUIZ_SOURCE_TEMPLATES && (mapped.quiz?.questions || []).length > 0) {
         if (isQuizQaEnabled()) {
           reportProgress(onProgress, start + span * 0.93, `Lesson ${i + 1}: running quiz QA…`);
           await runQuizQAPass(mapped.quiz.questions, { label: `lesson ${i + 1}`, ctx });
@@ -1926,9 +1916,8 @@ export const generateLessonsFromSubStrand = async (
 };
 
 /**
- * Top up an existing lesson's quiz bank to BANK_SIZE without regenerating the
- * lesson (keeps content, teaching visuals and any admin-approved assets).
- * Runs the same bloom-banded chunk calls, skipping stems already in the bank.
+ * Pull more approved bank items into a fixed-pool lesson. Template-backed
+ * lessons are a no-op. Does not pad to BANK_SIZE with unreviewed AI stems.
  */
 export const topUpLessonQuizBank = async (lessonId) => {
   const { Lesson } = await import('../../models/Lesson.js');
@@ -1937,113 +1926,71 @@ export const topUpLessonQuizBank = async (lessonId) => {
   if (!lesson.subStrandId) throw new Error('Lesson has no sub-strand');
 
   const existing = lesson.quiz?.questions || [];
-  if (existing.length >= BANK_SIZE) {
+  const existingTemplates = lesson.quiz?.templates || [];
+
+  if (isTemplateBackedQuiz(lesson.quiz)) {
     return {
       lesson,
       added: 0,
       bankSize: existing.length,
-      bankStats: computeBankStats(existing)
+      bankStats: computeBankStats(existing, existingTemplates),
+      reason: 'template-backed — top-up does not apply'
     };
   }
 
   const ctx = await loadGenerationContext(lesson.subStrandId);
   const outcomes =
     lesson.learningObjectives?.length > 0 ? lesson.learningObjectives : ctx.sourceOutcomes;
-  const shellLike = {
-    title: lesson.title,
-    learningObjectives: outcomes,
-    content: lesson.content
-  };
+  const sessionNeed = fixedPoolTargetSize(outcomes.length);
+  const { uncovered } = checkOutcomeCoverage(existing, outcomes);
+
+  if (existing.length >= sessionNeed && uncovered.length === 0) {
+    return {
+      lesson,
+      added: 0,
+      bankSize: existing.length,
+      bankStats: computeBankStats(existing),
+      reason: 'approved coverage is enough for a session'
+    };
+  }
 
   const seenStems = new Set(existing.map((q) => normalizeStemKey(q.question)));
   const existingIds = new Set(existing.map((q) => q.id).filter(Boolean));
   const existingBankIds = existing.map((q) => q.bankEntryId).filter(Boolean);
   const newRaw = [];
-  const needed = BANK_SIZE - existing.length;
+  const needed = Math.max(0, sessionNeed - existing.length, uncovered.length);
+  let pendingEnqueued = 0;
 
-  if (!isGradeOneAdditionContext(ctx)) {
-    try {
-      const { pullApprovedBankQuestions } = await import('./questionBankService.js');
-      const pulled = await pullApprovedBankQuestions({
-        subStrandId: ctx.subStrand.id,
-        grade: ctx.grade,
-        count: needed,
-        excludeBankEntryIds: existingBankIds
-      });
-      for (const q of pulled) {
-        const stemKey = normalizeStemKey(q?.question);
-        if (!stemKey || seenStems.has(stemKey)) continue;
-        seenStems.add(stemKey);
-        newRaw.push(q);
-      }
-      console.log(`Top-up: pulled ${newRaw.length} approved question-bank entries`);
-    } catch (bankErr) {
-      console.warn('Top-up: question-bank pull skipped:', bankErr.message || bankErr);
-    }
-  }
-
-  for (const chunk of QUIZ_CHUNKS) {
-    if (newRaw.length >= needed) break;
-    const avoidStems = [
-      ...existing.map((q) => String(q.question || '')),
-      ...newRaw.map((q) => String(q.question || ''))
-    ];
-
-    let quizExemplars = [];
-    try {
-      quizExemplars = await retrieveQuizExemplars({
-        subjectName: ctx.subject.name,
-        grade: ctx.grade,
-        topic: ctx.subStrand.name,
-        bloomBand: chunk.label,
-        queryText: ctx.queryText
-      });
-    } catch (retErr) {
-      console.warn(
-        `Top-up quiz exemplar retrieve failed (${chunk.label}):`,
-        retErr.message || retErr
-      );
-      quizExemplars = [];
-    }
-    const quizExemplarsBlock = formatQuizExemplarsForPrompt(quizExemplars);
-
-    await sleep(AI_CALL_GAP_MS);
-    let chunkText;
-    try {
-      const targetCount = Math.min(CHUNK_SIZE, needed - newRaw.length);
-      const chunkResult = await generateContent({
-        prompt: buildQuizChunkPrompt(
-          ctx,
-          shellLike,
-          1,
-          1,
-          chunk,
-          avoidStems,
-          quizExemplarsBlock,
-          targetCount
-        ),
-        maxTokens: GENERATION_TOKEN_LIMITS.quizChunk,
-        label: `top-up ${chunk.label}`
-      });
-      chunkText = chunkResult.text;
-    } catch (error) {
-      console.error(`Top-up chunk "${chunk.label}" failed: ${error.message || error}`);
-      continue;
-    }
-    const parsed = parseOneLessonJson(chunkText, ctx, 0);
-    if (parsed.parseFailed) continue;
-    const flagged = flagNearDuplicateQuestions(
-      chunkQuestions(parsed.data),
-      quizExemplars,
-      `top-up ${chunk.label}`
+  try {
+    const { pullApprovedBankQuestions, generateQuestionBankBatch } = await import(
+      './questionBankService.js'
     );
-    for (const q of flagged) {
+    const pulled = await pullApprovedBankQuestions({
+      subStrandId: ctx.subStrand.id,
+      grade: ctx.grade,
+      count: needed,
+      excludeBankEntryIds: existingBankIds
+    });
+    for (const q of pulled) {
       const stemKey = normalizeStemKey(q?.question);
       if (!stemKey || seenStems.has(stemKey)) continue;
       seenStems.add(stemKey);
-      const { id: _id, diagramBriefId: _dbid, ...rest } = q || {};
-      newRaw.push(rest);
+      newRaw.push(q);
     }
+    console.log(`Top-up: pulled ${newRaw.length} approved question-bank entries`);
+
+    const stillShort = Math.max(0, needed - newRaw.length);
+    if (stillShort > 0 && !isGradeOneAdditionContext(ctx)) {
+      try {
+        const batch = await generateQuestionBankBatch(ctx.subStrand.id, { count: stillShort });
+        pendingEnqueued = batch.pending || 0;
+        console.log(`Top-up: enqueued ${pendingEnqueued} pending bank item(s)`);
+      } catch (gapErr) {
+        console.warn('Top-up: pending gap batch skipped:', gapErr.message || gapErr);
+      }
+    }
+  } catch (bankErr) {
+    console.warn('Top-up: question-bank pull skipped:', bankErr.message || bankErr);
   }
 
   if (newRaw.length === 0) {
@@ -2051,11 +1998,14 @@ export const topUpLessonQuizBank = async (lessonId) => {
       lesson,
       added: 0,
       bankSize: existing.length,
-      bankStats: computeBankStats(existing)
+      bankStats: computeBankStats(existing),
+      pendingEnqueued,
+      reason: pendingEnqueued
+        ? `enqueued ${pendingEnqueued} pending bank item(s) — they will not serve until approved`
+        : 'no additional approved bank items'
     };
   }
 
-  // Assign collision-free ids BEFORE normalizing so diagram briefs line up
   let idCounter = existing.length;
   const rawWithIds = newRaw.slice(0, needed).map((q) => {
     do {
@@ -2080,7 +2030,6 @@ export const topUpLessonQuizBank = async (lessonId) => {
     }
   }
 
-  // Canonicalize difficulty on the full bank at save (fixes older medium/hard drift too)
   const mergedQuestions = [...existing, ...normalized.questions].map((q) => ({
     ...q,
     difficulty: normalizeDifficulty(q.difficulty, {
@@ -2096,6 +2045,7 @@ export const topUpLessonQuizBank = async (lessonId) => {
 
   const quiz = {
     ...(lesson.quiz || {}),
+    source: lesson.quiz?.source || 'fixed_pool',
     questions: mergedQuestions,
     visualBriefs: mergedBriefs,
     bankStats: computeBankStats(mergedQuestions),
@@ -2104,7 +2054,6 @@ export const topUpLessonQuizBank = async (lessonId) => {
 
   let updated = await Lesson.update(lessonId, { quiz });
 
-  // Render diagrams for the new visual questions on approved lessons
   if (lesson.status === 'approved' && normalized.questionBriefs.length > 0) {
     try {
       const { attachEducationalVisuals } = await import('./lessonMediaService.js');
@@ -2129,6 +2078,8 @@ export const topUpLessonQuizBank = async (lessonId) => {
     lesson: updated,
     added: normalized.questions.length,
     bankSize: mergedQuestions.length,
-    bankStats: quiz.bankStats
+    bankStats: quiz.bankStats,
+    pendingEnqueued
   };
 };
+

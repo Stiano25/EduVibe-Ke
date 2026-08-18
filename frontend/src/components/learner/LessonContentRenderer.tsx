@@ -19,7 +19,7 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
 
   return (
     <div
-      className="text-slate-900 leading-relaxed text-base sm:text-lg space-y-6 max-w-3xl"
+      className="text-ev-ink leading-relaxed text-base sm:text-lg space-y-6 max-w-3xl"
       style={{ fontFamily: 'Manrope, sans-serif' }}
     >
       {lines.map((rawLine, index) => {
@@ -34,13 +34,13 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
           return (
             <div key={index} className="mt-4 mb-4">
               <h3
-                className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3"
+                className="text-2xl sm:text-3xl font-extrabold text-ev-ink mb-3"
                 style={{ fontFamily: 'Fredoka, sans-serif' }}
               >
                 Mini Notes
               </h3>
               {text && (
-                <p className="text-slate-800">
+                <p className="text-ev-ink">
                   <MathText text={text} />
                 </p>
               )}
@@ -55,13 +55,13 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
           return (
             <div key={index} className="mt-5 mb-2">
               <h4
-                className="text-lg sm:text-xl font-semibold text-slate-900 mb-2"
-                style={{ fontFamily: 'Poppins, sans-serif' }}
+                className="text-lg sm:text-xl font-semibold text-ev-ink mb-2"
+                style={{ fontFamily: 'Manrope, sans-serif' }}
               >
                 <MathText text={title} />
               </h4>
               {rest && (
-                <p className="text-slate-800 mt-1">
+                <p className="text-ev-ink mt-1">
                   <MathText text={rest} />
                 </p>
               )}
@@ -74,13 +74,13 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
           return (
             <div key={index} className="mt-6 mb-3">
               <h4
-                className="text-lg sm:text-xl font-semibold text-slate-900 mb-2"
-                style={{ fontFamily: 'Poppins, sans-serif' }}
+                className="text-lg sm:text-xl font-semibold text-ev-ink mb-2"
+                style={{ fontFamily: 'Manrope, sans-serif' }}
               >
                 Practice Prompts
               </h4>
               {text && (
-                <p className="text-slate-800">
+                <p className="text-ev-ink">
                   <MathText text={text} />
                 </p>
               )}
@@ -92,8 +92,8 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
         if (stepMatch) {
           const [, stepNumber, rest] = stepMatch
           return (
-            <p key={index} className="mb-2 text-slate-800">
-              <span className="font-semibold text-[#0F172A] mr-1">Step {stepNumber}:</span>
+            <p key={index} className="mb-2 text-ev-ink">
+              <span className="font-semibold text-ev-ink mr-1">Step {stepNumber}:</span>
               <MathText text={rest} />
             </p>
           )
@@ -103,7 +103,7 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
           const text = line.replace(/^[-•]\s+/, '')
           return (
             <div key={index} className="flex items-start gap-2 ml-4">
-              <span className="text-slate-500 mt-1.5">•</span>
+              <span className="text-ev-muted mt-1.5">•</span>
               <MathText text={text} />
             </div>
           )
@@ -114,7 +114,7 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
           const [, num, text] = numberedMatch
           return (
             <div key={index} className="flex items-start gap-2 ml-4">
-              <span className="text-slate-600 font-semibold mt-1.5">{num}.</span>
+              <span className="text-ev-muted font-semibold mt-1.5">{num}.</span>
               <MathText text={text} />
             </div>
           )

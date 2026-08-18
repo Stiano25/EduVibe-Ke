@@ -70,7 +70,9 @@ export const LessonReviewModal = ({
   const [toppingUp, setToppingUp] = useState(false)
   const [topUpMessage, setTopUpMessage] = useState<string | null>(null)
 
-  const TARGET_BANK = 30
+  const SESSION_TARGET = 12
+  const templateBacked = lesson.quiz?.source === 'templates'
+  const quizTemplates = lesson.quiz?.templates || []
 
   useEffect(() => {
     setLesson(initialLesson)
@@ -163,9 +165,14 @@ export const LessonReviewModal = ({
       setLesson(updated)
       onLessonUpdated?.(updated)
       if (result.added === 0) {
-        setTopUpMessage(`Bank already at ${result.bankSize} questions.`)
+        setTopUpMessage(
+          result.reason ||
+            (result.pendingEnqueued
+              ? `Enqueued ${result.pendingEnqueued} pending bank item(s) for review.`
+              : `No additional approved items (bank ${result.bankSize}).`)
+        )
       } else {
-        setTopUpMessage(`Added ${result.added} questions — bank now ${result.bankSize}.`)
+        setTopUpMessage(`Added ${result.added} approved questions — bank now ${result.bankSize}.`)
       }
     } catch (err) {
       setVisualError(err instanceof Error ? err.message : 'Failed to top up quiz bank')
@@ -770,7 +777,49 @@ export const LessonReviewModal = ({
 
         {reviewTab === 'quiz' && (
           <div className="space-y-4">
-            {qCount === 0 ? (
+            {templateBacked && (
+              <div className="rounded-[14px] border border-slate-200 bg-slate-50 p-3 space-y-2">
+                <p className="text-xs font-bold text-slate-700" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                  {quizTemplates.length} template{quizTemplates.length === 1 ? '' : 's'} across{' '}
+                  {new Set(quizTemplates.map((t) => t.difficulty).filter(Boolean)).size} difficulty
+                  tier
+                  {new Set(quizTemplates.map((t) => t.difficulty).filter(Boolean)).size === 1
+                    ? ''
+                    : 's'}
+                  , covering:{' '}
+                  {[
+                    ...new Set(
+                      quizTemplates
+                        .map((t) => t.skillFocus)
+                        .filter((s): s is string => Boolean(s))
+                    ),
+                  ].join('; ') || 'selected outcomes'}
+                </p>
+                <ul className="text-[11px] text-slate-600 space-y-1" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                  {quizTemplates.map((t) => (
+                    <li key={t.id}>
+                      <span className="font-semibold">{t.difficulty || 'tier'}</span>
+                      {' · '}
+                      {t.interactionType?.replace(/_/g, ' ')}
+                      {' · '}
+                      {t.skillFocus || t.outcomeFamily || t.id}
+                    </li>
+                  ))}
+                </ul>
+                {(coverageReport?.stillMissing?.length ?? 0) > 0 && (
+                  <p
+                    className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-[10px] px-3 py-2"
+                    style={{ fontFamily: 'Manrope, sans-serif' }}
+                  >
+                    Missing template coverage:{' '}
+                    {coverageReport!.stillMissing
+                      .map((idx) => coverageReport!.outcomes?.[idx - 1] || `#${idx}`)
+                      .join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
+            {qCount === 0 && !templateBacked ? (
               <div className="space-y-3">
                 <p className="text-sm text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
                   No quiz questions on this lesson.
@@ -794,15 +843,16 @@ export const LessonReviewModal = ({
             ) : (
               <>
                 <div className="rounded-[14px] border border-slate-200 bg-slate-50 p-3 space-y-2">
+                  {!templateBacked && (
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs font-bold text-slate-700" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      Question bank: {bankCoverage.total}/{TARGET_BANK} · outcomes covered:{' '}
+                      Question bank: {bankCoverage.total}/{Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0)} · outcomes covered:{' '}
                       {bankCoverage.outcomesCovered}
-                      {bankCoverage.total < TARGET_BANK ? (
+                      {bankCoverage.total < Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0) ? (
                         <span className="text-amber-700 font-semibold"> · short — top up recommended</span>
                       ) : null}
                     </p>
-                    {bankCoverage.total < TARGET_BANK && (
+                    {bankCoverage.total < Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0) && (
                       <button
                         type="button"
                         onClick={handleTopUpBank}
@@ -815,10 +865,11 @@ export const LessonReviewModal = ({
                         ) : (
                           <RefreshCw className="w-3.5 h-3.5" />
                         )}
-                        Top up to {TARGET_BANK}
+                        Pull approved items
                       </button>
                     )}
                   </div>
+                  )}
                   {topUpMessage && (
                     <p className="text-xs text-emerald-700" style={{ fontFamily: 'Manrope, sans-serif' }}>
                       {topUpMessage}

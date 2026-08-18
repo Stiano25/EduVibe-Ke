@@ -5,6 +5,7 @@ import {
   Library,
   Users,
   BarChart3,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -51,6 +52,12 @@ export const adminNavItems: AdminNavItem[] = [
     path: '/admin/users',
     icon: Users,
     description: 'Learners and admins',
+  },
+  {
+    label: 'Reports',
+    path: '/admin/reports',
+    icon: ClipboardList,
+    description: 'Learner strengths and weaknesses',
   },
   {
     label: 'Analytics',

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { StaggeredEntry } from '@/components/animations/StaggeredEntry'
 import { api } from '@/lib/api'
 import type { User } from '@/types'
-import { Users } from 'lucide-react'
+import { ClipboardList, Users } from 'lucide-react'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 
 export const AdminUsers = () => {
@@ -15,7 +16,7 @@ export const AdminUsers = () => {
       try {
         setLoading(true)
         const data = await api.admin.getUsers()
-        setUsers(data)
+        setUsers(data as User[])
       } catch (err: any) {
         console.error('Error fetching users:', err)
         setError(err.message || 'Failed to load users')
@@ -39,6 +40,16 @@ export const AdminUsers = () => {
                 icon={Users}
                 iconClassName="from-orange-500 to-amber-600"
                 showWorkflow={false}
+                actions={
+                  <Link
+                    to="/admin/reports"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 border-2 border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-white"
+                    style={{ fontFamily: 'Manrope, sans-serif' }}
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    Learner reports
+                  </Link>
+                }
               />
 
               {loading && (
@@ -76,15 +87,25 @@ export const AdminUsers = () => {
                           <p className="text-xs text-slate-500 mt-1">Grade {user.grade}</p>
                         )}
                       </div>
-                      <span
-                        className={`shrink-0 px-3 py-1 text-xs font-semibold rounded-full ${
-                          user.role === 'admin'
-                            ? 'bg-indigo-100 text-indigo-800'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {user.role === 'admin' ? 'Admin' : 'Learner'}
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                            user.role === 'admin'
+                              ? 'bg-indigo-100 text-indigo-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {user.role === 'admin' ? 'Admin' : 'Learner'}
+                        </span>
+                        {user.role === 'learner' && (
+                          <Link
+                            to={`/admin/reports?learnerId=${user.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-violet-100 text-violet-800 hover:bg-violet-200"
+                          >
+                            Report
+                          </Link>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>

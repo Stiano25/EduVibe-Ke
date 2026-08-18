@@ -259,7 +259,9 @@ export const topUpQuizBank = async (req, res) => {
       lesson: result.lesson,
       added: result.added,
       bankSize: result.bankSize,
-      bankStats: result.bankStats
+      bankStats: result.bankStats,
+      reason: result.reason || null,
+      pendingEnqueued: result.pendingEnqueued || 0
     });
   } catch (error) {
     console.error('Error topping up quiz bank:', error);

@@ -53,7 +53,7 @@ const lesson = {
   id: 'bank-plumbing-lesson',
   grade: '1',
   learningObjectives: ['Count objects'],
-  quiz: { questions: withBank.questions }
+  quiz: { questions: [withBank.questions[0]] }
 };
 
 let state = createAdaptiveSession({ lesson });
@@ -100,9 +100,22 @@ assert(
 
 const genService = readFileSync(join(here, '../admin/services/lessonGenerationService.js'), 'utf8');
 assert(genService.includes('pullApprovedBankQuestions'), 'lesson gen pulls approved bank items');
+assert(genService.includes('resolveContentSource'), 'lesson gen branches on template vs fixed pool');
+assert(genService.includes('QUIZ_SOURCE_TEMPLATES'), 'template-backed lessons are flagged');
+assert(genService.includes('generateQuestionBankBatch'), 'gap fill enqueues pending bank items');
 assert(
-  genService.includes('if (!isGradeOneAdditionContext(ctx))'),
-  'lesson gen skips bank pull for Grade 1 Addition'
+  !genService.includes('for (let c = 0; c < QUIZ_CHUNKS.length'),
+  'lesson generation no longer AI-chunks toward 30'
+);
+assert(
+  genService.includes('template-backed — top-up does not apply'),
+  'template-backed top-up is a no-op'
+);
+
+const entryModel = readFileSync(join(here, '../models/QuestionBankEntry.js'), 'utf8');
+assert(
+  entryModel.includes('interactionType = null'),
+  'approved pull is not restricted to multiple_choice'
 );
 
 const sql = readFileSync(join(here, '../database/migration_question_bank.sql'), 'utf8');

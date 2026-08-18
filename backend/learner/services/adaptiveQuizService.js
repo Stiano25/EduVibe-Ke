@@ -22,6 +22,15 @@ import {
 } from '../../utils/additionLayout.js';
 import { additionWorkedSteps } from '../../utils/additionWorkedExample.js';
 import { normalizeQuizOption } from '../../utils/quizOptions.js';
+import { isTemplateBackedQuiz, targetMainLength } from '../../utils/quizSessionSize.js';
+import {
+  instantiateTemplate,
+  difficultyTierFromMastery,
+  templatesForSession,
+  homeOutcomeFamilies,
+  targetOutcomeFamily,
+  skillFromTemplates
+} from '../../utils/templateLadders.js';
 
 const BLOOM_ORDER = ['recall', 'understand', 'apply', 'reason'];
 const MODALITIES = ['visual', 'text_steps', 'practice'];
@@ -167,6 +176,7 @@ const publicQuestion = (q, indexInBank, session = null) => {
     points: q.points || 15,
     skillFocus: q.skillFocus,
     bloomLevel: q.bloomLevel,
+    difficulty: q.difficulty || undefined,
     modality: q.modality,
     diagramBriefId: q.diagramBriefId || null,
     steps: q.steps || undefined,
@@ -198,11 +208,11 @@ const publicQuestion = (q, indexInBank, session = null) => {
   };
 };
 
-const targetMainLength = (bankSize) => {
-  if (bankSize <= 0) return 0;
-  if (bankSize <= 10) return bankSize;
-  // Prefer 10, stretch to 12 when bank allows
-  return Math.min(12, Math.max(10, Math.min(bankSize, 12)));
+const targetMainLengthForLesson = (lesson) => {
+  const bank = lesson?.quiz?.questions || [];
+  return targetMainLength(bank.length, {
+    templateBacked: isTemplateBackedQuiz(lesson?.quiz)
+  });
 };
 
 /**
@@ -247,7 +257,11 @@ const outcomeKeyOf = (q, lesson) => {
 /** Distinct learningOutcomeKeys in a lesson bank (for modality map load). */
 export const lessonOutcomeKeys = (lesson) => {
   const bank = lesson.quiz?.questions || [];
-  return [...new Set(bank.map((q) => outcomeKeyOf(q, lesson)).filter(Boolean))];
+  const fromQuestions = bank.map((q) => outcomeKeyOf(q, lesson)).filter(Boolean);
+  const fromTemplates = templatesForSession(lesson)
+    .map((t) => t.learningOutcomeKey || outcomeKeyOf(t, lesson))
+    .filter(Boolean);
+  return [...new Set([...fromQuestions, ...fromTemplates])];
 };
 
 const modalityBonusFor = (mod, outcomeKey, preferredModality, modalitySuccessMap) => {
@@ -276,6 +290,109 @@ const modalityBonusFor = (mod, outcomeKey, preferredModality, modalitySuccessMap
 const findBankIndex = (bank, questionId) =>
   bank.findIndex((q, i) => qid(q, i) === questionId);
 
+const lookupQuestion = (bank, session, questionId) => {
+  const idx = findBankIndex(bank, questionId);
+  if (idx >= 0) return { q: bank[idx], i: idx, id: questionId };
+  const live = session?.twistedQuestions?.[questionId];
+  if (live) return { q: live, i: -1, id: questionId };
+  return null;
+};
+
+const pickNextTemplateItem = (
+  session,
+  lesson,
+  masteryMap,
+  preferredModality,
+  modalitySuccessMap = new Map()
+) => {
+  const templates = templatesForSession(lesson);
+  if (!templates.length) return null;
+  const exclude = new Set(session.usedParamKeys || []);
+  const last = session.lastAttempt;
+  let preferScaffold = false;
+  if (last && !last.correct) {
+    preferScaffold = ['reason', 'apply'].includes(last.bloomLevel);
+  }
+
+  const skill = skillFromTemplates(templates);
+  const homes = homeOutcomeFamilies(
+    skill,
+    lesson.learningObjectives || [],
+    lesson.quiz?.templates || []
+  );
+  const masteryKey =
+    templates.find((t) => homes.has(t.outcomeFamily))?.learningOutcomeKey ||
+    templates[0]?.learningOutcomeKey ||
+    outcomeKeyOf(templates[0], lesson);
+  const mastery = masteryMap.get(masteryKey);
+  const failStreak = last?.learningOutcomeKey
+    ? session.outcomeFailStreak[last.learningOutcomeKey] || 0
+    : 0;
+  const targetFamily = targetOutcomeFamily({
+    skill,
+    homeFamilies: homes,
+    mastery,
+    failStreak
+  });
+  let pool = targetFamily
+    ? templates.filter((t) => t.outcomeFamily === targetFamily)
+    : templates;
+  if (!pool.length) pool = templates;
+
+  const usedTemplateIds = new Set(
+    (session.usedIds || [])
+      .map((id) => session.twistedQuestions?.[id]?.templateId)
+      .filter(Boolean)
+  );
+  const lastServed = session.usedIds?.length
+    ? session.twistedQuestions?.[session.usedIds[session.usedIds.length - 1]]
+    : null;
+  const lastInteraction = lastServed?.interactionType || null;
+  const preferredTier = difficultyTierFromMastery(mastery);
+
+  const score = (template) => {
+    let s = 0;
+    const ok = template.learningOutcomeKey || outcomeKeyOf(template, lesson);
+    const mod = asModality(template.modality);
+    if (preferScaffold && mod === 'text_steps') s += 35;
+    if (mastery?.status === 'scaffolding' || mastery?.status === 'struggling') {
+      if (mod === 'text_steps' || mod === 'visual') s += 15;
+    }
+    const modHit = modalityBonusFor(mod, ok, preferredModality, modalitySuccessMap);
+    s += modHit.bonus;
+    if (template.difficulty === preferredTier) s += DIFFICULTY_MATCH_BONUS;
+    if (!usedTemplateIds.has(template.id)) s += 40;
+    if (lastInteraction && template.interactionType !== lastInteraction) s += 12;
+    s += Math.random() * 3;
+    return { score: s, modalitySignal: { source: modHit.source, modality: modHit.modality } };
+  };
+
+  let best = null;
+  let bestMeta = null;
+  for (const template of pool) {
+    const { score: s, modalitySignal } = score(template);
+    if (!best || s > bestMeta.score) {
+      best = template;
+      bestMeta = { score: s, modalitySignal };
+    }
+  }
+  if (!best) return null;
+
+  const inst = instantiateTemplate(best, { excludeParamKeys: exclude });
+  if (!inst.ok) return null;
+  session.twistedQuestions = {
+    ...(session.twistedQuestions || {}),
+    [inst.question.id]: inst.question
+  };
+  session.usedParamKeys = [...(session.usedParamKeys || []), inst.paramKey];
+  return {
+    q: inst.question,
+    i: -1,
+    id: inst.question.id,
+    modalitySignal: bestMeta?.modalitySignal || { source: 'none', modality: null }
+  };
+};
+
 /**
  * Score candidates for next main-path item.
  * Returns candidate plus modalitySignal for the winner.
@@ -287,6 +404,15 @@ const pickNextMain = (
   preferredModality,
   modalitySuccessMap = new Map()
 ) => {
+  if (isTemplateBackedQuiz(lesson.quiz)) {
+    return pickNextTemplateItem(
+      session,
+      lesson,
+      masteryMap,
+      preferredModality,
+      modalitySuccessMap
+    );
+  }
   const bank = lesson.quiz?.questions || [];
   const used = new Set(session.usedIds);
   const last = session.lastAttempt;
@@ -374,9 +500,10 @@ const pickNextMain = (
  * fresh item instead of memorizing the answer. Falls back to verbatim replay.
  */
 const pickRetryQuestion = (bank, lesson, session, originalId) => {
-  const oIdx = findBankIndex(bank, originalId);
-  if (oIdx < 0) return null;
-  const original = bank[oIdx];
+  const found = lookupQuestion(bank, session, originalId);
+  if (!found) return null;
+  const original = found.q;
+  const oIdx = found.i;
   const outcome = outcomeKeyOf(original, lesson);
   const oBloom = bloomIndex(original.bloomLevel || 'understand');
   const seen = new Set([
@@ -384,6 +511,31 @@ const pickRetryQuestion = (bank, lesson, session, originalId) => {
     ...(session.retryDoneIds || []),
     ...(session.retryServedIds || [])
   ]);
+
+  if (isTemplateBackedQuiz(lesson.quiz) && original.templateId) {
+    const templates = templatesForSession(lesson);
+    const same =
+      templates.find((t) => t.id === original.templateId) ||
+      templates.find(
+        (t) =>
+          (t.learningOutcomeKey || outcomeKeyOf(t, lesson)) === outcome &&
+          bloomIndex(t.bloomLevel || 'understand') <= oBloom
+      );
+    if (same) {
+      const inst = instantiateTemplate(same, {
+        excludeParamKeys: new Set(session.usedParamKeys || [])
+      });
+      if (inst.ok) {
+        session.twistedQuestions = {
+          ...(session.twistedQuestions || {}),
+          [inst.question.id]: inst.question
+        };
+        session.usedParamKeys = [...(session.usedParamKeys || []), inst.paramKey];
+        return { q: inst.question, i: -1, id: inst.question.id };
+      }
+    }
+    return { q: original, i: oIdx, id: originalId };
+  }
 
   const siblings = bank
     .map((q, i) => ({ q, i, id: qid(q, i) }))
@@ -467,7 +619,8 @@ const scheduleTwin = ({ session, lesson, question, questionId, correct, response
       ? { interactionType: 'drag_to_target', activity: 'count_into_box' }
       : numeric
         ? { interactionType: 'numeric_entry', activity: 'numeric_entry' }
-        : {})
+        : {}),
+    ...(question.templateId ? { templateId: question.templateId } : {})
   };
   const entry = {
     pairId,
@@ -529,7 +682,7 @@ export const createAdaptiveSession = ({
   modalitySuccessMap = new Map()
 }) => {
   const bank = lesson.quiz?.questions || [];
-  const mainTarget = targetMainLength(bank.length);
+  const mainTarget = targetMainLengthForLesson(lesson);
   const session = {
     lessonId: lesson.id,
     phase: 'main', // main | twin | retry | done
@@ -557,6 +710,7 @@ export const createAdaptiveSession = ({
     twinQueue: [],
     twinPairs: [],
     twistedQuestions: {},
+    usedParamKeys: [],
     currentTwinPairId: null
   };
 
@@ -632,16 +786,18 @@ export const advanceAdaptiveSession = ({
     twinQueue: [...(rawSession.twinQueue || [])],
     twinPairs: (rawSession.twinPairs || []).map((pair) => ({ ...pair })),
     twistedQuestions: { ...(rawSession.twistedQuestions || {}) },
+    usedParamKeys: [...(rawSession.usedParamKeys || [])],
     currentTwinPairId: rawSession.currentTwinPairId || null
   };
 
   const currentId = session.currentQuestionId;
   const idx = findBankIndex(bank, currentId);
+  const live = session.twistedQuestions[currentId];
   const isTwin = session.phase === 'twin';
-  if (idx < 0 && !isTwin) {
+  if (idx < 0 && !live) {
     throw new Error('Current question not found in bank');
   }
-  const question = isTwin ? session.twistedQuestions[currentId] : bank[idx];
+  const question = live || bank[idx];
   if (!question) throw new Error('Current question payload not found');
   const responseTimeMs = asResponseTimeMs(rawResponseTimeMs);
   const interactionType = resolveInteractionType(question.interactionType || question.type);
@@ -724,7 +880,7 @@ export const advanceAdaptiveSession = ({
           questionParams: question.params || null
         }
       : {}),
-    ...(isTwin ? { questionSnapshot: question } : {})
+    ...(idx < 0 || live ? { questionSnapshot: question } : {})
   };
 
   session.answered.push(answerRecord);
@@ -785,7 +941,9 @@ export const advanceAdaptiveSession = ({
 
   if (phase === 'main' || phase === 'twin') {
     const mainDone = session.mainAnswered >= session.mainTarget;
-    const noMoreUnused = bank.every((q, i) => session.usedIds.includes(qid(q, i)));
+    const noMoreUnused = isTemplateBackedQuiz(lesson.quiz)
+      ? false
+      : bank.every((q, i) => session.usedIds.includes(qid(q, i)));
     if (mainDone || noMoreUnused) {
       next = serveTwin(session, { force: true });
       if (next) {

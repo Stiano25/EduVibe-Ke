@@ -1,5 +1,5 @@
 import { LearnerProfile } from '../../models/LearnerProfile.js';
-import { SkillAttempt, SkillMastery } from '../../models/SkillAttempt.js';
+import { SkillAttempt, SkillMastery, BktSkillParams } from '../../models/SkillAttempt.js';
 import { Lesson } from '../../models/Lesson.js';
 import { findScaffoldLesson } from '../../admin/services/scaffoldService.js';
 import { outcomeKey } from '../../utils/outcomeKey.js';
@@ -303,46 +303,42 @@ const recordOneAttempt = async ({
   twinRole = null,
   twinTriggerReason = null,
   sourceQuestionId = null,
-  questionParams = null
+  questionParams = null,
+  masteryRows = []
 }) => {
   const shown = modalityShown || profile.preferredModality || 'mixed';
+  const existing =
+    (masteryRows || []).find((m) => m.learningOutcomeKey === learningOutcomeKey) || null;
 
-  // Natural experiment: fail then same outcome with a different modality
-  try {
-    const prior = await SkillAttempt.listByUserOutcome(userId, learningOutcomeKey, {
-      limit: 1
-    });
-    const last = prior[0];
-    if (
-      last &&
-      !last.correct &&
-      last.modalityShown &&
-      last.modalityShown !== 'mixed' &&
-      shown !== 'mixed' &&
-      shown !== last.modalityShown
-    ) {
-      console.debug(
-        '[modality-switch]',
-        learningOutcomeKey,
-        `${last.modalityShown}→${shown}`,
-        correct ? 'success' : 'fail'
-      );
-    }
-  } catch {
-    /* ignore */
+  const [priorAttempts, bktParams] = await Promise.all([
+    SkillAttempt.listByUserOutcomeAll(userId, learningOutcomeKey, { lean: true }),
+    BktSkillParams.getOrCreate(learningOutcomeKey)
+  ]);
+
+  const last = [...priorAttempts].reverse().find((a) => a.twinRole !== 'twist');
+  if (
+    last &&
+    !last.correct &&
+    last.modalityShown &&
+    last.modalityShown !== 'mixed' &&
+    shown !== 'mixed' &&
+    shown !== last.modalityShown
+  ) {
+    console.debug(
+      '[modality-switch]',
+      learningOutcomeKey,
+      `${last.modalityShown}→${shown}`,
+      correct ? 'success' : 'fail'
+    );
   }
 
-  const priorFails = await SkillAttempt.countRecentFails(
-    userId,
-    learningOutcomeKey,
-    lesson.grade
-  );
+  const priorFails = SkillAttempt.consecutiveFailStreak(priorAttempts, lesson.grade);
   const attemptInSkillStreak = correct ? 1 : priorFails + 1;
   const distractor = (question.distractors || []).find(
     (d) => Number(d.optionIndex) === selected
   );
 
-  await SkillAttempt.create({
+  const created = await SkillAttempt.create({
     userId,
     lessonId: lesson.id,
     questionId,
@@ -363,52 +359,41 @@ const recordOneAttempt = async ({
     questionParams
   });
 
-  // Twin results stay out of the 3-of-4 heuristic; they still update BKT (5.3 / 5.4).
-  if (!isTwin) {
-    await SkillMastery.upsertFromAttempt({
-      userId,
-      learningOutcomeKey,
-      skillFocus: question.skillFocus || learningOutcomeKey,
-      gradeLevel: lesson.grade,
-      correct,
-      consecutiveFails: correct ? 0 : attemptInSkillStreak,
-      modalityShown: shown
-    });
-  }
-  await SkillMastery.recomputeBkt({
+  const allAttempts = created ? [...priorAttempts, created] : priorAttempts;
+  const mastery = await SkillMastery.applyAttemptAndBkt({
     userId,
     learningOutcomeKey,
     skillFocus: question.skillFocus || learningOutcomeKey,
-    gradeLevel: lesson.grade
+    gradeLevel: lesson.grade,
+    correct,
+    consecutiveFails: correct ? 0 : attemptInSkillStreak,
+    modalityShown: shown,
+    isTwin,
+    existing,
+    attemptsOldestFirst: allAttempts,
+    bktParams
   });
 
-  try {
-    const { recordRemediationFollowup } = await import(
-      '../../admin/services/layer2PrerequisiteService.js'
-    );
-    await recordRemediationFollowup({
-      userId,
-      learningOutcomeKey,
-      correct,
-      isTwin
-    });
-  } catch (err) {
-    console.warn('Layer 2 follow-up log skipped:', err.message || err);
-  }
+  void import('../../admin/services/layer2PrerequisiteService.js')
+    .then(({ recordRemediationFollowup, maybeQueueLayer2Proposal }) => {
+      void recordRemediationFollowup({
+        userId,
+        learningOutcomeKey,
+        correct,
+        isTwin
+      }).catch((err) => console.warn('Layer 2 follow-up log skipped:', err.message || err));
+      if (!isTwin && !correct && attemptInSkillStreak >= (profile.scaffoldTolerance || 2)) {
+        void maybeQueueLayer2Proposal({
+          userId,
+          learningOutcomeKey,
+          grade: lesson.grade,
+          consecutiveFails: attemptInSkillStreak
+        }).catch((err) => console.warn('Layer 2 queue skipped:', err.message || err));
+      }
+    })
+    .catch((err) => console.warn('Layer 2 follow-up log skipped:', err.message || err));
 
-  if (!isTwin && !correct && attemptInSkillStreak >= (profile.scaffoldTolerance || 2)) {
-    const { maybeQueueLayer2Proposal } = await import(
-      '../../admin/services/layer2PrerequisiteService.js'
-    );
-    void maybeQueueLayer2Proposal({
-      userId,
-      learningOutcomeKey,
-      grade: lesson.grade,
-      consecutiveFails: attemptInSkillStreak
-    }).catch((err) => console.warn('Layer 2 queue skipped:', err.message || err));
-  }
-
-  return { attemptInSkillStreak, distractor };
+  return { attemptInSkillStreak, distractor, mastery };
 };
 
 const loadModalitySuccessMap = async (userId, lesson) => {
@@ -424,21 +409,25 @@ export const startAdaptiveQuiz = async (req, res) => {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const lessonId = req.params.lessonId;
-    const lesson = await Lesson.findById(lessonId);
+    const { getDbClient } = await import('../../config/supabase.js');
+    const [lesson, profile, masteryRows, progressRes] = await Promise.all([
+      Lesson.findByIdForAdaptive(lessonId),
+      LearnerProfile.getOrCreate(userId),
+      SkillMastery.findByUser(userId),
+      getDbClient()
+        .from('lesson_progress')
+        .select('progress, completed, session_review')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle()
+    ]);
     if (!lesson || lesson.status !== 'approved') {
       return res.status(404).json({ error: 'Lesson not found' });
     }
-
-    const profile = await LearnerProfile.getOrCreate(userId);
-    const masteryRows = await SkillMastery.findByUser(userId);
-
-    const { getDbClient } = await import('../../config/supabase.js');
-    const { data: progress } = await getDbClient()
-      .from('lesson_progress')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('lesson_id', lessonId)
-      .maybeSingle();
+    const progress = progressRes?.data;
+    if (progressRes?.error) {
+      console.warn('lesson_progress lookup skipped:', progressRes.error.message || progressRes.error);
+    }
 
     // If they already finished an attempt, show review (answers + corrections).
     // Do NOT require progress.completed — that is pass/fail only; a finished
@@ -467,8 +456,10 @@ export const startAdaptiveQuiz = async (req, res) => {
       }
     }
 
-    const { createAdaptiveSession } = await import('../services/adaptiveQuizService.js');
-    const modalitySuccessMap = await loadModalitySuccessMap(userId, lesson);
+    const [{ createAdaptiveSession }, modalitySuccessMap] = await Promise.all([
+      import('../services/adaptiveQuizService.js'),
+      loadModalitySuccessMap(userId, lesson)
+    ]);
     const result = createAdaptiveSession({
       lesson,
       preferredModality: profile.preferredModality || 'mixed',
@@ -480,12 +471,12 @@ export const startAdaptiveQuiz = async (req, res) => {
       const { recordLearnerBankServe } = await import(
         '../../admin/services/questionBankService.js'
       );
-      await recordLearnerBankServe({
+      void recordLearnerBankServe({
         bankEntryId: result.question.bankEntryId,
         lessonId,
         learnerId: userId,
         questionId: result.question.id
-      });
+      }).catch((err) => console.warn('Bank serve log skipped:', err.message || err));
     }
 
     res.json({
@@ -525,17 +516,20 @@ export const nextAdaptiveQuiz = async (req, res) => {
       });
     }
 
-    const lesson = await Lesson.findById(lessonId);
+    const [lesson, profile, masteryRows] = await Promise.all([
+      Lesson.findByIdForAdaptive(lessonId),
+      LearnerProfile.getOrCreate(userId),
+      SkillMastery.findByUser(userId)
+    ]);
     if (!lesson || lesson.status !== 'approved') {
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
-    const profile = await LearnerProfile.getOrCreate(userId);
-    const masteryRows = await SkillMastery.findByUser(userId);
-    const modalitySuccessMap = await loadModalitySuccessMap(userId, lesson);
-    const { advanceAdaptiveSession, buildReviewView, lessonOutcomeKeys } = await import(
-      '../services/adaptiveQuizService.js'
-    );
+    const [{ advanceAdaptiveSession, buildReviewView, lessonOutcomeKeys }, modalitySuccessMap] =
+      await Promise.all([
+        import('../services/adaptiveQuizService.js'),
+        loadModalitySuccessMap(userId, lesson)
+      ]);
 
     const result = advanceAdaptiveSession({
       session: stripSignature(session),
@@ -549,8 +543,9 @@ export const nextAdaptiveQuiz = async (req, res) => {
     });
 
     const { attemptContext } = result;
+    let updatedMastery = null;
     if (attemptContext?.question) {
-      await recordOneAttempt({
+      const recorded = await recordOneAttempt({
         userId,
         lesson,
         question: attemptContext.question,
@@ -568,29 +563,32 @@ export const nextAdaptiveQuiz = async (req, res) => {
         twinRole: attemptContext.twinRole,
         twinTriggerReason: attemptContext.twinTriggerReason,
         sourceQuestionId: attemptContext.sourceQuestionId,
-        questionParams: attemptContext.questionParams
+        questionParams: attemptContext.questionParams,
+        masteryRows
       });
+      updatedMastery = recorded.mastery || null;
     }
 
-    const { recordLearnerBankServe } = await import(
-      '../../admin/services/questionBankService.js'
-    );
-    if (attemptContext?.bankEntryId) {
-      await recordLearnerBankServe({
-        bankEntryId: attemptContext.bankEntryId,
-        lessonId,
-        learnerId: userId,
-        questionId: attemptContext.questionId
-      });
-    }
-    if (result.question?.bankEntryId) {
-      await recordLearnerBankServe({
-        bankEntryId: result.question.bankEntryId,
-        lessonId,
-        learnerId: userId,
-        questionId: result.question.id
-      });
-    }
+    void import('../../admin/services/questionBankService.js')
+      .then(({ recordLearnerBankServe }) => {
+        if (attemptContext?.bankEntryId) {
+          void recordLearnerBankServe({
+            bankEntryId: attemptContext.bankEntryId,
+            lessonId,
+            learnerId: userId,
+            questionId: attemptContext.questionId
+          }).catch((err) => console.warn('Bank serve log skipped:', err.message || err));
+        }
+        if (result.question?.bankEntryId) {
+          void recordLearnerBankServe({
+            bankEntryId: result.question.bankEntryId,
+            lessonId,
+            learnerId: userId,
+            questionId: result.question.id
+          }).catch((err) => console.warn('Bank serve log skipped:', err.message || err));
+        }
+      })
+      .catch((err) => console.warn('Bank serve log skipped:', err.message || err));
 
     if (result.meta.done && result.review) {
       const { getDbClient } = await import('../../config/supabase.js');
@@ -598,13 +596,6 @@ export const nextAdaptiveQuiz = async (req, res) => {
       const pct = result.review.score?.percentage ?? 0;
       const passing = Math.max(lesson.quiz?.passingScore || 60, 60);
       const completed = pct >= passing;
-
-      const { data: existing } = await db
-        .from('lesson_progress')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('lesson_id', lessonId)
-        .maybeSingle();
 
       const payload = {
         user_id: userId,
@@ -617,13 +608,19 @@ export const nextAdaptiveQuiz = async (req, res) => {
         updated_at: new Date().toISOString()
       };
 
+      const { data: existing } = await db
+        .from('lesson_progress')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
       if (existing) {
         await db.from('lesson_progress').update(payload).eq('id', existing.id);
       } else {
         await db.from('lesson_progress').insert(payload);
       }
 
-      // Persist modality selection signals for later aggregation (+8 vs +18)
       const signalRows = (result.session.modalitySignalLog || []).map((entry) => ({
         user_id: userId,
         lesson_id: lessonId,
@@ -634,24 +631,24 @@ export const nextAdaptiveQuiz = async (req, res) => {
         created_at: entry.at || new Date().toISOString()
       }));
       if (signalRows.length > 0) {
-        const { error: signalErr } = await db
+        void db
           .from('adaptive_modality_signal_log')
-          .insert(signalRows);
-        if (signalErr) {
-          // Table may not be migrated yet — session_review.modalitySignals still holds a copy
-          console.warn(
-            '[modality-signal-log] insert skipped:',
-            signalErr.message || signalErr
-          );
-        }
+          .insert(signalRows)
+          .then(({ error: signalErr }) => {
+            if (signalErr) {
+              console.warn(
+                '[modality-signal-log] insert skipped:',
+                signalErr.message || signalErr
+              );
+            }
+          });
       }
 
-      // Fresh mastery after last attempt — for celebration copy
-      const freshMastery = await SkillMastery.findByUser(userId);
       const outcomeKeys = lessonOutcomeKeys(lesson);
-      const byKey = new Map(
-        freshMastery.map((m) => [m.learningOutcomeKey, m.status])
-      );
+      const byKey = new Map(masteryRows.map((m) => [m.learningOutcomeKey, m.status]));
+      if (updatedMastery?.learningOutcomeKey) {
+        byKey.set(updatedMastery.learningOutcomeKey, updatedMastery.status);
+      }
       const topicMastered =
         outcomeKeys.length > 0 &&
         outcomeKeys.every((k) => byKey.get(k) === 'mastered');

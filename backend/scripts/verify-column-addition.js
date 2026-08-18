@@ -13,6 +13,9 @@ import {
   hasIntegerAddends,
   needsRegrouping,
   placeValueRows,
+  applyColumnDigit,
+  digitChoicesForSum,
+  expectedSumDigitCount,
   resolveAdditionLayout,
   resolveScaffoldCarry,
   verticalAdditionInstruction
@@ -38,6 +41,21 @@ const rows = placeValueRows(32, 6);
 assert(rows.cols === 2, 'place-value width');
 assert(rows.a.join('') === '32', '32 right-aligned');
 assert(rows.b.join('') === ' 6', '6 ones-aligned, tens blank not zero');
+
+assert(applyColumnDigit('', '8') === '8', 'first key is ones');
+assert(applyColumnDigit('8', '3') === '38', 'second key fills tens, ones stay 8');
+assert(applyColumnDigit('38', 'back') === '8', 'backspace undoes tens, keeps ones');
+assert(placeValueRows(32, 6, '8').sum.join('') === ' 8', 'typed ones sits in the ones column');
+assert(placeValueRows(32, 6, '38').sum.join('') === '38', 'then tens fills to the left');
+assert(expectedSumDigitCount(32, 6) === 2, '32+6 is two digits — auto-submit after tens');
+assert(expectedSumDigitCount(5, 3) === 1, '5+3 is one digit — auto-submit after ones');
+
+const easyPad = digitChoicesForSum(32, 6, 'easy');
+const advPad = digitChoicesForSum(32, 6, 'advanced');
+assert(easyPad.includes(3) && easyPad.includes(8), 'pad always includes the answer digits');
+assert(easyPad.length === 4, 'easy pad is answer digits plus two distractors');
+assert(advPad.length > easyPad.length, 'harder tiers add more distractor chips');
+assert(digitChoicesForSum(5, 3, 'easy').includes(8), 'single-digit sum still offers 8');
 
 assert(needsRegrouping(28, 5) === true, '28+5 regroups');
 assert(needsRegrouping(32, 6) === false, '32+6 does not regroup');

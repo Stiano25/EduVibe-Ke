@@ -45,6 +45,9 @@ const AdminSubjects = lazy(() =>
 const AdminKnowledgeBank = lazy(() =>
   import('@/pages/admin/KnowledgeBank').then((m) => ({ default: m.AdminKnowledgeBank }))
 )
+const AdminLearnerReports = lazy(() =>
+  import('@/pages/admin/LearnerReports').then((m) => ({ default: m.AdminLearnerReports }))
+)
 
 const LearnerDashboard = lazy(() =>
   import('@/pages/learner/Dashboard').then((m) => ({ default: m.LearnerDashboard }))
@@ -146,6 +149,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="admin">
               <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLearnerReports />
             </ProtectedRoute>
           }
         />

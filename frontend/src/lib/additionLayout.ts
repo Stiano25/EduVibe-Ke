@@ -47,6 +47,95 @@ export const placeValueRows = (a: number, b: number, sumText = '', minCols = 1) 
   }
 }
 
+/**
+ * Column addition is ones → tens (right to left).
+ * First digit stays in the ones; the next digit fills the tens to its left.
+ */
+export const applyColumnDigit = (prev: string, key: string, maxLen = 6) => {
+  const cur = String(prev || '').replace(/\D/g, '')
+  if (key === 'back') return cur.slice(1)
+  if (!/^\d$/.test(key) || cur.length >= maxLen) return cur
+  return `${key}${cur}`
+}
+
+export const columnSumMaxDigits = (a: number, b: number) =>
+  Math.min(6, Math.max(2, String(asAbsInt(a + b)).length))
+
+/** Digit count of a + b. Used to auto-submit once ones (then tens) are filled. */
+export const expectedSumDigitCount = (a: number, b: number) =>
+  String(asAbsInt(a) + asAbsInt(b)).length
+
+export type DigitPadTier = 'easy' | 'intermediate' | 'advanced'
+
+const EXTRA_DISTRACTORS: Record<DigitPadTier, number> = {
+  easy: 2,
+  intermediate: 4,
+  advanced: 6,
+}
+
+const uniqueDigitsOf = (n: number) => {
+  const out: number[] = []
+  for (const ch of String(asAbsInt(n))) {
+    const d = Number(ch)
+    if (!out.includes(d)) out.push(d)
+  }
+  return out
+}
+
+const pushDigit = (list: number[], d: number) => {
+  const n = ((Math.trunc(d) % 10) + 10) % 10
+  if (!list.includes(n)) list.push(n)
+}
+
+/**
+ * Answer digits plus a difficulty-scaled mix of distractors (addend digits,
+ * carry slips, neighbours). Chips are reused — 11 still needs only {1}.
+ */
+export const digitChoicesForSum = (
+  a: number,
+  b: number,
+  difficulty: string | null | undefined = 'intermediate'
+): number[] => {
+  const left = asAbsInt(a)
+  const right = asAbsInt(b)
+  const needed = uniqueDigitsOf(left + right)
+  const pool: number[] = []
+  uniqueDigitsOf(left).forEach((d) => pushDigit(pool, d))
+  uniqueDigitsOf(right).forEach((d) => pushDigit(pool, d))
+  const onesSum = (left % 10) + (right % 10)
+  pushDigit(pool, onesSum % 10)
+  if (onesSum >= 10) pushDigit(pool, Math.floor(onesSum / 10))
+  needed.forEach((d) => {
+    pushDigit(pool, d + 1)
+    pushDigit(pool, d - 1)
+  })
+  ;[9, 0, 1, 4, 7, 2, 5, 8, 3, 6].forEach((d) => pushDigit(pool, d))
+  const distractors = pool.filter((d) => !needed.includes(d))
+  const tier = (['easy', 'intermediate', 'advanced'] as const).includes(
+    difficulty as DigitPadTier
+  )
+    ? (difficulty as DigitPadTier)
+    : 'intermediate'
+  return [...needed, ...distractors.slice(0, EXTRA_DISTRACTORS[tier])]
+}
+
+export const shuffleWithSeed = <T,>(items: readonly T[], seed: string): T[] => {
+  const arr = [...items]
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i += 1) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 16777619) >>> 0
+  }
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    h = (Math.imul(h, 1664525) + 1013904223) >>> 0
+    const j = h % (i + 1)
+    const tmp = arr[i]
+    arr[i] = arr[j]
+    arr[j] = tmp
+  }
+  return arr
+}
+
 export const columnWorking = (a: number, b: number) => {
   const total = asAbsInt(a) + asAbsInt(b)
   const aStr = String(asAbsInt(a))

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @theme {
   --color-primary-50: #F3E8FF;
@@ -39,10 +39,54 @@
   --color-text-secondary: #64748B;
   --color-text-tertiary: #94A3B8;
 
-  --font-sans: 'Fredoka', 'Quicksand', system-ui, sans-serif;
-  
+  /* Two families only: Fredoka for display, Manrope for reading. */
+  --font-sans: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+
   --radius-bento: 24px;
   --radius-bento-lg: 32px;
+
+  /* Three-step radius scale. Prefer these over one-off rounded-[Npx]. */
+  --radius-ev-sm: 14px;
+  --radius-ev-md: 20px;
+  --radius-ev-lg: 28px;
+
+  /* ------------------------------------------------------------------ */
+  /* Learner elevation.                                                  */
+  /* Depth comes from soft shadows, not outlines. Learner surfaces are   */
+  /* borderless: a white fill lifted off a tinted page.                  */
+  /* ------------------------------------------------------------------ */
+  --shadow-ev-sm: 0 2px 8px rgba(46, 58, 69, 0.06);
+  --shadow-ev-card: 0 6px 20px rgba(46, 58, 69, 0.08);
+  --shadow-ev-lift: 0 14px 30px rgba(46, 58, 69, 0.14);
+
+  /* ------------------------------------------------------------------ */
+  /* Learner palette.                                                    */
+  /* Three accents, each with a deeper tone for text on tints and a soft */
+  /* tint for thumbnails and chips.                                      */
+  /* ------------------------------------------------------------------ */
+  --color-ev-green: #7ED957;
+  --color-ev-green-edge: #5FB93B;
+  --color-ev-green-soft: #E9FBDE;
+
+  --color-ev-blue: #2BB3F3;
+  --color-ev-blue-edge: #1A93CE;
+  --color-ev-blue-soft: #E0F5FE;
+
+  --color-ev-pink: #FF5CA8;
+  --color-ev-pink-edge: #DB3B87;
+  --color-ev-pink-soft: #FFE7F2;
+
+  --color-ev-red: #FF4B4B;
+  --color-ev-red-edge: #E63F3F;
+  --color-ev-red-soft: #FFE3E3;
+
+  --color-ev-ink: #23303C;
+  --color-ev-muted: #8A97A3;
+  --color-ev-line: #EDF0F4;
+  --color-ev-line-edge: #DDE3EA;
+  /* Not white: cards need something to lift off. */
+  --color-ev-page: #F7F9FC;
 }
 
 @layer base {
@@ -56,7 +100,6 @@
   
   h1 {
     @apply font-black;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -336,5 +379,120 @@
 
   .ev-jump-in {
     animation: ev-jump-in 0.7s ease-out both;
+  }
+
+  /* ------------------------------ */
+  /* Flat learner surfaces          */
+  /* ------------------------------ */
+
+  /*
+   * Learner surfaces are borderless. Anything tappable shrinks slightly on
+   * press instead of collapsing a hard edge, which suits the soft cards far
+   * better than a hard bottom border would.
+   */
+  .ev-press {
+    transition:
+      transform 140ms ease-out,
+      box-shadow 140ms ease-out;
+  }
+
+  .ev-press:active:not(:disabled):not([aria-disabled='true']) {
+    transform: scale(0.97);
+  }
+
+  @keyframes ev-node-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scale(1.22);
+      opacity: 0;
+    }
+  }
+
+  /* Ring behind the one node the learner should tap next. */
+  .ev-node-pulse {
+    animation: ev-node-pulse 1.8s ease-out infinite;
+  }
+
+  @keyframes ev-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .ev-bob {
+    animation: ev-bob 1.6s ease-in-out infinite;
+  }
+
+  @keyframes ev-confetti-fly {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(-50% + var(--ev-dx)), calc(-50% + var(--ev-dy))) scale(1)
+        rotate(var(--ev-rot));
+    }
+  }
+
+  .ev-confetti {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    opacity: 0;
+    animation: ev-confetti-fly 0.85s cubic-bezier(0.16, 0.9, 0.35, 1) both;
+  }
+
+  /* A burst on every correct answer is a lot of motion; opt out completely. */
+  @media (prefers-reduced-motion: reduce) {
+    .ev-celebrate {
+      display: none;
+    }
+
+    .ev-digit-in,
+    .ev-carry-pop,
+    .ev-line-draw,
+    .ev-object-pop,
+    .ev-label-in,
+    .ev-col-pulse,
+    .ev-jump-in,
+    .ev-node-pulse,
+    .ev-bob {
+      animation: none;
+    }
+  }
+}
+
+@media print {
+  header {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .learner-report-card {
+    break-inside: avoid;
+    page-break-after: always;
+    box-shadow: none !important;
+  }
+
+  .learner-report-card:last-child {
+    page-break-after: auto;
   }
 }

@@ -45,7 +45,8 @@ export const renderHorizontalAdditionStem = (a, b, pattern = HORIZONTAL_ADDITION
     .replaceAll('{b}', String(b));
 
 /** Short instruction for a vertical item. Never keep a computation sentence. */
-export const verticalAdditionInstruction = (question = '') => {
+export const verticalAdditionInstruction = (question = '', operation = 'add') => {
+  if (resolveColumnOperation(operation) === 'subtract') return VERTICAL_SUBTRACTION_INSTRUCTION;
   const text = String(question || '').trim();
   if (text && text.length <= 12 && !/\d/.test(text)) return text;
   return VERTICAL_ADDITION_INSTRUCTION;

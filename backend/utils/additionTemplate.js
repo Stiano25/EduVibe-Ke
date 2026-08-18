@@ -121,6 +121,11 @@ export const compileFormula = (formula) => {
   };
 };
 
+export const onesPlace = (n) => Math.abs(Math.trunc(Number(n) || 0)) % 10;
+
+/** True when the ones column would borrow (ones of a smaller than ones of b). */
+export const pairNeedsBorrow = (a, b) => onesPlace(a) < onesPlace(b);
+
 export const enumerateAdditionPairs = (rawConstraints = {}) => {
   const constraints = normalizeAdditionConstraints(rawConstraints);
   const pairs = [];
@@ -133,7 +138,7 @@ export const enumerateAdditionPairs = (rawConstraints = {}) => {
       if (constraints.aGteB && a < b) continue;
       if (constraints.positiveDiff && a <= b) continue;
       if (!subtract && constraints.noRegrouping && (a % 10) + (b % 10) >= 10) continue;
-      if (constraints.noBorrowing && (a % 10) < (b % 10)) continue;
+      if (constraints.noBorrowing && pairNeedsBorrow(a, b)) continue;
       pairs.push({ a, b });
     }
   }

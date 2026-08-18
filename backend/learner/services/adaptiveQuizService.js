@@ -159,7 +159,9 @@ const publicNumericFields = (q) => {
     operation,
     scaffoldCarry,
     ...(worked ? { workedSteps: worked.map(({ id, text, reveal }) => ({ id, text, reveal })) } : {}),
-    ...(layout === 'vertical' ? { question: verticalAdditionInstruction(q.question) } : {})
+    ...(layout === 'vertical'
+      ? { question: verticalAdditionInstruction(q.question, operation) }
+      : {})
   };
 };
 
@@ -1151,7 +1153,10 @@ export const buildReviewView = (lesson, sessionReview) => {
                   }),
             question:
               resolveAdditionLayout(q.params.layout) === 'vertical'
-                ? verticalAdditionInstruction(q.question)
+                ? verticalAdditionInstruction(
+                    q.question,
+                    resolveColumnOperation(q.params.operation)
+                  )
                 : q.question
           }
         : {}),

@@ -101,12 +101,8 @@ assert(bankService.includes('COPYRIGHT'), 'bank generation prompt has a hard cop
 assert(bankService.includes('Do NOT set template:true'), 'bank items are not addition templates');
 assert(bankService.includes('too close to source document'), 'near-dups are auto-rejected');
 assert(
-  bankService.includes("Grade 1 Addition uses the template/twist engine"),
-  'bank generation refuses Grade 1 Addition'
-);
-assert(
-  bankService.includes("Grade 1 Subtraction uses the template/twist engine"),
-  'bank generation refuses Grade 1 Subtraction'
+  bankService.includes('uses the template/twist engine'),
+  'bank generation refuses any templatable sub-strand'
 );
 assert(
   bankService.includes('params.operation "subtract"') &&

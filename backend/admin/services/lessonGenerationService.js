@@ -34,8 +34,10 @@ import {
 import {
   DEFAULT_ADDITION_LAYOUT,
   VERTICAL_ADDITION_INSTRUCTION,
+  VERTICAL_SUBTRACTION_INSTRUCTION,
   hasIntegerAddends,
   resolveAdditionLayout,
+  resolveColumnOperation,
   resolveScaffoldCarry
 } from '../../utils/additionLayout.js';
 import { additionWorkedStepTexts } from '../../utils/additionWorkedExample.js';
@@ -479,7 +481,8 @@ export const normalizeQuiz = (
         bloomLevel: q.bloomLevel,
         learningOutcomeIndex: q.learningOutcomeIndex,
         objectKind: q.params?.objectKind || inferObjectKind(stemPreview),
-        layout: q.params?.layout || (additionTemplates ? 'vertical' : 'horizontal')
+        layout: q.params?.layout || (additionTemplates ? 'vertical' : 'horizontal'),
+        operation: q.params?.operation
       });
       const params = { ...seed.params, ...(q.params && typeof q.params === 'object' ? q.params : {}) };
       params.layout = resolveAdditionLayout(
@@ -498,7 +501,9 @@ export const normalizeQuiz = (
         options: [],
         question:
           params.layout === 'vertical'
-            ? VERTICAL_ADDITION_INSTRUCTION
+            ? resolveColumnOperation(params.operation) === 'subtract'
+              ? VERTICAL_SUBTRACTION_INSTRUCTION
+              : VERTICAL_ADDITION_INSTRUCTION
             : q.question || seed.question
       };
       }

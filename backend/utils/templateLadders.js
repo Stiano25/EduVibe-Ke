@@ -37,7 +37,7 @@ export const isGradeOneNumberConceptContext = (ctx = {}) => {
   return String(ctx.grade) === '1' && subject === 'mathematics' && subStrand === 'number concept';
 };
 
-const ADDITION_LADDER = [
+export const ADDITION_LADDER = [
   {
     id: 'add-singles-easy-numeric',
     family: 'addition',
@@ -347,51 +347,72 @@ export const SUBTRACTION_LADDER = [
       { id: 'ones_slip', formula: 'a - b + 1', misconception: 'ones digit slip' },
       { id: 'neighbour', formula: 'a - b - 1', misconception: 'counted one too few' }
     ]
-  },
-  {
-    id: 'sub-two-two-numeric',
-    family: 'subtraction',
-    outcomeFamily: 'two_digit_minus_two_digit_no_borrow',
-    outcomeMatch: /2-digit numbers without regrouping|subtract up to 2-digit|patterns involving subtraction/i,
-    difficulty: 'advanced',
-    interactionType: 'numeric_entry',
-    skillFocus: 'Subtract two 2-digit numbers without borrowing',
-    bloomLevel: 'apply',
-    modality: 'practice',
-    question: 'Subtract.',
-    questionText: '{a} - {b}',
-    answerFormula: 'a - b',
-    params: { layout: 'vertical', operation: 'subtract' },
-    constraints: {
-      a: [21, 99],
-      b: [10, 98],
-      operation: 'subtraction',
-      noBorrowing: true,
-      positiveDiff: true
-    },
-    seed: { a: 45, b: 21 },
-    distractorFormulas: [
-      { id: 'added', formula: 'a + b', misconception: 'added instead of subtract' },
-      { id: 'ones_slip', formula: 'a - b + 1', misconception: 'ones digit slip' },
-      { id: 'tens_slip', formula: 'a - b + 10', misconception: 'tens digit slip' }
-    ]
   }
 ];
 
-export const isGradeOneSubtractionContext = (ctx = {}) => {
-  if (String(ctx.grade) !== '1') return false;
-  const subject = String(ctx.subject?.name || ctx.subjectName || '').toLowerCase();
-  if (subject !== 'mathematics') return false;
-  const subStrand = stripSequencePrefix(ctx.subStrand?.name || ctx.subStrandName || '');
-  const outcomes = [
-    ...(Array.isArray(ctx.sourceOutcomes) ? ctx.sourceOutcomes : []),
-    ...(Array.isArray(ctx.learningObjectives) ? ctx.learningObjectives : []),
-    ctx.primaryOutcome
+/**
+ * Grade 2 KICD 1.5: "subtract up to 2-digit numbers without regrouping".
+ * Not registered on the Grade 1 ladder — Grade 1 has no 2-digit minus 2-digit outcome.
+ */
+export const GRADE2_TWO_DIGIT_MINUS_TWO_DIGIT = {
+  id: 'sub-two-two-numeric',
+  family: 'subtraction',
+  outcomeFamily: 'two_digit_minus_two_digit_no_borrow',
+  outcomeMatch: /2-digit numbers without regrouping|subtract up to 2-digit/i,
+  difficulty: 'advanced',
+  interactionType: 'numeric_entry',
+  skillFocus: 'Subtract two 2-digit numbers without borrowing',
+  bloomLevel: 'apply',
+  modality: 'practice',
+  question: 'Subtract.',
+  questionText: '{a} - {b}',
+  answerFormula: 'a - b',
+  params: { layout: 'vertical', operation: 'subtract' },
+  constraints: {
+    a: [21, 99],
+    b: [10, 98],
+    operation: 'subtraction',
+    noBorrowing: true,
+    positiveDiff: true
+  },
+  seed: { a: 45, b: 21 },
+  distractorFormulas: [
+    { id: 'added', formula: 'a + b', misconception: 'added instead of subtract' },
+    { id: 'ones_slip', formula: 'a - b + 1', misconception: 'ones digit slip' },
+    { id: 'tens_slip', formula: 'a - b + 10', misconception: 'tens digit slip' }
   ]
-    .map((o) => String(o || '').toLowerCase())
-    .filter(Boolean);
-  return /subtract/.test([subStrand, ...outcomes].join(' '));
 };
+
+/**
+ * Ladders keyed by `${grade}:${family}`. Family is the sub-strand slug
+ * (e.g. "1.4 Subtraction" → subtraction). Adding Multiplication later is
+ * registerLadder(2, 'multiplication', defs) — no new routing branches.
+ */
+const TEMPLATE_LADDERS = Object.create(null);
+
+const registerLadder = (grade, family, defs) => {
+  TEMPLATE_LADDERS[`${String(grade)}:${family}`] = defs;
+};
+
+registerLadder(1, 'addition', ADDITION_LADDER);
+registerLadder(1, 'subtraction', SUBTRACTION_LADDER);
+registerLadder(1, 'number_concept', NUMBER_CONCEPT_LADDER);
+
+export const familySlugFromSubStrand = (name = '') =>
+  stripSequencePrefix(name)
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+
+/** Family comes only from the sub-strand name/code — never from outcome prose. */
+export const familyFromContext = (ctx = {}) => {
+  const family = familySlugFromSubStrand(ctx.subStrand?.name || ctx.subStrandName || '');
+  if (!family) return null;
+  const defs = TEMPLATE_LADDERS[`${String(ctx.grade)}:${family}`];
+  if (!Array.isArray(defs) || defs.length === 0) return null;
+  return family;
+};
+
+export const isGradeOneSubtractionContext = (ctx = {}) => familyFromContext(ctx) === 'subtraction';
 
 const FAMILY_ORDER = {
   addition: ['singles_to_10', 'two_digit_one_digit', 'multiples_of_ten'],
@@ -399,26 +420,14 @@ const FAMILY_ORDER = {
   subtraction: [
     'single_digit_minus_single_digit',
     'multiples_of_ten_minus_multiples_of_ten',
-    'two_digit_minus_one_digit_no_borrow',
-    'two_digit_minus_two_digit_no_borrow'
+    'two_digit_minus_one_digit_no_borrow'
   ]
 };
 
-export const detectTemplatableSkill = (ctx = {}) => {
-  if (isGradeOneAdditionContext(ctx)) return 'addition';
-  if (isGradeOneNumberConceptContext(ctx)) return 'number_concept';
-  if (isGradeOneSubtractionContext(ctx)) {
-    return SUBTRACTION_LADDER.length > 0 ? 'subtraction' : null;
-  }
-  return null;
-};
+export const detectTemplatableSkill = (ctx = {}) => familyFromContext(ctx);
 
-const ladderForSkill = (skill) => {
-  if (skill === 'addition') return ADDITION_LADDER;
-  if (skill === 'number_concept') return NUMBER_CONCEPT_LADDER;
-  if (skill === 'subtraction') return SUBTRACTION_LADDER;
-  return [];
-};
+const ladderForSkill = (skill, grade = '1') =>
+  TEMPLATE_LADDERS[`${String(grade)}:${skill}`] || [];
 
 const toStoredTemplate = (def, { learningOutcomeIndex, learningOutcomeKey, skillFocus }) => {
   const { outcomeMatch: _match, seed, ...rest } = def;
@@ -455,29 +464,25 @@ const bindDef = (def, outcomes = []) => {
  * (represent vs one-count are different objectives).
  */
 export const laddersForOutcomes = (ctx, outcomes = []) => {
-  const skill = detectTemplatableSkill({
-    ...ctx,
-    sourceOutcomes: outcomes,
-    learningObjectives: outcomes
-  });
-  if (!skill) return [];
-  const defs = ladderForSkill(skill);
+  const family = familyFromContext(ctx);
+  if (!family) return [];
+  const defs = ladderForSkill(family, ctx.grade);
   if (!defs.length) return [];
 
-  if (skill === 'addition' || skill === 'subtraction') {
-    const texts = outcomes.length ? outcomes : [''];
-    return defs.map((def) => bindDef(def, texts));
+  if (family === 'number_concept') {
+    if (!outcomes.length) return [];
+    const matchedFamilies = new Set();
+    for (const text of outcomes) {
+      for (const def of defs) {
+        if (def.outcomeMatch.test(String(text || ''))) matchedFamilies.add(def.outcomeFamily);
+      }
+    }
+    if (!matchedFamilies.size) return [];
+    return defs.filter((def) => matchedFamilies.has(def.outcomeFamily)).map((def) => bindDef(def, outcomes));
   }
 
-  if (!outcomes.length) return [];
-  const matchedFamilies = new Set();
-  for (const text of outcomes) {
-    for (const def of defs) {
-      if (def.outcomeMatch.test(String(text || ''))) matchedFamilies.add(def.outcomeFamily);
-    }
-  }
-  if (!matchedFamilies.size) return [];
-  return defs.filter((def) => matchedFamilies.has(def.outcomeFamily)).map((def) => bindDef(def, outcomes));
+  const texts = outcomes.length ? outcomes : [''];
+  return defs.map((def) => bindDef(def, texts));
 };
 
 export const resolveContentSource = (ctx, outcomes = []) => {
@@ -536,20 +541,13 @@ const baseTemplateId = (id) => String(id || '').replace(/__\d+$/, '');
 export const templatesForSession = (lesson) => {
   const stored = Array.isArray(lesson?.quiz?.templates) ? lesson.quiz.templates : [];
   if (!stored.length) return stored;
-  const skill =
-    stored[0]?.family === 'addition'
-      ? 'addition'
-      : stored[0]?.family === 'number_concept'
-        ? 'number_concept'
-        : stored[0]?.family === 'subtraction'
-          ? 'subtraction'
-          : null;
-  if (skill !== 'addition' && skill !== 'subtraction') return stored;
+  const family = String(stored[0]?.family || '').trim();
+  if (!family || !ladderForSkill(family, lesson.grade).length) return stored;
 
   const ctx = {
     grade: String(lesson.grade || '1'),
     subject: { name: 'Mathematics' },
-    subStrand: { name: skill === 'subtraction' ? 'Subtraction' : 'Addition' }
+    subStrand: { name: lesson.subStrand?.name || lesson.subStrandName || family }
   };
   const outcomes = lesson.learningObjectives || [];
   const full = laddersForOutcomes(ctx, outcomes);
@@ -563,9 +561,8 @@ export const templatesForSession = (lesson) => {
 };
 
 export const skillFromTemplates = (templates = []) => {
-  const family = templates[0]?.family;
-  if (family === 'addition' || family === 'number_concept' || family === 'subtraction') return family;
-  return null;
+  const family = String(templates[0]?.family || '').trim();
+  return family || null;
 };
 
 const paramKeyOf = (template, params = {}) => {

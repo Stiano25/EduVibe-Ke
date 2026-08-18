@@ -3,9 +3,14 @@ import { MathText } from '@/components/ui/MathText'
 
 type LessonContentRendererProps = {
   content: string
+  /** Grade 1: hide Mini Notes / Worked Example / Practice Prompts explanation blocks. */
+  hideExplanationNotes?: boolean
 }
 
-export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ content }) => {
+export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({
+  content,
+  hideExplanationNotes = false,
+}) => {
   // Normalize raw AI text into logical "lines" / sections for better layout
   const normalized = content
     .replace(/\s*(Mini Notes?:)/gi, '\n$1')
@@ -30,6 +35,7 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
         }
 
         if (/^mini notes?/i.test(line)) {
+          if (hideExplanationNotes) return null
           const text = line.replace(/^mini notes?:\s*/i, '')
           return (
             <div key={index} className="mt-4 mb-4">
@@ -49,6 +55,7 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
         }
 
         if (/^worked example/i.test(line)) {
+          if (hideExplanationNotes) return null
           const match = /^(worked example\s*\d*:?)(.*)$/i.exec(line)
           const title = match ? match[1].trim() : line
           const rest = match && match[2] ? match[2].trim().replace(/^[:\-]\s*/, '') : ''
@@ -70,6 +77,7 @@ export const LessonContentRenderer: React.FC<LessonContentRendererProps> = ({ co
         }
 
         if (/^practice prompts?/i.test(line)) {
+          if (hideExplanationNotes) return null
           const text = line.replace(/^practice prompts?:\s*/i, '')
           return (
             <div key={index} className="mt-6 mb-3">

@@ -3,7 +3,7 @@
  * Mirrors Admin → Lessons AI generate for one lesson.
  */
 import 'dotenv/config';
-import { generateLessonsFromSubStrand } from '../admin/services/lessonGenerationService.js';
+import { generateLessonsFromSubStrand, warnDraftEmptyQuizzes } from '../admin/services/lessonGenerationService.js';
 import { Lesson } from '../models/Lesson.js';
 
 const subStrandId = process.argv[2] || '02ceb2ff-2aa9-46eb-a815-fc7ae4a0b973';
@@ -17,6 +17,7 @@ const generated = await generateLessonsFromSubStrand(subStrandId, 1, ({ percent,
 
 console.log('Generated', generated.length, 'lesson(s) — saving…');
 const saved = await Lesson.createMany(generated);
+warnDraftEmptyQuizzes(saved, generated);
 const lesson = saved[0];
 const qs = lesson.quiz?.questions || [];
 const report = lesson.quiz?.coverageReport;

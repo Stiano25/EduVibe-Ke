@@ -17,16 +17,22 @@ const normalizeRange = (range, fallback) => {
   return [min, max];
 };
 
-export const normalizeAdditionConstraints = (raw = {}) => ({
-  a: normalizeRange(raw.a, [1, 9]),
-  b: normalizeRange(raw.b, [1, 9]),
-  sumMax: Math.min(100, Math.max(2, asInt(raw.sumMax, 10))),
-  operation: 'addition',
-  ...(raw.aGteB === true ? { aGteB: true } : {}),
-  ...(raw.noRegrouping === true ? { noRegrouping: true } : {}),
-  ...(asInt(raw.aStep, 1) > 1 ? { aStep: asInt(raw.aStep, 1) } : {}),
-  ...(asInt(raw.bStep, 1) > 1 ? { bStep: asInt(raw.bStep, 1) } : {})
-});
+export const normalizeAdditionConstraints = (raw = {}) => {
+  const operationRaw = String(raw.operation || 'addition').toLowerCase();
+  const subtraction = operationRaw === 'subtraction' || operationRaw === 'subtract';
+  return {
+    a: normalizeRange(raw.a, [1, 9]),
+    b: normalizeRange(raw.b, [1, 9]),
+    sumMax: Math.min(100, Math.max(2, asInt(raw.sumMax, 10))),
+    operation: subtraction ? 'subtraction' : 'addition',
+    ...(raw.aGteB === true || subtraction ? { aGteB: true } : {}),
+    ...(raw.positiveDiff === true ? { positiveDiff: true } : {}),
+    ...(raw.noRegrouping === true ? { noRegrouping: true } : {}),
+    ...(raw.noBorrowing === true ? { noBorrowing: true } : {}),
+    ...(asInt(raw.aStep, 1) > 1 ? { aStep: asInt(raw.aStep, 1) } : {}),
+    ...(asInt(raw.bStep, 1) > 1 ? { bStep: asInt(raw.bStep, 1) } : {})
+  };
+};
 
 const tokenizeFormula = (formula) => {
   const source = String(formula || '').trim();
@@ -120,11 +126,14 @@ export const enumerateAdditionPairs = (rawConstraints = {}) => {
   const pairs = [];
   const aStep = constraints.aStep || 1;
   const bStep = constraints.bStep || 1;
+  const subtract = constraints.operation === 'subtraction';
   for (let a = constraints.a[0]; a <= constraints.a[1]; a += aStep) {
     for (let b = constraints.b[0]; b <= constraints.b[1]; b += bStep) {
-      if (a + b > constraints.sumMax) continue;
+      if (!subtract && a + b > constraints.sumMax) continue;
       if (constraints.aGteB && a < b) continue;
-      if (constraints.noRegrouping && (a % 10) + (b % 10) >= 10) continue;
+      if (constraints.positiveDiff && a <= b) continue;
+      if (!subtract && constraints.noRegrouping && (a % 10) + (b % 10) >= 10) continue;
+      if (constraints.noBorrowing && (a % 10) < (b % 10)) continue;
       pairs.push({ a, b });
     }
   }

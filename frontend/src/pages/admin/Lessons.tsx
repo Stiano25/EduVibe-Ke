@@ -504,6 +504,8 @@ export const AdminLessons = () => {
                                       ? 'bg-emerald-100 text-emerald-700'
                                       : lesson.status === 'rejected'
                                       ? 'bg-red-100 text-red-700'
+                                      : lesson.status === 'draft'
+                                      ? 'bg-slate-100 text-slate-700'
                                       : 'bg-yellow-100 text-yellow-700'
                                   }`}
                                   style={{ fontFamily: 'Manrope, sans-serif' }}
@@ -514,6 +516,13 @@ export const AdminLessons = () => {
                               <p className="text-xs text-text-secondary line-clamp-2 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
                                 {lesson.description}
                               </p>
+                              {((lesson.status === 'pending' || lesson.status === 'draft') &&
+                                !(lesson.quiz?.questions || []).length &&
+                                lesson.quiz?.source !== 'templates') && (
+                                <p className="text-xs text-amber-700 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                                  Quiz is empty until question-bank items are approved. You can still review the lesson content.
+                                </p>
+                              )}
                               {lesson.duration && (
                                 <p className="text-xs text-text-secondary" style={{ fontFamily: 'Manrope, sans-serif' }}>
                                   Duration: {lesson.duration} minutes
@@ -521,7 +530,7 @@ export const AdminLessons = () => {
                               )}
                             </div>
                             <div className="flex gap-1.5 ml-2 flex-shrink-0">
-                              {lesson.status === 'pending' && (
+                              {(lesson.status === 'pending' || lesson.status === 'draft') && (
                                 <>
                                   <button
                                     onClick={() => {
@@ -532,13 +541,17 @@ export const AdminLessons = () => {
                                   >
                                     Review
                                   </button>
-                                  <button
-                                    onClick={() => handleApprove(lesson)}
-                                    className="w-7 h-7 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center transition-all"
-                                    title="Approve"
-                                  >
-                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                  </button>
+                                  {lesson.status === 'pending' &&
+                                    ((lesson.quiz?.questions || []).length > 0 ||
+                                      lesson.quiz?.source === 'templates') && (
+                                    <button
+                                      onClick={() => handleApprove(lesson)}
+                                      className="w-7 h-7 rounded-full bg-emerald-100 hover:bg-emerald-200 flex items-center justify-center transition-all"
+                                      title="Approve"
+                                    >
+                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                    </button>
+                                  )}
                                   <button
                                     onClick={() => handleReject(lesson)}
                                     className="w-7 h-7 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center transition-all"
@@ -722,7 +735,7 @@ export const AdminLessons = () => {
         />
       )}
 
-      {reviewModal.lesson && reviewModal.lesson.quiz && (
+      {reviewModal.lesson && (
         <LessonReviewModal
           isOpen={reviewModal.isOpen}
           lesson={reviewModal.lesson}

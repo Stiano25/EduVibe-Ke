@@ -14,7 +14,11 @@ import {
   makeNumericEntryQuestion,
   makeHowManyNumericQuestion
 } from './numericEntry.js';
-import { VERTICAL_ADDITION_INSTRUCTION } from './additionLayout.js';
+import {
+  VERTICAL_ADDITION_INSTRUCTION,
+  VERTICAL_SUBTRACTION_INSTRUCTION,
+  resolveColumnOperation
+} from './additionLayout.js';
 import { DEFAULT_OBJECT_KIND } from './objectKinds.js';
 import { outcomeKey } from './outcomeKey.js';
 import { QUIZ_SOURCE_TEMPLATES, QUIZ_SOURCE_FIXED_POOL } from './quizSessionSize.js';
@@ -259,20 +263,160 @@ const NUMBER_CONCEPT_LADDER = [
   }
 ];
 
+export const SUBTRACTION_LADDER = [
+  {
+    id: 'sub-singles-numeric',
+    family: 'subtraction',
+    outcomeFamily: 'single_digit_minus_single_digit',
+    outcomeMatch: /subtract single digit|single digit numbers|taking away|subtraction sentences/i,
+    difficulty: 'easy',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Subtract single-digit numbers',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Subtract.',
+    questionText: '{a} - {b}',
+    answerFormula: 'a - b',
+    params: { layout: 'vertical', operation: 'subtract' },
+    constraints: {
+      a: [2, 9],
+      b: [1, 8],
+      operation: 'subtraction',
+      positiveDiff: true
+    },
+    seed: { a: 7, b: 3 },
+    distractorFormulas: [
+      { id: 'added', formula: 'a + b', misconception: 'added instead of subtract' },
+      { id: 'off_high', formula: 'a - b + 1', misconception: 'counted one too many' },
+      { id: 'off_low', formula: 'a - b - 1', misconception: 'counted one too few' }
+    ]
+  },
+  {
+    id: 'sub-tens-numeric',
+    family: 'subtraction',
+    outcomeFamily: 'multiples_of_ten_minus_multiples_of_ten',
+    outcomeMatch: /subtract multiples of 10|multiples of 10 up to 90/i,
+    difficulty: 'intermediate',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Subtract multiples of 10 up to 90',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Subtract.',
+    questionText: '{a} - {b}',
+    answerFormula: 'a - b',
+    params: { layout: 'vertical', operation: 'subtract' },
+    constraints: {
+      a: [20, 90],
+      b: [10, 80],
+      aStep: 10,
+      bStep: 10,
+      operation: 'subtraction',
+      positiveDiff: true
+    },
+    seed: { a: 50, b: 20 },
+    distractorFormulas: [
+      { id: 'added', formula: 'a + b', misconception: 'added instead of subtract' },
+      { id: 'neighbour_high', formula: 'a - b + 10', misconception: 'off by ten' },
+      { id: 'neighbour_low', formula: 'a - b - 10', misconception: 'off by ten the other way' }
+    ]
+  },
+  {
+    id: 'sub-two-one-numeric',
+    family: 'subtraction',
+    outcomeFamily: 'two_digit_minus_one_digit_no_borrow',
+    outcomeMatch: /1-digit number from a 2-digit|subtract a 1-digit|basic addition facts/i,
+    difficulty: 'intermediate',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Subtract a 1-digit number from a 2-digit number without borrowing',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Subtract.',
+    questionText: '{a} - {b}',
+    answerFormula: 'a - b',
+    params: { layout: 'vertical', operation: 'subtract' },
+    constraints: {
+      a: [21, 99],
+      b: [1, 9],
+      operation: 'subtraction',
+      noBorrowing: true,
+      positiveDiff: true
+    },
+    seed: { a: 45, b: 2 },
+    distractorFormulas: [
+      { id: 'added', formula: 'a + b', misconception: 'added instead of subtract' },
+      { id: 'ones_slip', formula: 'a - b + 1', misconception: 'ones digit slip' },
+      { id: 'neighbour', formula: 'a - b - 1', misconception: 'counted one too few' }
+    ]
+  },
+  {
+    id: 'sub-two-two-numeric',
+    family: 'subtraction',
+    outcomeFamily: 'two_digit_minus_two_digit_no_borrow',
+    outcomeMatch: /2-digit numbers without regrouping|subtract up to 2-digit|patterns involving subtraction/i,
+    difficulty: 'advanced',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Subtract two 2-digit numbers without borrowing',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Subtract.',
+    questionText: '{a} - {b}',
+    answerFormula: 'a - b',
+    params: { layout: 'vertical', operation: 'subtract' },
+    constraints: {
+      a: [21, 99],
+      b: [10, 98],
+      operation: 'subtraction',
+      noBorrowing: true,
+      positiveDiff: true
+    },
+    seed: { a: 45, b: 21 },
+    distractorFormulas: [
+      { id: 'added', formula: 'a + b', misconception: 'added instead of subtract' },
+      { id: 'ones_slip', formula: 'a - b + 1', misconception: 'ones digit slip' },
+      { id: 'tens_slip', formula: 'a - b + 10', misconception: 'tens digit slip' }
+    ]
+  }
+];
+
+export const isGradeOneSubtractionContext = (ctx = {}) => {
+  if (String(ctx.grade) !== '1') return false;
+  const subject = String(ctx.subject?.name || ctx.subjectName || '').toLowerCase();
+  if (subject !== 'mathematics') return false;
+  const subStrand = stripSequencePrefix(ctx.subStrand?.name || ctx.subStrandName || '');
+  const outcomes = [
+    ...(Array.isArray(ctx.sourceOutcomes) ? ctx.sourceOutcomes : []),
+    ...(Array.isArray(ctx.learningObjectives) ? ctx.learningObjectives : []),
+    ctx.primaryOutcome
+  ]
+    .map((o) => String(o || '').toLowerCase())
+    .filter(Boolean);
+  return /subtract/.test([subStrand, ...outcomes].join(' '));
+};
+
 const FAMILY_ORDER = {
   addition: ['singles_to_10', 'two_digit_one_digit', 'multiples_of_ten'],
-  number_concept: ['one_count', 'represent_numbers']
+  number_concept: ['one_count', 'represent_numbers'],
+  subtraction: [
+    'single_digit_minus_single_digit',
+    'multiples_of_ten_minus_multiples_of_ten',
+    'two_digit_minus_one_digit_no_borrow',
+    'two_digit_minus_two_digit_no_borrow'
+  ]
 };
 
 export const detectTemplatableSkill = (ctx = {}) => {
   if (isGradeOneAdditionContext(ctx)) return 'addition';
   if (isGradeOneNumberConceptContext(ctx)) return 'number_concept';
+  if (isGradeOneSubtractionContext(ctx)) {
+    return SUBTRACTION_LADDER.length > 0 ? 'subtraction' : null;
+  }
   return null;
 };
 
 const ladderForSkill = (skill) => {
   if (skill === 'addition') return ADDITION_LADDER;
   if (skill === 'number_concept') return NUMBER_CONCEPT_LADDER;
+  if (skill === 'subtraction') return SUBTRACTION_LADDER;
   return [];
 };
 
@@ -311,12 +455,16 @@ const bindDef = (def, outcomes = []) => {
  * (represent vs one-count are different objectives).
  */
 export const laddersForOutcomes = (ctx, outcomes = []) => {
-  const skill = detectTemplatableSkill(ctx);
+  const skill = detectTemplatableSkill({
+    ...ctx,
+    sourceOutcomes: outcomes,
+    learningObjectives: outcomes
+  });
   if (!skill) return [];
   const defs = ladderForSkill(skill);
   if (!defs.length) return [];
 
-  if (skill === 'addition') {
+  if (skill === 'addition' || skill === 'subtraction') {
     const texts = outcomes.length ? outcomes : [''];
     return defs.map((def) => bindDef(def, texts));
   }
@@ -393,13 +541,15 @@ export const templatesForSession = (lesson) => {
       ? 'addition'
       : stored[0]?.family === 'number_concept'
         ? 'number_concept'
-        : null;
-  if (skill !== 'addition') return stored;
+        : stored[0]?.family === 'subtraction'
+          ? 'subtraction'
+          : null;
+  if (skill !== 'addition' && skill !== 'subtraction') return stored;
 
   const ctx = {
     grade: String(lesson.grade || '1'),
     subject: { name: 'Mathematics' },
-    subStrand: { name: 'Addition' }
+    subStrand: { name: skill === 'subtraction' ? 'Subtraction' : 'Addition' }
   };
   const outcomes = lesson.learningObjectives || [];
   const full = laddersForOutcomes(ctx, outcomes);
@@ -414,7 +564,7 @@ export const templatesForSession = (lesson) => {
 
 export const skillFromTemplates = (templates = []) => {
   const family = templates[0]?.family;
-  if (family === 'addition' || family === 'number_concept') return family;
+  if (family === 'addition' || family === 'number_concept' || family === 'subtraction') return family;
   return null;
 };
 
@@ -489,16 +639,22 @@ export const instantiateTemplate = (
       questionText: template.questionText || 'How many?'
     });
   } else {
+    const columnOp = resolveColumnOperation(
+      template.params?.operation || template.constraints?.operation
+    );
+    const instruction =
+      columnOp === 'subtract' ? VERTICAL_SUBTRACTION_INSTRUCTION : VERTICAL_ADDITION_INSTRUCTION;
     question = makeNumericEntryQuestion({
       ...shared,
       a: params.a,
       b: params.b,
       layout: 'vertical',
-      questionText: VERTICAL_ADDITION_INSTRUCTION,
-      answerFormula: template.answerFormula || 'a + b'
+      operation: columnOp,
+      questionText: instruction,
+      answerFormula: template.answerFormula || (columnOp === 'subtract' ? 'a - b' : 'a + b')
     });
-    question.question = VERTICAL_ADDITION_INSTRUCTION;
-    question.questionText = '{a} + {b}';
+    question.question = template.question || instruction;
+    question.questionText = columnOp === 'subtract' ? '{a} - {b}' : '{a} + {b}';
   }
 
   const instanceId = asSeed ? `seed-${template.id}` : `tpl-${template.id}-${randomUUID().slice(0, 8)}`;

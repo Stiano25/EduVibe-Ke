@@ -1214,15 +1214,83 @@ export const loadGenerationContext = async (subStrandId) => {
   };
 };
 
-const buildLessonShellPrompt = (ctx, lessonIndex, totalLessons) => {
+export const fallbackShellTitle = (subStrandName, lessonOrder) =>
+  `Practice: ${String(subStrandName || 'Lesson').trim()} - Part ${lessonOrder}`;
+
+export const assignedOutcomeForLesson = (outcomes = [], lessonOrder) => {
+  const idx = Number(lessonOrder) - 1;
+  if (!Number.isInteger(idx) || idx < 0 || idx >= outcomes.length) return null;
+  return outcomes[idx];
+};
+
+export const applyAssignedShellOutcome = (shell, ctx, lessonOrder, existingTitles = []) => {
+  const outcomes = ctx.sourceOutcomes || [];
+  const assigned = assignedOutcomeForLesson(outcomes, lessonOrder);
+  const next = { ...(shell || {}) };
+  if (assigned) {
+    next.learningObjectives = [assigned];
+  } else {
+    next.title = fallbackShellTitle(ctx.subStrand?.name, lessonOrder);
+  }
+  const taken = new Set(
+    (existingTitles || []).map((t) => String(t || '').trim().toLowerCase()).filter(Boolean)
+  );
+  const title = String(next.title || '').trim();
+  if (!title || taken.has(title.toLowerCase())) {
+    next.title = fallbackShellTitle(ctx.subStrand?.name, lessonOrder);
+  }
+  return next;
+};
+
+/** Empty fixed-pool quizzes stay pending so admin can review the shell.
+ *  Approve is blocked separately until approved bank items exist. */
+export const emptyFixedPoolDraftStatus = ({ source } = {}) => {
+  void source;
+  return 'pending';
+};
+
+export const warnDraftEmptyQuizzes = (savedLessons = [], generatedLessons = []) => {
+  savedLessons.forEach((saved, i) => {
+    const questions = saved?.quiz?.questions || [];
+    if (saved?.quiz?.source === QUIZ_SOURCE_TEMPLATES) return;
+    if (questions.length > 0) return;
+    const pending = generatedLessons[i]?._pendingBankCount ?? 0;
+    console.warn(
+      `Lesson ${saved.id} held in draft: 0 approved questions found, ${pending} pending in queue.`
+    );
+  });
+};
+
+export const buildLessonShellPrompt = (ctx, lessonOrder, totalLessons, { existingTitles = [] } = {}) => {
   const { ageGroup, grade, subject, strand, subStrand, outcomesBlock, exemplarsBlock, profile } = ctx;
   const diagramTypeList = profile.allowedDiagramTypes.join('|');
-  return `You are a Kenyan CBC tutor. Write ONE short lesson SHELL (lesson ${lessonIndex} of ${totalLessons}) for ${ageGroup} (Grade ${grade}).
+  const outcomes = ctx.sourceOutcomes || [];
+  const assigned = assignedOutcomeForLesson(outcomes, lessonOrder);
+  const gradeOne = String(ctx.grade) === '1' || Number(ctx.gradeNumber) === 1;
+  const teachingStyle = gradeOne
+    ? `TEACHING STYLE (Grade 1 — show, do not explain):
+- Do NOT write Mini Notes, Worked Example headings, Practice Prompts, or any labeled explanation notes.
+- One or two very short sentences a child can hear out loud.
+- Diagrams do the teaching. Text only names what is on the diagram.
+- End with one short try-it line — not a heading, not an explanation.`
+    : profile.teachingStyle;
+  const existingBlock = existingTitles.length
+    ? `Never reuse a title. Existing titles (do not copy):\n${existingTitles
+        .map((t) => `- ${String(t).slice(0, 120)}`)
+        .join('\n')}`
+    : 'Never reuse a title.';
+  const outcomeInstruction = assigned
+    ? `You are generating the title and description for Lesson ${lessonOrder} of ${totalLessons}. Select the outcome at index ${lessonOrder} from the list. Never reuse a title. Ensure the title is uniquely descriptive of this specific lesson's outcome.
+learningObjectives must be exactly this one outcome (verbatim): "${assigned}"`
+    : `You are generating the title and description for Lesson ${lessonOrder} of ${totalLessons}. Lesson ${lessonOrder} is beyond the ${outcomes.length} listed outcomes. Set title to exactly "${fallbackShellTitle(subStrand?.name, lessonOrder)}". Write a short practice shell for ${subStrand?.name}. Do not invent a new outcome.`;
+
+  return `You are a Kenyan CBC tutor. Write ONE short lesson SHELL (lesson ${lessonOrder} of ${totalLessons}) for ${ageGroup} (Grade ${grade}).
 
 Do NOT include quiz questions yet. Quiz comes in a later step.
 
 RULES:
-- Use ONLY the numbered outcomes below (exact wording in learningObjectives; pick 1–2).
+- ${outcomeInstruction}
+- ${existingBlock}
 - No markdown headings/bullets, no emojis.
 - INLINE EMPHASIS: mark key vocabulary and examples inline using {{term:word}} for
   important vocabulary and {{example:word}} for specific examples. Use sparingly —
@@ -1234,7 +1302,7 @@ RULES:
 - Keep teaching SHORT: 2–3 short text blocks + diagrams between them.
 - ${profile.mathRule}
 
-${profile.teachingStyle}
+${teachingStyle}
 
 Context: ${subject.name} · ${strand.name}${strand.theme ? ` · ${strand.theme}` : ''} · ${subStrand.name}
 Outcomes:
@@ -1647,7 +1715,7 @@ ${JSON.stringify(
   return questions;
 };
 
-const mapGeneratedLesson = (lesson, index, ctx) => {
+const mapGeneratedLesson = (lesson, index, ctx, options = {}) => {
   const { subStrand, subject, sourceOutcomes } = ctx;
 
   let learningObjectives = Array.isArray(lesson.learningObjectives)
@@ -1707,8 +1775,8 @@ const mapGeneratedLesson = (lesson, index, ctx) => {
     examples: lesson.examples || [],
     summary: lesson.summary || '',
     isAIGenerated: true,
-    status: 'pending',
-    lessonOrder: lesson.lessonOrder ?? index + 1,
+    status: options.status || 'pending',
+    lessonOrder: options.lessonOrder ?? lesson.lessonOrder ?? index + 1,
     quiz: {
       ...quizNormalized,
       ...(quizSource ? { source: quizSource } : {}),
@@ -1745,11 +1813,21 @@ export const generateLessonsFromSubStrand = async (
 
     reportProgress(onProgress, 12, 'Retrieving exam exemplars…');
 
+    const { Lesson } = await import('../../models/Lesson.js');
+    const existingLessons = await Lesson.findBySubStrand(subStrandId);
+    const usedTitles = existingLessons.map((l) => l.title).filter(Boolean);
+    const maxOrder = existingLessons.reduce(
+      (m, l) => Math.max(m, Number(l.lessonOrder) || 0),
+      0
+    );
+    const totalLessons = Math.max(ctx.sourceOutcomes.length, maxOrder + total);
+
     const lessons = [];
 
     for (let i = 0; i < total; i++) {
       const span = 78 / total;
       const start = 14 + i * span;
+      const lessonOrder = maxOrder + i + 1;
 
       // ——— Phase 1: lesson shell (no quiz) ———
       reportProgress(
@@ -1758,7 +1836,7 @@ export const generateLessonsFromSubStrand = async (
         `Lesson ${i + 1}/${total}: writing content…`
       );
       const { text: shellText } = await generateContent({
-        prompt: buildLessonShellPrompt(ctx, i + 1, total),
+        prompt: buildLessonShellPrompt(ctx, lessonOrder, totalLessons, { existingTitles: usedTitles }),
         maxTokens: GENERATION_TOKEN_LIMITS.lessonShell,
         label: `lesson ${i + 1} shell`,
         onWait: (msg) => reportProgress(onProgress, start, msg)
@@ -1769,13 +1847,16 @@ export const generateLessonsFromSubStrand = async (
         reportProgress(onProgress, start + span * 0.2, `Lesson ${i + 1}: retrying content…`);
         await sleep(AI_CALL_GAP_MS);
         const { text: retryText } = await generateContent({
-          prompt: buildLessonShellPrompt(ctx, i + 1, total),
+          prompt: buildLessonShellPrompt(ctx, lessonOrder, totalLessons, { existingTitles: usedTitles }),
           maxTokens: GENERATION_TOKEN_LIMITS.lessonShell,
           label: `lesson ${i + 1} shell retry`
         });
         const retryParsed = parseOneLessonJson(retryText, ctx, i);
         if (!retryParsed.parseFailed) shell = retryParsed.data;
       }
+
+      shell = applyAssignedShellOutcome(shell, ctx, lessonOrder, usedTitles);
+      if (shell.title) usedTitles.push(shell.title);
 
       // ——— Phase 2: quiz — templates, or approved bank (no 30-item AI pad) ———
       const bankQuestions = [];
@@ -1864,6 +1945,24 @@ export const generateLessonsFromSubStrand = async (
         }
       }
 
+      let pendingBankCount = 0;
+      if (contentSource !== QUIZ_SOURCE_TEMPLATES) {
+        try {
+          const { QuestionBankEntry } = await import('../../models/QuestionBankEntry.js');
+          const pendingRows = await QuestionBankEntry.list({
+            status: 'pending',
+            subStrandId: ctx.subStrand.id,
+            limit: 200
+          });
+          pendingBankCount = pendingRows.length;
+        } catch (countErr) {
+          console.warn(
+            `Lesson ${i + 1}: pending bank count skipped:`,
+            countErr.message || countErr
+          );
+        }
+      }
+
       const merged = mergeShellAndQuiz(shell, {
         quiz: {
           title: 'Quiz Challenge',
@@ -1878,7 +1977,16 @@ export const generateLessonsFromSubStrand = async (
         }
       });
 
-      const mapped = mapGeneratedLesson(merged, i, ctx);
+      const lessonStatus = emptyFixedPoolDraftStatus({
+        source: contentSource,
+        approvedCount: bankQuestions.length,
+        pendingCount: pendingBankCount
+      });
+      const mapped = mapGeneratedLesson(merged, i, ctx, {
+        status: lessonStatus,
+        lessonOrder
+      });
+      mapped._pendingBankCount = pendingBankCount;
       const report = mapped.quiz?.coverageReport;
       if (report) {
         console.log(
@@ -1886,7 +1994,9 @@ export const generateLessonsFromSubStrand = async (
         );
       }
       if ((mapped.quiz?.questions || []).length === 0 && contentSource !== QUIZ_SOURCE_TEMPLATES) {
-        console.warn(`Lesson ${i + 1}: no approved quiz items yet — pending bank review required`);
+        console.warn(
+          `Lesson ${i + 1}: 0 approved questions, ${pendingBankCount} pending in queue — reviewable, not approvable until bank review`
+        );
       } else {
         console.log(
           `Lesson ${i + 1} ready: source=${mapped.quiz?.source || 'fixed_pool'} questions=${(mapped.quiz?.questions || []).length} templates=${(mapped.quiz?.templates || []).length}`
@@ -2052,7 +2162,11 @@ export const topUpLessonQuizBank = async (lessonId) => {
     coverageReport
   };
 
-  let updated = await Lesson.update(lessonId, { quiz });
+  const patch = { quiz };
+  if (lesson.status === 'draft' && mergedQuestions.length > 0) {
+    patch.status = 'pending';
+  }
+  let updated = await Lesson.update(lessonId, patch);
 
   if (lesson.status === 'approved' && normalized.questionBriefs.length > 0) {
     try {

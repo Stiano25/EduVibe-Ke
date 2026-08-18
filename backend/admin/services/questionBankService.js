@@ -9,6 +9,7 @@ import {
 } from './lessonGenerationService.js';
 import { retrieveQuizExemplars, formatQuizExemplarsForPrompt } from './knowledgeRetrieveService.js';
 import { isGradeOneAdditionContext } from '../../utils/additionTemplate.js';
+import { isGradeOneSubtractionContext } from '../../utils/templateLadders.js';
 import { resolveInteractionType } from '../../utils/interactionTypes.js';
 import { QuestionBankEntry, QuestionBankServe } from '../../models/QuestionBankEntry.js';
 
@@ -27,6 +28,13 @@ const buildBankGenerationPrompt = (ctx, count, quizExemplarsBlock) => {
   const ceiling = complexityBand?.constrained
     ? `GRADE COMPLEXITY CEILING: at most ${complexityBand.maxSentences} sentence(s) and ${complexityBand.maxWords} words per stem.`
     : `Write clearly for ${ageGroup} (Grade ${grade}).`;
+  const subtractive =
+    isGradeOneSubtractionContext(ctx) ||
+    /subtract/i.test(String(subStrand?.name || '')) ||
+    /subtract/i.test(String(outcomesBlock || ''));
+  const layoutHint = subtractive
+    ? `For Grade 1 subtraction, prefer numeric_entry with params.layout "vertical", params.operation "subtract", and question "Subtract." (stacked digits, no story), drag_to_target for "show this many", and picture options when the choice is a quantity of a named object. Keep plain-text multiple_choice for abstract number comparisons.`
+    : `For Grade 1 counting/addition, prefer numeric_entry with params.layout "vertical" and question "Add." (stacked digits, no story), drag_to_target for "show this many", and picture options when the choice is a quantity of a named object. Keep plain-text multiple_choice for abstract number comparisons.`;
 
   return `Create ${count} ORIGINAL multiple-choice quiz questions for Kenyan CBC Grade ${grade} ${subject.name} · ${strand.name} · ${subStrand.name}, for ${ageGroup}.
 
@@ -47,7 +55,7 @@ Return ONLY one JSON object:
 { "quiz": { "questions": [ /* exactly ${count} items */ ] } }
 
 Each question: question, interactionType (multiple_choice, numeric_entry, or drag_to_target), options (3-4 strings or {diagramType,params} picture options) and correctAnswerIndex for multiple_choice, or params {a,b} and answerFormula for numeric_entry, or params {a,b,target,objectPool,objectKind} and answerFormula for drag_to_target, explanation (max 16 words), distractors[{"optionIndex","misconception":"max 8 words"}] for MCQ, reviewRationale[{"optionIndex","text"}] for EVERY MCQ option, learningOutcomeIndex, bloomLevel (recall|understand|apply|reason), modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
-For Grade 1 counting/addition, prefer numeric_entry with params.layout "vertical" and question "Add." (stacked digits, no story), drag_to_target for "show this many", and picture options when the choice is a quantity of a named object. Keep plain-text multiple_choice for abstract number comparisons.
+${layoutHint}
 Do NOT include id, type, template, or feedback fields.
 Do NOT set template:true. These are fixed reviewed items, not parametrized templates.
 Keep learner-facing strings concise. Complete valid JSON only. No markdown fences.`;
@@ -77,9 +85,11 @@ const toBankRow = (normalizedQuestion, ctx, { status, styleSourceNote, qaFlagged
 export const generateQuestionBankBatch = async (subStrandId, { count = BANK_BATCH_DEFAULT } = {}) => {
   const n = Math.min(BANK_BATCH_MAX, Math.max(4, Number(count) || BANK_BATCH_DEFAULT));
   const ctx = await loadGenerationContext(subStrandId);
-  if (isGradeOneAdditionContext(ctx)) {
+  if (isGradeOneAdditionContext(ctx) || isGradeOneSubtractionContext(ctx)) {
     throw new Error(
-      'Grade 1 Addition uses the template/twist engine. Do not generate reviewed bank items for this sub-strand.'
+      isGradeOneSubtractionContext(ctx)
+        ? 'Grade 1 Subtraction uses the template/twist engine. Do not generate reviewed bank items for this sub-strand.'
+        : 'Grade 1 Addition uses the template/twist engine. Do not generate reviewed bank items for this sub-strand.'
     );
   }
 

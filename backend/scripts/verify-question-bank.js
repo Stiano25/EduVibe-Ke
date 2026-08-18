@@ -5,7 +5,14 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { normalizeQuiz } from '../admin/services/lessonGenerationService.js';
+import {
+  normalizeQuiz,
+  emptyFixedPoolDraftStatus,
+  assignedOutcomeForLesson,
+  fallbackShellTitle,
+  applyAssignedShellOutcome,
+  buildLessonShellPrompt
+} from '../admin/services/lessonGenerationService.js';
 import {
   createAdaptiveSession,
   advanceAdaptiveSession
@@ -97,12 +104,28 @@ assert(
   bankService.includes("Grade 1 Addition uses the template/twist engine"),
   'bank generation refuses Grade 1 Addition'
 );
+assert(
+  bankService.includes("Grade 1 Subtraction uses the template/twist engine"),
+  'bank generation refuses Grade 1 Subtraction'
+);
+assert(
+  bankService.includes('params.operation "subtract"') &&
+    bankService.includes('question "Subtract."'),
+  'bank prompt describes Grade 1 subtraction columns'
+);
+assert(
+  bankService.includes('For Grade 1 counting/addition, prefer numeric_entry'),
+  'bank prompt keeps the addition default for non-subtraction strands'
+);
 
 const genService = readFileSync(join(here, '../admin/services/lessonGenerationService.js'), 'utf8');
 assert(genService.includes('pullApprovedBankQuestions'), 'lesson gen pulls approved bank items');
 assert(genService.includes('resolveContentSource'), 'lesson gen branches on template vs fixed pool');
 assert(genService.includes('QUIZ_SOURCE_TEMPLATES'), 'template-backed lessons are flagged');
 assert(genService.includes('generateQuestionBankBatch'), 'gap fill enqueues pending bank items');
+assert(genService.includes('emptyFixedPoolDraftStatus'), 'empty fixed-pool lessons stay reviewable');
+assert(genService.includes('Select the outcome at index'), 'shell prompt assigns an outcome by lesson order');
+assert(genService.includes('Do NOT write Mini Notes'), 'Grade 1 shell forbids explanation notes');
 assert(
   !genService.includes('for (let c = 0; c < QUIZ_CHUNKS.length'),
   'lesson generation no longer AI-chunks toward 30'
@@ -111,6 +134,94 @@ assert(
   genService.includes('template-backed — top-up does not apply'),
   'template-backed top-up is a no-op'
 );
+
+assert(
+  emptyFixedPoolDraftStatus({
+    source: 'fixed_pool',
+    approvedCount: 0,
+    pendingCount: 12
+  }) === 'pending',
+  'empty fixed-pool stays pending so admin can review the shell'
+);
+assert(
+  emptyFixedPoolDraftStatus({
+    source: 'fixed_pool',
+    approvedCount: 4,
+    pendingCount: 12
+  }) === 'pending',
+  'fixed-pool with approved items stays pending'
+);
+assert(
+  emptyFixedPoolDraftStatus({
+    source: 'templates',
+    approvedCount: 0,
+    pendingCount: 12
+  }) === 'pending',
+  'template-backed lessons are not held as empty drafts'
+);
+
+const additionOutcomes = [
+  'model addition as putting objects together',
+  "use '+' and '=' signs in writing addition sentences",
+  'add 2-single digit numbers up to a sum of 10',
+  'add 3-single digit numbers up to a sum of 10 in different contexts',
+  'add a 2-digit number to a 1-digit number without regrouping, horizontally and vertically with sum not exceeding 100',
+  'add multiples of 10 up to 100 vertically',
+  'work out missing numbers in patterns involving addition of whole numbers up to 100'
+];
+assert(
+  assignedOutcomeForLesson(additionOutcomes, 1) === additionOutcomes[0],
+  'lesson 1 is assigned outcome 1'
+);
+assert(
+  assignedOutcomeForLesson(additionOutcomes, 5) === additionOutcomes[4],
+  'lesson 5 is assigned the 2-digit outcome, not always'
+);
+assert(assignedOutcomeForLesson(additionOutcomes, 8) === null, 'out-of-bounds lesson has no outcome');
+assert(
+  fallbackShellTitle('Addition', 8) === 'Practice: Addition - Part 8',
+  'out-of-bounds title is generic'
+);
+
+const shellCtx = {
+  ageGroup: 'very young children (ages 5-7)',
+  grade: '1',
+  subject: { name: 'Mathematics' },
+  strand: { name: 'Numbers' },
+  subStrand: { name: 'Addition', keyInquiryQuestions: [] },
+  outcomesBlock: additionOutcomes.map((o, i) => `${i + 1}. ${o}`).join('\n'),
+  sourceOutcomes: additionOutcomes,
+  exemplarsBlock: '',
+  profile: {
+    mathRule: 'plain text',
+    teachingStyle: 'worked examples',
+    allowedDiagramTypes: ['number_line'],
+    diagramGuidance: '- counting → number_line'
+  }
+};
+const prompt = buildLessonShellPrompt(shellCtx, 2, 7, {
+  existingTitles: ['Adding a 2-Digit Number and a 1-Digit Number']
+});
+assert(prompt.includes('Select the outcome at index 2'), 'prompt pins lesson order to an outcome index');
+assert(prompt.includes(additionOutcomes[1]), 'prompt quotes the assigned outcome');
+assert(prompt.includes('Adding a 2-Digit Number and a 1-Digit Number'), 'prompt lists existing titles');
+assert(!prompt.includes('pick 1–2'), 'prompt no longer lets the model pick any outcome');
+assert(prompt.includes('Do NOT write Mini Notes'), 'Grade 1 prompt forbids Mini Notes');
+
+const outOfBoundsPrompt = buildLessonShellPrompt(shellCtx, 8, 8);
+assert(
+  outOfBoundsPrompt.includes('Practice: Addition - Part 8'),
+  'out-of-bounds prompt forces the generic title'
+);
+
+const forced = applyAssignedShellOutcome(
+  { title: 'Adding a 2-Digit Number and a 1-Digit Number', learningObjectives: [additionOutcomes[4]] },
+  shellCtx,
+  1,
+  ['Adding a 2-Digit Number and a 1-Digit Number']
+);
+assert(forced.learningObjectives[0] === additionOutcomes[0], 'forced shell uses the assigned outcome');
+assert(forced.title === 'Practice: Addition - Part 1', 'duplicate titles are replaced');
 
 const entryModel = readFileSync(join(here, '../models/QuestionBankEntry.js'), 'utf8');
 assert(

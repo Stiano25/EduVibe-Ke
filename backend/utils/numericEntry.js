@@ -14,8 +14,10 @@ import {
   DEFAULT_ADDITION_LAYOUT,
   HORIZONTAL_ADDITION_PATTERN,
   VERTICAL_ADDITION_INSTRUCTION,
+  VERTICAL_SUBTRACTION_INSTRUCTION,
   renderHorizontalAdditionStem,
   resolveAdditionLayout,
+  resolveColumnOperation,
   resolveScaffoldCarry
 } from './additionLayout.js';
 import { expectedScalarForQuestion } from './expectedScalar.js';
@@ -42,13 +44,22 @@ export const makeNumericEntryQuestion = ({
   layout = DEFAULT_ADDITION_LAYOUT,
   constraints: rawConstraints = null,
   difficulty = 'easy',
-  answerFormula: rawFormula = null
+  answerFormula: rawFormula = null,
+  operation: rawOperation = 'add'
 } = {}) => {
   const pair = { a: asInt(a, 4), b: asInt(b, 6) };
+  const operation = resolveColumnOperation(rawOperation);
+  const subtract = operation === 'subtract';
+  if (subtract && pair.a < pair.b) {
+    throw new Error(`Grade 1 subtraction requires a >= b (got ${pair.a} - ${pair.b})`);
+  }
   const resolvedLayout = resolveAdditionLayout(layout);
+  const verticalInstruction = subtract
+    ? VERTICAL_SUBTRACTION_INSTRUCTION
+    : VERTICAL_ADDITION_INSTRUCTION;
   const text =
     resolvedLayout === 'vertical'
-      ? VERTICAL_ADDITION_INSTRUCTION
+      ? verticalInstruction
       : renderHorizontalAdditionStem(pair.a, pair.b, questionText || HORIZONTAL_ADDITION_PATTERN);
   const kind = objectKind || inferObjectKind(questionText);
   return {
@@ -56,7 +67,7 @@ export const makeNumericEntryQuestion = ({
     question: text,
     questionText:
       resolvedLayout === 'vertical'
-        ? VERTICAL_ADDITION_INSTRUCTION
+        ? verticalInstruction
         : questionText || HORIZONTAL_ADDITION_PATTERN,
     type: 'numeric-entry',
     interactionType: 'numeric_entry',
@@ -69,19 +80,25 @@ export const makeNumericEntryQuestion = ({
       a: pair.a,
       b: pair.b,
       layout: resolvedLayout,
-      scaffoldCarry: resolveScaffoldCarry(null, { layout: resolvedLayout }),
+      scaffoldCarry: subtract
+        ? false
+        : resolveScaffoldCarry(null, { layout: resolvedLayout }),
+      ...(subtract ? { operation: 'subtract' } : {}),
       ...(kind ? { objectKind: kind } : {})
     },
     constraints: normalizeAdditionConstraints(
-      rawConstraints || { a: [1, 9], b: [1, 9], sumMax: 10 }
+      rawConstraints ||
+        (subtract
+          ? { a: [2, 9], b: [1, 8], operation: 'subtraction', positiveDiff: true }
+          : { a: [1, 9], b: [1, 9], sumMax: 10 })
     ),
-    answerFormula: rawFormula || 'a + b',
+    answerFormula: rawFormula || (subtract ? 'a - b' : 'a + b'),
     skillFocus,
     bloomLevel,
     modality: kind ? 'visual' : 'practice',
     difficulty,
     learningOutcomeIndex,
-    explanation: 'Add the two numbers.'
+    explanation: subtract ? 'Subtract the two numbers.' : 'Add the two numbers.'
   };
 };
 

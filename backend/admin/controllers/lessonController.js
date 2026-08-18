@@ -1,7 +1,8 @@
 import { Lesson } from '../../models/Lesson.js';
 import {
   generateLessonsFromSubStrand,
-  topUpLessonQuizBank
+  topUpLessonQuizBank,
+  warnDraftEmptyQuizzes
 } from '../services/lessonGenerationService.js';
 import { runWithGenerationUsage } from '../../providers/contentProvider.js';
 import {
@@ -69,6 +70,7 @@ export const createAIGeneratedLessons = async (req, res) => {
         );
         send({ type: 'progress', percent: 96, message: 'Saving lessons…' });
         const lessons = await Lesson.createMany(generatedLessons);
+        warnDraftEmptyQuizzes(lessons, generatedLessons);
         try {
           const { recordLessonBankServes } = await import('../services/questionBankService.js');
           await recordLessonBankServes(lessons);
@@ -97,6 +99,7 @@ export const createAIGeneratedLessons = async (req, res) => {
       generateLessonsFromSubStrand(subStrandId, numberOfLessons)
     );
     const lessons = await Lesson.createMany(generatedLessons);
+    warnDraftEmptyQuizzes(lessons, generatedLessons);
     try {
       const { recordLessonBankServes } = await import('../services/questionBankService.js');
       await recordLessonBankServes(lessons);
@@ -271,6 +274,18 @@ export const topUpQuizBank = async (req, res) => {
 
 export const approveLesson = async (req, res) => {
   try {
+    const existing = await Lesson.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+    const questions = existing.quiz?.questions || [];
+    if (existing.quiz?.source !== 'templates' && questions.length === 0) {
+      return res.status(400).json({
+        error:
+          'Cannot approve a lesson with no quiz questions. Approve pending bank items, then top up.'
+      });
+    }
+
     let lesson = await Lesson.update(req.params.id, {
       status: 'approved',
       approvedAt: new Date().toISOString()

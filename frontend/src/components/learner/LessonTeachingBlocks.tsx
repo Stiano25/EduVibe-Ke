@@ -10,6 +10,7 @@ interface LessonTeachingBlocksProps {
   images?: string[]
   /** When true, prefer showing diagrams even without visual preference */
   showDiagrams?: boolean
+  hideExplanationNotes?: boolean
 }
 
 const resolveAsset = (
@@ -43,6 +44,7 @@ export const LessonTeachingBlocks = ({
   visualAssets = [],
   images = [],
   showDiagrams = true,
+  hideExplanationNotes = false,
 }: LessonTeachingBlocksProps) => {
   const blocks =
     contentBlocks && contentBlocks.length > 0
@@ -106,7 +108,7 @@ export const LessonTeachingBlocks = ({
         if (block.type === 'text' && block.text) {
           return (
             <div key={block.id || `t-${i}`} className="prose max-w-none">
-              <LessonContentRenderer content={block.text} />
+              <LessonContentRenderer content={block.text} hideExplanationNotes={hideExplanationNotes} />
             </div>
           )
         }
@@ -130,5 +132,6 @@ export const LessonTeachingFromLesson = ({ lesson, showDiagrams = true }: Lesson
     visualAssets={lesson.visualAssets}
     images={lesson.images}
     showDiagrams={showDiagrams}
+    hideExplanationNotes={String(lesson.grade) === '1'}
   />
 )

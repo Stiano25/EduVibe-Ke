@@ -139,7 +139,11 @@ export const LearnerDashboard = () => {
                           </p>
                         ) : null}
                       </div>
-                      <LearnerPathBoard subjects={path.subjects} loading={loadingPath} />
+                      <LearnerPathBoard
+                        subjects={path.subjects}
+                        currentLessonId={path.currentLessonId}
+                        loading={loadingPath}
+                      />
                     </div>
                   ) : null}
                   <UnitCompleteCelebration subjects={path.subjects} />

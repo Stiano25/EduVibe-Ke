@@ -4,6 +4,7 @@ import { LazyLottie } from '@/components/ui/LazyLottie'
 import { animationKeyForSubjectName } from '@/lib/lottieAnimations'
 import { QUEST_COPY } from '@/lib/complexityBands'
 import { learnerButton } from '@/lib/learnerUi'
+import { BannerDecor } from '@/components/learner/BannerDecor'
 
 export type NextTaskPayload = {
   lessonId: string
@@ -51,7 +52,8 @@ export const QuestNextCard = ({
 }: QuestNextCardProps) => {
   if (loading) {
     return (
-      <div className="relative min-h-[176px] overflow-hidden rounded-ev-lg bg-ev-green shadow-ev-card">
+      <div className="relative min-h-[176px] overflow-hidden rounded-ev-lg bg-ev-green ev-banner-depth">
+        <BannerDecor accent="green" variant="hero" />
         <div className="relative z-10 flex min-h-[176px] max-w-[62%] flex-col justify-center p-5 sm:p-6">
           <p className="text-2xl font-black leading-tight text-white sm:text-3xl">Loading…</p>
         </div>
@@ -65,7 +67,11 @@ export const QuestNextCard = ({
   const task = data?.task
   if (!task) {
     return (
-      <div className="relative min-h-[168px] overflow-hidden rounded-ev-lg bg-ev-green shadow-ev-card">
+      <div
+        className="relative min-h-[168px] overflow-hidden rounded-ev-lg bg-ev-green ev-banner-depth"
+        data-quest-hero="done"
+      >
+        <BannerDecor accent="green" variant="hero" />
         <div className="relative z-10 flex min-h-[168px] max-w-[62%] flex-col justify-center p-5 sm:p-6">
           <p className="text-2xl font-black leading-tight text-white sm:text-3xl">
             {hasOpenLessons ? QUEST_COPY.chooseAny : QUEST_COPY.done}
@@ -89,9 +95,14 @@ export const QuestNextCard = ({
   const animationKey = animationKeyForSubjectName(task.subjectName)
   const progress = Math.max(0, Math.min(100, task.progress || 0))
   const fill = task.progress > 0 ? 'bg-ev-blue' : 'bg-ev-green'
+  const accent = task.progress > 0 ? 'blue' : 'green'
 
   return (
-    <div className={`relative min-h-[176px] overflow-hidden rounded-ev-lg ${fill} shadow-ev-card`}>
+    <div
+      className={`relative min-h-[176px] overflow-hidden rounded-ev-lg ${fill} ev-banner-depth`}
+      data-quest-hero="task"
+    >
+      <BannerDecor accent={accent} variant="hero" />
       <div className="relative z-10 flex min-h-[176px] flex-col justify-between p-5 pr-28 sm:p-6 sm:pr-40">
         <div>
           <p className="text-sm font-bold text-white/80">{task.subjectName || QUEST_COPY.next}</p>

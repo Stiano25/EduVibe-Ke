@@ -14,6 +14,8 @@ import {
 import { LiveInteraction, ReviewInteraction } from './quiz/interactionRegistry'
 import type { AdaptiveQuestion, LiveFlash, ReviewItem } from './quiz/types'
 import type { Lesson } from '@/types'
+import { CheckpointHud } from './path/CheckpointHud'
+import type { ObstacleKey } from '@/lib/learnerPathRoad'
 
 /** Confetti animation is 0.85s; hold at least this long on a fast round-trip. */
 const CORRECT_HOLD_MS = 600
@@ -54,12 +56,19 @@ type QuizMeta = {
   modalitySignal?: { source?: string; modality?: string | null }
 }
 
+type CheckpointEncounter = {
+  obstacleKey: ObstacleKey
+  unitName: string
+}
+
 interface AdaptiveQuizPanelProps {
   lesson: Lesson & { isCompleted?: boolean; sessionReview?: unknown; progress?: number }
   lessonId: string
   preferredModality: string
   onSessionComplete?: (pct: number, passed: boolean, topicMastered?: boolean) => void
   resolveDiagramUrl?: (briefId?: string | null) => string | null
+  /** Last lesson of a unit — meter shrinks on correct answers only. */
+  checkpoint?: CheckpointEncounter | null
 }
 
 const displayPctFromReview = (review: ReviewPayload, grade?: string | number | null) => {
@@ -75,6 +84,7 @@ export const AdaptiveQuizPanel = ({
   lessonId,
   onSessionComplete,
   resolveDiagramUrl,
+  checkpoint = null,
 }: AdaptiveQuizPanelProps) => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -90,6 +100,7 @@ export const AdaptiveQuizPanel = ({
   const [review, setReview] = useState<ReviewPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [soundOn, setSoundOn] = useState(isQuizSoundOn)
+  const [correctHits, setCorrectHits] = useState(0)
   const interactiveRef = useRef<HTMLDivElement>(null)
   const onCompleteRef = useRef(onSessionComplete)
   onCompleteRef.current = onSessionComplete
@@ -132,6 +143,8 @@ export const AdaptiveQuizPanel = ({
         if (res.mode === 'review' && res.review) {
           setMode('review')
           setReview(res.review)
+          const scored = res.review.score?.correct ?? 0
+          setCorrectHits(scored)
           if (isGrade1to3(lesson.grade)) {
             notifySessionComplete(res.review, res.completed)
           }
@@ -140,6 +153,8 @@ export const AdaptiveQuizPanel = ({
           setSession(res.session || null)
           setQuestion(res.question || null)
           setMeta(res.meta || null)
+          const prior = Number((res.session as { mainScoreCorrect?: number } | null)?.mainScoreCorrect) || 0
+          setCorrectHits(prior)
         }
       } catch (err) {
         if (!cancelled) {
@@ -170,6 +185,8 @@ export const AdaptiveQuizPanel = ({
 
   const displayPhase = heldLabel?.phase ?? meta?.phase
   const displayLabel = heldLabel?.progressLabel ?? meta?.progressLabel
+  const meterTarget = Math.max(1, Number(meta?.mainTarget) || 10)
+  const checkpointRemaining = Math.max(0, Math.min(100, 100 - (correctHits / meterTarget) * 100))
 
   /** Tap an option → submit immediately (no separate Submit button). */
   const submitAnswer = async ({
@@ -225,6 +242,11 @@ export const AdaptiveQuizPanel = ({
           explanation: res.lastAnswer.explanation,
         })
         if (!optimistic) playAnswerSound(res.lastAnswer.correct)
+        // Obstacle meter: correct shrinks resistance. A miss does not grow it
+        // back, reset the lesson, or touch earlier progress.
+        if (res.lastAnswer.correct) {
+          setCorrectHits((n) => n + 1)
+        }
       }
 
       setSession(res.session)
@@ -358,10 +380,17 @@ export const AdaptiveQuizPanel = ({
 
   return (
     <div className="space-y-5">
+      {checkpoint ? (
+        <CheckpointHud
+          obstacleKey={checkpoint.obstacleKey}
+          unitName={checkpoint.unitName}
+          remaining={checkpointRemaining}
+        />
+      ) : null}
       <div>
         <div className="flex items-center justify-between gap-3 mb-2">
           <h2 className="text-2xl sm:text-3xl font-black text-ev-ink">
-            Quiz: {lesson.quiz?.title || 'Practice'}
+            {checkpoint ? 'Checkpoint' : `Quiz: ${lesson.quiz?.title || 'Practice'}`}
           </h2>
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-semibold text-ev-muted">{displayLabel || '…'}</span>

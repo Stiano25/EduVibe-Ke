@@ -14,11 +14,14 @@ import { modalityLabel } from '@/lib/modalityQuiz'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
 import { QuestLessonSwitch } from '@/components/learner/QuestLessonSwitch'
 import { usesQuestNavigation, isGrade1to3 } from '@/lib/complexityBands'
+import { useLearnerPath } from '@/hooks/useLearnerPath'
+import { checkpointForLesson } from '@/lib/learnerPathRoad'
 
 export const LessonView = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const { path } = useLearnerPath({ enabled: usesQuestNavigation(user?.grade) })
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -426,6 +429,7 @@ export const LessonView = () => {
 
   const questNav = usesQuestNavigation(lesson.grade)
   const earlyPrimary = isGrade1to3(lesson.grade)
+  const checkpoint = id ? checkpointForLesson(path.subjects, id) : null
   const quizScore = showResults ? { percentage: sessionPct, score: 0, total: 0 } : null
   const performanceCategory = quizScore ? getPerformanceCategory(quizScore.percentage) : null
   const performanceMessage = performanceCategory
@@ -553,6 +557,11 @@ export const LessonView = () => {
                       preferredModality={preferredModality}
                       resolveDiagramUrl={resolveDiagramUrl}
                       onSessionComplete={handleAdaptiveSessionComplete}
+                      checkpoint={
+                        checkpoint
+                          ? { obstacleKey: checkpoint.obstacleKey, unitName: checkpoint.unitName }
+                          : null
+                      }
                     />
 
                     {showResults && performanceMessage && (

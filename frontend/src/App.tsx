@@ -63,6 +63,9 @@ const LearnerRecommendations = lazy(() =>
     default: m.LearnerRecommendations,
   }))
 )
+const LearnerBadges = lazy(() =>
+  import('@/pages/learner/Badges').then((m) => ({ default: m.LearnerBadges }))
+)
 
 const PageFallback = () => (
   <div className="min-h-[40vh] flex items-center justify-center">
@@ -254,6 +257,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="learner">
               <LearnerRecommendations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/learner/badges"
+          element={
+            <ProtectedRoute requiredRole="learner">
+              <LearnerBadges />
             </ProtectedRoute>
           }
         />

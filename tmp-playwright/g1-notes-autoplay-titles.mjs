@@ -94,6 +94,45 @@ const handleApi = (url, mode) => {
   if (p.endsWith('/learner/lesson-choices')) {
     return json({ grade: '1', choices: additionChoices });
   }
+  if (p.endsWith('/learner/path')) {
+    return json({
+      grade: '1',
+      currentLessonId: additionChoices[0].lessonId,
+      subjects: [
+        {
+          subjectId: 'sub-1',
+          subjectName: 'Mathematics',
+          strands: [
+            {
+              strandId: 'strand-1',
+              strandName: 'Numbers',
+              sequenceNumber: 1,
+              units: [
+                {
+                  unitId: '45091d21-4a36-4426-8c43-df6be71d93e0',
+                  subStrandId: 'ss-1',
+                  unitName: 'Addition',
+                  sequenceNumber: 3,
+                  lessonsAllocated: 25,
+                  isUnlocked: true,
+                  isFullyCompleted: false,
+                  lessons: additionChoices.map((choice, i) => ({
+                    lessonId: choice.lessonId,
+                    title: choice.title,
+                    lessonOrder: i + 1,
+                    isUnlocked: choice.isUnlocked,
+                    isDone: choice.isCompleted,
+                    progress: choice.progress,
+                    isCurrent: i === 0
+                  }))
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+  }
   if (p.endsWith('/learner/next-task')) {
     if (mode.scene === 'hero-loading') return null;
     return json({

@@ -10,6 +10,7 @@ export type LessonChoice = {
   isUnlocked: boolean
   isCompleted: boolean
   progress: number
+  unitId?: string | null
 }
 
 export type LessonChoicesResponse = {

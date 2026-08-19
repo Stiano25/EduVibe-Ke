@@ -1,11 +1,21 @@
 import { SubStrand } from '../../models/SubStrand.js';
+import { Unit } from '../../models/CurriculumGraph.js';
 import { getDbClient } from '../../config/supabase.js';
 import { unlockFlagsForSequence } from '../../utils/lessonUnlock.js';
 
 export const loadStrandUnitUnlock = async (userId, strandId) => {
   const subStrands = await SubStrand.findByStrand(strandId);
+  const units = strandId ? await Unit.findByStrand(strandId) : [];
+  const unitsBySubStrandId = new Map(units.map((unit) => [unit.subStrandId, unit]));
   if (subStrands.length === 0) {
-    return { subStrands, flagsById: new Map(), lessonsBySub: new Map() };
+    return {
+      subStrands,
+      flagsById: new Map(),
+      lessonsBySub: new Map(),
+      progressByLessonId: new Map(),
+      units,
+      unitsBySubStrandId
+    };
   }
 
   const ids = subStrands.map((ss) => ss.id);
@@ -45,5 +55,5 @@ export const loadStrandUnitUnlock = async (userId, strandId) => {
 
   const flags = unlockFlagsForSequence(subStrands, lessonsBySub, progressByLessonId);
   const flagsById = new Map(subStrands.map((ss, i) => [ss.id, flags[i]]));
-  return { subStrands, flagsById, lessonsBySub, progressByLessonId };
+  return { subStrands, flagsById, lessonsBySub, progressByLessonId, units, unitsBySubStrandId };
 };

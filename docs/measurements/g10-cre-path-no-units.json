@@ -1,0 +1,45 @@
+{
+  "learner": "empty-progress fake id",
+  "grade": "10",
+  "currentLessonId": "dae4b70a-7888-42bb-b6f6-5ab77badaf3a",
+  "cre": {
+    "subjectName": "CRE",
+    "strandCount": 1,
+    "strands": [
+      {
+        "strandName": "1.0 The Old Testament",
+        "sequenceNumber": 1,
+        "units": [
+          {
+            "unitId": null,
+            "subStrandId": "3c1df90c-8749-4cee-9b48-f5f12fac886f",
+            "unitName": "1.1 The Holy Bible",
+            "sequenceNumber": 1,
+            "lessonsAllocated": null,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 2,
+            "lessons": [
+              {
+                "title": "The Library of Books: Categories and Forms",
+                "lessonOrder": 0,
+                "isUnlocked": true,
+                "isDone": false,
+                "progress": 0,
+                "isCurrent": true
+              },
+              {
+                "title": "The Breath of God: Understanding Inspiration",
+                "lessonOrder": 0,
+                "isUnlocked": false,
+                "isDone": false,
+                "progress": 0,
+                "isCurrent": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

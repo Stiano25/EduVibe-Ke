@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   BookOpen,
   Sparkles,
+  Award,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { adminNavItems, isAdminNavActive } from '@/config/adminNav'
@@ -24,6 +25,7 @@ const firstName = (name?: string | null) => (name || '').trim().split(/\s+/)[0] 
 const learnerNavItems = [
   { label: 'Dashboard', path: '/learner', icon: LayoutDashboard, exact: true },
   { label: 'Lessons', path: '/learner/lessons', icon: BookOpen, exact: false },
+  { label: 'Badges', path: '/learner/badges', icon: Award, exact: true },
   { label: 'Recommendations', path: '/learner/recommendations', icon: Sparkles, exact: false },
 ]
 
@@ -36,7 +38,10 @@ export const Shell = ({ children }: ShellProps) => {
   const isAdmin = user?.role === 'admin'
   const questNav = !isAdmin && usesQuestNavigation(user?.grade)
   const visibleLearnerNav = questNav
-    ? learnerNavItems.filter((item) => item.path === '/learner' || item.path === '/learner/lessons')
+    ? learnerNavItems.filter(
+        (item) =>
+          item.path === '/learner' || item.path === '/learner/lessons' || item.path === '/learner/badges'
+      )
     : learnerNavItems
 
   const handleLogout = () => {

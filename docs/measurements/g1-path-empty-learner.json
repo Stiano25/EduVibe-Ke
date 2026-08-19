@@ -1,0 +1,365 @@
+{
+  "learner": "empty-progress fake id",
+  "grade": "1",
+  "currentLessonId": "eb2371b7-78e7-47fd-a912-799c0df4d34b",
+  "nextTaskLessonId": "eb2371b7-78e7-47fd-a912-799c0df4d34b",
+  "isCurrentCount": 1,
+  "mathematics": {
+    "subjectName": "Mathematics",
+    "strandCount": 3,
+    "strands": [
+      {
+        "strandName": "Numbers",
+        "sequenceNumber": 1,
+        "units": [
+          {
+            "unitId": "d4da54ca-7e04-4f5a-8179-4610a0fa360b",
+            "subStrandId": "342a17b4-84cb-4ce7-8faf-6895e42779b9",
+            "unitName": "Number Concept",
+            "sequenceNumber": 1,
+            "lessonsAllocated": 20,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "997978a2-965a-4888-8374-022c576223de",
+            "subStrandId": "9d4f15c2-7648-4d4b-8269-331c4d54cd2f",
+            "unitName": "Whole Numbers",
+            "sequenceNumber": 2,
+            "lessonsAllocated": 25,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "45091d21-4a36-4426-8c43-df6be71d93e0",
+            "subStrandId": "6566c510-80af-4ff9-a159-cd23a6ca70dc",
+            "unitName": "Addition",
+            "sequenceNumber": 3,
+            "lessonsAllocated": 25,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 4,
+            "lessons": [
+              {
+                "title": "Adding a 2-Digit Number and a 1-Digit Number",
+                "lessonOrder": 1,
+                "isUnlocked": true,
+                "isDone": false,
+                "progress": 0,
+                "isCurrent": true
+              },
+              {
+                "title": "Writing Addition Sentences with + and =",
+                "lessonOrder": 2,
+                "isUnlocked": false,
+                "isDone": false,
+                "progress": 0,
+                "isCurrent": false
+              },
+              {
+                "title": "Practice: Addition - Part 3",
+                "lessonOrder": 3,
+                "isUnlocked": false,
+                "isDone": false,
+                "progress": 0,
+                "isCurrent": false
+              },
+              {
+                "title": "Adding 2 single-digit numbers up to 10",
+                "lessonOrder": 4,
+                "isUnlocked": false,
+                "isDone": false,
+                "progress": 0,
+                "isCurrent": false
+              }
+            ]
+          },
+          {
+            "unitId": "e34ca172-5c83-4d12-81b6-a12ca77ed512",
+            "subStrandId": "e4331060-ed19-421f-9bba-ae99ce9cebd3",
+            "unitName": "Subtraction",
+            "sequenceNumber": 4,
+            "lessonsAllocated": 20,
+            "isUnlocked": false,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          }
+        ]
+      },
+      {
+        "strandName": "Measurement",
+        "sequenceNumber": 2,
+        "units": [
+          {
+            "unitId": "5bc5e0ac-915e-41d3-9749-79c5fca22e09",
+            "subStrandId": "109a6656-df75-449f-8ded-42434dd6fc79",
+            "unitName": "Length",
+            "sequenceNumber": 1,
+            "lessonsAllocated": 10,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "66c6736e-601d-44ca-b28b-8e58a2368585",
+            "subStrandId": "66fc0132-3e75-49ab-b114-18d93ce67bcb",
+            "unitName": "Mass",
+            "sequenceNumber": 2,
+            "lessonsAllocated": 10,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "29082c7f-dba0-4800-88a5-dabcaf2e92d4",
+            "subStrandId": "d2d0352f-4ccf-49fa-a480-b4a0de9831b0",
+            "unitName": "Capacity",
+            "sequenceNumber": 3,
+            "lessonsAllocated": 12,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "cd401925-8e75-437f-b395-600532f16dd4",
+            "subStrandId": "8058295c-205f-4633-b4d6-9fac0b69285a",
+            "unitName": "Time",
+            "sequenceNumber": 4,
+            "lessonsAllocated": 8,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "50cbf614-1b8f-4930-af76-6bf1f4560991",
+            "subStrandId": "9be4c167-18f6-4db1-9665-945cf234b809",
+            "unitName": "Money",
+            "sequenceNumber": 5,
+            "lessonsAllocated": 8,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          }
+        ]
+      },
+      {
+        "strandName": "Geometry",
+        "sequenceNumber": 3,
+        "units": [
+          {
+            "unitId": "c144d317-d7dc-4ec6-b663-8b22c05f59ad",
+            "subStrandId": "ac308238-ac3f-4ff2-9f60-17c4a884a1a2",
+            "unitName": "Lines",
+            "sequenceNumber": 1,
+            "lessonsAllocated": 6,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          },
+          {
+            "unitId": "83b699ae-bb57-4e2b-b5a4-3bcba45ef46c",
+            "subStrandId": "6a3b5830-4d59-4b12-8846-ffc5011b2acf",
+            "unitName": "Shapes",
+            "sequenceNumber": 2,
+            "lessonsAllocated": 6,
+            "isUnlocked": true,
+            "isFullyCompleted": false,
+            "lessonCount": 0,
+            "lessons": []
+          }
+        ]
+      }
+    ]
+  },
+  "full": {
+    "grade": "1",
+    "currentLessonId": "eb2371b7-78e7-47fd-a912-799c0df4d34b",
+    "subjects": [
+      {
+        "subjectId": "235311d3-d8b1-42cc-9c3d-ee503ffadca9",
+        "subjectName": "Mathematics",
+        "strands": [
+          {
+            "strandId": "b3bf41ce-2c76-4eb9-9ef5-32c28d7912ab",
+            "strandName": "Numbers",
+            "sequenceNumber": 1,
+            "units": [
+              {
+                "unitId": "d4da54ca-7e04-4f5a-8179-4610a0fa360b",
+                "subStrandId": "342a17b4-84cb-4ce7-8faf-6895e42779b9",
+                "unitName": "Number Concept",
+                "sequenceNumber": 1,
+                "lessonsAllocated": 20,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "997978a2-965a-4888-8374-022c576223de",
+                "subStrandId": "9d4f15c2-7648-4d4b-8269-331c4d54cd2f",
+                "unitName": "Whole Numbers",
+                "sequenceNumber": 2,
+                "lessonsAllocated": 25,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "45091d21-4a36-4426-8c43-df6be71d93e0",
+                "subStrandId": "6566c510-80af-4ff9-a159-cd23a6ca70dc",
+                "unitName": "Addition",
+                "sequenceNumber": 3,
+                "lessonsAllocated": 25,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": [
+                  {
+                    "lessonId": "eb2371b7-78e7-47fd-a912-799c0df4d34b",
+                    "title": "Adding a 2-Digit Number and a 1-Digit Number",
+                    "lessonOrder": 1,
+                    "isUnlocked": true,
+                    "isDone": false,
+                    "progress": 0,
+                    "isCurrent": true
+                  },
+                  {
+                    "lessonId": "e77e2251-5f2d-4c18-b3ae-f5696246386f",
+                    "title": "Writing Addition Sentences with + and =",
+                    "lessonOrder": 2,
+                    "isUnlocked": false,
+                    "isDone": false,
+                    "progress": 0,
+                    "isCurrent": false
+                  },
+                  {
+                    "lessonId": "7509a440-fb35-42ca-926f-058d304579a3",
+                    "title": "Practice: Addition - Part 3",
+                    "lessonOrder": 3,
+                    "isUnlocked": false,
+                    "isDone": false,
+                    "progress": 0,
+                    "isCurrent": false
+                  },
+                  {
+                    "lessonId": "b0c55697-cb5b-4a24-aa1e-3c1e125adc49",
+                    "title": "Adding 2 single-digit numbers up to 10",
+                    "lessonOrder": 4,
+                    "isUnlocked": false,
+                    "isDone": false,
+                    "progress": 0,
+                    "isCurrent": false
+                  }
+                ]
+              },
+              {
+                "unitId": "e34ca172-5c83-4d12-81b6-a12ca77ed512",
+                "subStrandId": "e4331060-ed19-421f-9bba-ae99ce9cebd3",
+                "unitName": "Subtraction",
+                "sequenceNumber": 4,
+                "lessonsAllocated": 20,
+                "isUnlocked": false,
+                "isFullyCompleted": false,
+                "lessons": []
+              }
+            ]
+          },
+          {
+            "strandId": "579b9ed6-c8cc-4024-baa4-945e68021178",
+            "strandName": "Measurement",
+            "sequenceNumber": 2,
+            "units": [
+              {
+                "unitId": "5bc5e0ac-915e-41d3-9749-79c5fca22e09",
+                "subStrandId": "109a6656-df75-449f-8ded-42434dd6fc79",
+                "unitName": "Length",
+                "sequenceNumber": 1,
+                "lessonsAllocated": 10,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "66c6736e-601d-44ca-b28b-8e58a2368585",
+                "subStrandId": "66fc0132-3e75-49ab-b114-18d93ce67bcb",
+                "unitName": "Mass",
+                "sequenceNumber": 2,
+                "lessonsAllocated": 10,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "29082c7f-dba0-4800-88a5-dabcaf2e92d4",
+                "subStrandId": "d2d0352f-4ccf-49fa-a480-b4a0de9831b0",
+                "unitName": "Capacity",
+                "sequenceNumber": 3,
+                "lessonsAllocated": 12,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "cd401925-8e75-437f-b395-600532f16dd4",
+                "subStrandId": "8058295c-205f-4633-b4d6-9fac0b69285a",
+                "unitName": "Time",
+                "sequenceNumber": 4,
+                "lessonsAllocated": 8,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "50cbf614-1b8f-4930-af76-6bf1f4560991",
+                "subStrandId": "9be4c167-18f6-4db1-9665-945cf234b809",
+                "unitName": "Money",
+                "sequenceNumber": 5,
+                "lessonsAllocated": 8,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              }
+            ]
+          },
+          {
+            "strandId": "1f7fff0f-71f0-41e9-9a10-6c51340f60b3",
+            "strandName": "Geometry",
+            "sequenceNumber": 3,
+            "units": [
+              {
+                "unitId": "c144d317-d7dc-4ec6-b663-8b22c05f59ad",
+                "subStrandId": "ac308238-ac3f-4ff2-9f60-17c4a884a1a2",
+                "unitName": "Lines",
+                "sequenceNumber": 1,
+                "lessonsAllocated": 6,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              },
+              {
+                "unitId": "83b699ae-bb57-4e2b-b5a4-3bcba45ef46c",
+                "subStrandId": "6a3b5830-4d59-4b12-8846-ffc5011b2acf",
+                "unitName": "Shapes",
+                "sequenceNumber": 2,
+                "lessonsAllocated": 6,
+                "isUnlocked": true,
+                "isFullyCompleted": false,
+                "lessons": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

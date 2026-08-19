@@ -264,6 +264,20 @@ export interface SubStrand {
   updatedAt: string
 }
 
+/** Curriculum unit — 1:1 with a sub-strand in the `units` table. Not the sub-strand id. */
+export interface Unit {
+  id: string
+  subStrandId: string
+  strandId: string
+  subjectId: string
+  grade?: Grade | null
+  name: string
+  sequenceNumber?: number | null
+  lessonsAllocated?: number | null
+  createdAt?: string
+  updatedAt?: string
+}
+
 // Lesson - AI-generated from SubStrand
 export interface Lesson {
   id: string

@@ -105,6 +105,9 @@ const walkTasks = async (userId, grade, steps = 4) => {
     const t = result.task;
     assert(t.subjectId && t.strandId && t.subStrandId, 'taxonomy preserved on task');
     assert(t.lessonId && t.title, 'task has a real lesson');
+    if (t.unitId) {
+      assert(t.unitId !== t.subStrandId, 'unitId is not the sub-strand id');
+    }
     console.log(
       `  step ${i + 1}: ${t.lessonId.slice(0, 8)}  "${t.title.slice(0, 48)}"  ` +
         `subject=${t.subjectName}  strand=${t.strandName.slice(0, 24)}  unit=${t.subStrandName.slice(0, 24)}  ` +
@@ -145,11 +148,17 @@ const main = async () => {
       `Young learner ${learner.userId.slice(0, 8)} grade ${learner.grade} (${learner.progressRows} progress rows)`
     );
     const seen = await walkTasks(learner.userId, learner.grade);
-    assert(seen.length >= 1, 'at least one recommended task');
     const listed = await listLessonChoices(learner.userId, learner.grade);
     assert(Array.isArray(listed.choices), 'lesson choices is an array');
     console.log(`  lesson choices: ${listed.choices.length}`);
-    assert(listed.choices.some((c) => c.lessonId === seen[0]), 'picker includes next lesson');
+    if (seen.length === 0) {
+      console.log('  learner is caught up under the done/unlock rule; walking empty catalog.');
+      const fake = '00000000-0000-4000-8000-000000000001';
+      const emptyWalk = await walkTasks(fake, '1');
+      assert(emptyWalk.length >= 1, 'empty-progress catalog still recommends a first lesson');
+    } else {
+      assert(listed.choices.some((c) => c.lessonId === seen[0]), 'picker includes next lesson');
+    }
     assert(
       listed.choices.every((c) => c.lessonId && c.title && typeof c.isUnlocked === 'boolean'),
       'choice fields present'

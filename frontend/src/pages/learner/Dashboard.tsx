@@ -8,12 +8,13 @@ import { SearchBar } from '@/components/learner/SearchBar'
 import { SubjectNavigation } from '@/components/learner/SubjectNavigation'
 import { DailyExerciseCard } from '@/components/learner/DailyExerciseCard'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
-import { LessonJourney } from '@/components/learner/LessonJourney'
+import { LearnerPathBoard } from '@/components/learner/LearnerPath'
+import { UnitCompleteCelebration } from '@/components/learner/UnitCompleteCelebration'
 import { ModalityPreferencePrompt } from '@/components/learner/ModalityPreferencePrompt'
 import { useLessonStore } from '@/store/useLessonStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { api } from '@/lib/api'
-import { useLessonChoices } from '@/hooks/useLessonChoices'
+import { flattenPathLessons, useLearnerPath } from '@/hooks/useLearnerPath'
 import { usesQuestNavigation } from '@/lib/complexityBands'
 
 type ProgressReport = {
@@ -51,9 +52,10 @@ export const LearnerDashboard = () => {
   const [loadingReport, setLoadingReport] = useState(true)
   const [nextTask, setNextTask] = useState<NextTaskResponse | null>(null)
   const [loadingNextTask, setLoadingNextTask] = useState(questNav)
-  const { choices: lessonChoices } = useLessonChoices({ enabled: questNav })
-  const hasOpenLessons = lessonChoices.some((c) => c.isUnlocked && !c.isCompleted)
-  const doneCount = lessonChoices.filter((c) => c.isCompleted).length
+  const { path, loading: loadingPath } = useLearnerPath({ enabled: questNav })
+  const pathLessons = flattenPathLessons(path.subjects)
+  const hasOpenLessons = pathLessons.some(({ lesson }) => lesson.isUnlocked && !lesson.isDone)
+  const doneCount = pathLessons.filter(({ lesson }) => lesson.isDone).length
 
   useEffect(() => {
     if (questNav) {
@@ -127,19 +129,20 @@ export const LearnerDashboard = () => {
                     showPickerLink={false}
                     hasOpenLessons={hasOpenLessons}
                   />
-                  {lessonChoices.length > 0 ? (
+                  {path.subjects.length > 0 || loadingPath ? (
                     <div>
                       <div className="mb-3 flex items-end justify-between gap-3">
-                        <h2 className="text-xl font-black text-ev-ink">Your lessons</h2>
+                        <h2 className="text-xl font-black text-ev-ink">Your path</h2>
                         {doneCount > 0 ? (
                           <p className="text-sm font-bold text-ev-muted">
-                            {doneCount}/{lessonChoices.length} done
+                            {doneCount}/{pathLessons.length} done
                           </p>
                         ) : null}
                       </div>
-                      <LessonJourney compact />
+                      <LearnerPathBoard subjects={path.subjects} loading={loadingPath} />
                     </div>
                   ) : null}
+                  <UnitCompleteCelebration subjects={path.subjects} />
                 </div>
               ) : (
                 <>

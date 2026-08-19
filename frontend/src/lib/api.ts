@@ -499,6 +499,7 @@ class ApiClient {
     getProgressReport: () => this.request('/learner/progress-report'),
     getNextTask: () => this.request('/learner/next-task'),
     getLessonChoices: () => this.request('/learner/lesson-choices'),
+    getPath: () => this.request('/learner/path'),
     getSkillMastery: () => this.request('/learner/skill-mastery'),
   };
 }

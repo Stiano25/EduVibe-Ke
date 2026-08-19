@@ -5,7 +5,7 @@ import { Lesson } from '../../models/Lesson.js';
 import { findSimilarLessonsWithAI } from '../../admin/services/aiService.js';
 import { User } from '../../models/User.js';
 import { getDbClient } from '../../config/supabase.js';
-import { progressMeetsUnlock } from '../../utils/lessonUnlock.js';
+import { progressMeetsUnlock, lessonIsDone } from '../../utils/lessonUnlock.js';
 import { loadStrandUnitUnlock } from '../services/unitGatingService.js';
 
 const GRADE_ORDER = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
@@ -317,7 +317,7 @@ export const getLearnerLesson = async (req, res) => {
       ...lesson,
       quiz: sanitizeQuizForLearner(lesson.quiz),
       progress: progress?.progress ?? 0,
-      isCompleted: !!progress?.completed,
+      isCompleted: lessonIsDone(progress),
       isUnlocked,
       sessionReview: progress?.session_review || null
     });
@@ -351,7 +351,7 @@ export const getLearnerSubstrands = async (req, res) => {
       return res.json([]);
     }
 
-    const { flagsById, lessonsBySub, progressByLessonId } = await loadStrandUnitUnlock(
+    const { flagsById, lessonsBySub, progressByLessonId, unitsBySubStrandId } = await loadStrandUnitUnlock(
       userId,
       strandId
     );
@@ -382,7 +382,7 @@ export const getLearnerSubstrands = async (req, res) => {
 
         return {
           ...substrand,
-          unitId: substrand.id,
+          unitId: unitsBySubStrandId.get(substrand.id)?.id ?? null,
           lessonCount: total,
           progressPercent,
           estimatedMinutes: estimatedMinutes || total * 10,
@@ -465,7 +465,7 @@ export const getLearnerLessons = async (req, res) => {
         quiz: sanitizeQuizForLearner(lesson.quiz),
         theme: theme, // Include theme from strand
         isUnlocked,
-        isCompleted: progress.completed,
+        isCompleted: lessonIsDone(progress),
         progress: progress.progress,
         lastAccessed: progress.lastAccessed
       };
@@ -642,15 +642,15 @@ export const getSimilarLessonsFromLowerGrades = async (req, res) => {
       const lessonIds = similarLessons.map((l) => l.id);
       const { data: progressData, error: progressError } = await db
         .from('lesson_progress')
-        .select('lesson_id, completed')
+        .select('lesson_id, completed, progress')
         .eq('user_id', userId)
         .in('lesson_id', lessonIds);
 
       if (!progressError && progressData) {
-        const completedIds = new Set(
-          progressData.filter((p) => p.completed === true).map((p) => p.lesson_id)
+        const doneIds = new Set(
+          progressData.filter((p) => lessonIsDone(p)).map((p) => p.lesson_id)
         );
-        const filtered = similarLessons.filter((lesson) => !completedIds.has(lesson.id));
+        const filtered = similarLessons.filter((lesson) => !doneIds.has(lesson.id));
         return res.json(filtered.slice(0, 3));
       }
     }
@@ -690,7 +690,7 @@ export const getNextLessonsInSubstrand = async (req, res) => {
     // Get user's progress for these lessons
     const { data: progressData, error: progressError } = await getDbClient()
       .from('lesson_progress')
-      .select('lesson_id, completed')
+      .select('lesson_id, completed, progress')
       .eq('user_id', userId)
       .in('lesson_id', approvedLessons.map(l => l.id));
 
@@ -702,21 +702,22 @@ export const getNextLessonsInSubstrand = async (req, res) => {
     if (progressData) {
       progressData.forEach(p => {
         progressMap[p.lesson_id] = {
-          completed: p.completed
+          completed: p.completed,
+          progress: p.progress
         };
       });
     }
 
-    // Count completed lessons
-    const completedCount = approvedLessons.filter(l => progressMap[l.id]?.completed === true).length;
+    // Count done lessons (lenient pass rule — same as unlock / node display)
+    const completedCount = approvedLessons.filter((l) => lessonIsDone(progressMap[l.id])).length;
 
     // Find current lesson index
     const currentIndex = approvedLessons.findIndex(l => l.id === lessonId);
     
-    // Get next uncompleted lessons after current lesson
+    // Get next unfinished lessons after current lesson
     const nextLessons = approvedLessons
       .slice(currentIndex + 1)
-      .filter(l => !progressMap[l.id]?.completed)
+      .filter((l) => !lessonIsDone(progressMap[l.id]))
       .slice(0, 3); // Max 3 next lessons
 
     // Get next sub-strand if 3+ lessons completed

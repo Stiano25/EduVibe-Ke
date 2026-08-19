@@ -431,6 +431,23 @@
     animation: ev-bob 1.6s ease-in-out infinite;
   }
 
+  /* Pink ring on a node that only just became available. Uses the existing pink token. */
+  @keyframes ev-just-unlock {
+    0% {
+      box-shadow: 0 0 0 0 rgb(255 92 168 / 0.5);
+    }
+    70% {
+      box-shadow: 0 0 0 14px rgb(255 92 168 / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgb(255 92 168 / 0);
+    }
+  }
+
+  .ev-just-unlock {
+    animation: ev-just-unlock 1.3s ease-out 0s 3;
+  }
+
   @keyframes ev-confetti-fly {
     0% {
       opacity: 0;
@@ -475,7 +492,8 @@
     .ev-col-pulse,
     .ev-jump-in,
     .ev-node-pulse,
-    .ev-bob {
+    .ev-bob,
+    .ev-just-unlock {
       animation: none;
     }
   }

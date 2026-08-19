@@ -51,15 +51,18 @@ const report = buildReportPayload({
   masteryRows: mastery,
   progressRows: [
     { lesson_id: 'l1', progress: 100, completed: true, session_review: { score: { percentage: 80 } } },
-    { lesson_id: 'l2', progress: 40, completed: false }
+    { lesson_id: 'l2', progress: 40, completed: false },
+    { lesson_id: 'l3', progress: 65, completed: false }
   ],
   attempts,
-  titleById: new Map([['l1', 'Adding apples'], ['l2', 'Take away']])
+  titleById: new Map([['l1', 'Adding apples'], ['l2', 'Take away'], ['l3', 'Tens']])
 });
 assert(report.summary.strengthsCount === 2, 'report strengths');
 assert(report.summary.weaknessesCount === 2, 'report weaknesses');
-assert(report.summary.completed === 1, 'completed lessons');
+assert(report.summary.completed === 2, '65% counts as done even when completed is false');
 assert(report.summary.inProgress === 1, 'in-progress lessons');
+assert(report.recentLessons[2].completed === true, 'mapped 65% row is done');
+assert(report.recentLessons[2].fullyCompleted === false, '65% is not strictly fully completed');
 assert(report.summary.averageScore === 80, 'average score uses scored lessons');
 assert(report.recentLessons[0].title === 'Adding apples', 'lesson title lookup');
 assert(report.skillsNeedingPractice.length === 2, 'legacy skillsNeedingPractice stays populated');

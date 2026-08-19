@@ -1,3 +1,5 @@
+import { lessonIsDone, lessonIsFullyCompleted } from '../../utils/lessonUnlock.js';
+
 export const MAX_REPORT_LEARNERS = 50;
 
 export const STRENGTH_STATUSES = ['mastered', 'developing'];
@@ -118,7 +120,8 @@ export const mapLessonProgress = (rows = [], titleById = new Map()) =>
     lessonId: row.lesson_id || row.lessonId,
     title: titleById.get(row.lesson_id || row.lessonId) || 'Lesson',
     progress: row.progress ?? 0,
-    completed: !!row.completed,
+    completed: lessonIsDone(row),
+    fullyCompleted: lessonIsFullyCompleted(row),
     completedAt: row.completed_at || row.completedAt || null,
     lastAccessed: row.last_accessed || row.lastAccessed || row.updated_at || row.updatedAt,
     scorePercentage:

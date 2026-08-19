@@ -16,7 +16,7 @@ export type NextTaskPayload = {
   strandName: string
   subStrandId: string
   subStrandName: string
-  unitId: string
+  unitId: string | null
 }
 
 export type NextTaskResponse = {

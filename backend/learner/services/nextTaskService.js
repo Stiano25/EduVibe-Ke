@@ -8,7 +8,7 @@ import { Strand } from '../../models/Strand.js';
 import { Lesson } from '../../models/Lesson.js';
 import { SkillMastery } from '../../models/SkillAttempt.js';
 import { loadStrandUnitUnlock } from './unitGatingService.js';
-import { progressMeetsUnlock, unlockFlagsForSequence } from '../../utils/lessonUnlock.js';
+import { progressMeetsUnlock, lessonIsDone, unlockFlagsForSequence } from '../../utils/lessonUnlock.js';
 import { complexityBandKey, usesQuestNavigation } from '../../utils/complexityBands.js';
 
 const overlaySatisfied = (progressByLessonId, extraSatisfiedIds) => {
@@ -73,10 +73,8 @@ export const resolveNextTask = async (userId, grade, { extraSatisfiedIds = [] } 
   for (const subject of orderedSubjects) {
     const strands = Strand.dedupeByNamePreserveOrder(await Strand.findBySubject(subject.id));
     for (const strand of strands) {
-      const { subStrands, lessonsBySub, progressByLessonId } = await loadStrandUnitUnlock(
-        userId,
-        strand.id
-      );
+      const { subStrands, lessonsBySub, progressByLessonId, unitsBySubStrandId } =
+        await loadStrandUnitUnlock(userId, strand.id);
       const progress = overlaySatisfied(progressByLessonId, extraSatisfiedIds);
       const flags = unlockFlagsForSequence(subStrands, lessonsBySub, progress);
       const visible = subStrands.filter((ss) => (lessonsBySub.get(ss.id) || []).length > 0);
@@ -97,7 +95,8 @@ export const resolveNextTask = async (userId, grade, { extraSatisfiedIds = [] } 
             progress: Number(progress.get(row.id)?.progress) || 0,
             subject,
             strand,
-            unit
+            subStrand: unit,
+            unitRow: unitsBySubStrandId.get(unit.id) || null
           };
         }
       }
@@ -141,9 +140,9 @@ export const resolveNextTask = async (userId, grade, { extraSatisfiedIds = [] } 
       subjectName: picked.subject.name,
       strandId: picked.strand.id,
       strandName: picked.strand.name,
-      subStrandId: picked.unit.id,
-      subStrandName: picked.unit.name,
-      unitId: picked.unit.id,
+      subStrandId: picked.subStrand.id,
+      subStrandName: picked.subStrand.name,
+      unitId: picked.unitRow?.id ?? null,
       mastery: masteryForLesson(lesson, masteryRows)
     }
   };
@@ -172,10 +171,8 @@ export const listLessonChoices = async (userId, grade) => {
   for (const subject of orderedSubjects) {
     const strands = Strand.dedupeByNamePreserveOrder(await Strand.findBySubject(subject.id));
     for (const strand of strands) {
-      const { subStrands, lessonsBySub, progressByLessonId } = await loadStrandUnitUnlock(
-        userId,
-        strand.id
-      );
+      const { subStrands, lessonsBySub, progressByLessonId, unitsBySubStrandId } =
+        await loadStrandUnitUnlock(userId, strand.id);
       const flags = unlockFlagsForSequence(subStrands, lessonsBySub, progressByLessonId);
       const visible = (subStrands || []).filter(
         (ss) => (lessonsBySub.get(ss.id) || []).length > 0
@@ -196,8 +193,9 @@ export const listLessonChoices = async (userId, grade) => {
             strandName: strand.name,
             subStrandName: unit.name,
             isUnlocked: unitUnlocked && (i === 0 || progressMeetsUnlock(prev)),
-            isCompleted: !!p?.completed,
-            progress: Number(p?.progress) || 0
+            isCompleted: lessonIsDone(p),
+            progress: Number(p?.progress) || 0,
+            unitId: unitsBySubStrandId.get(unit.id)?.id ?? null
           });
         }
       }

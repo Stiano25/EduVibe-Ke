@@ -3,9 +3,14 @@ import { Volume2, VolumeX } from 'lucide-react'
 import { api } from '@/lib/api'
 import { quizFlashCopy } from '@/lib/quizFlashCopy'
 import { isQuizSoundOn, playAnswerSound, setQuizSoundOn } from '@/lib/quizSound'
+import { isGrade1to3 } from '@/lib/complexityBands'
 import { LazyLottie } from '@/components/ui/LazyLottie'
 import { type TapSelection } from './TapSelectOptions'
 import { AnswerCelebration } from './quiz/AnswerCelebration'
+import {
+  AnswerCharacterReaction,
+  prefetchAnswerCharacters,
+} from './quiz/AnswerCharacterReaction'
 import { LiveInteraction, ReviewInteraction } from './quiz/interactionRegistry'
 import type { AdaptiveQuestion, LiveFlash, ReviewItem } from './quiz/types'
 import type { Lesson } from '@/types'
@@ -18,14 +23,23 @@ const LAST_QUESTION_EXTRA_MS = 200
 /** After a slow network wait, still flash briefly — do not stack the full hold. */
 const HOLD_FLOOR_MS = 200
 
+type ScoreBlock = {
+  correct: number
+  total: number
+  percentage: number
+  retryCount?: number
+}
+
+type PracticeScoreBlock = {
+  percentage: number
+  total?: number
+  creditSum?: number
+}
+
 type ReviewPayload = {
   items: ReviewItem[]
-  score?: {
-    correct: number
-    total: number
-    percentage: number
-    retryCount?: number
-  } | null
+  score?: ScoreBlock | null
+  practiceScore?: PracticeScoreBlock | null
   completedAt?: string | null
 }
 
@@ -36,7 +50,7 @@ type QuizMeta = {
   mainTarget?: number
   done?: boolean
   progressPct?: number
-  score?: { correct: number; total: number; percentage: number; retryCount?: number }
+  score?: ScoreBlock
   modalitySignal?: { source?: string; modality?: string | null }
 }
 
@@ -46,6 +60,14 @@ interface AdaptiveQuizPanelProps {
   preferredModality: string
   onSessionComplete?: (pct: number, passed: boolean, topicMastered?: boolean) => void
   resolveDiagramUrl?: (briefId?: string | null) => string | null
+}
+
+const displayPctFromReview = (review: ReviewPayload, grade?: string | number | null) => {
+  const firstTry = review.score?.percentage ?? 0
+  if (isGrade1to3(grade != null ? String(grade) : null) && review.practiceScore?.percentage != null) {
+    return review.practiceScore.percentage
+  }
+  return firstTry
 }
 
 export const AdaptiveQuizPanel = ({
@@ -69,13 +91,27 @@ export const AdaptiveQuizPanel = ({
   const [error, setError] = useState<string | null>(null)
   const [soundOn, setSoundOn] = useState(isQuizSoundOn)
   const interactiveRef = useRef<HTMLDivElement>(null)
+  const onCompleteRef = useRef(onSessionComplete)
+  onCompleteRef.current = onSessionComplete
   const flashCopy = quizFlashCopy(lesson.grade)
+  const earlyPrimary = isGrade1to3(lesson.grade)
 
   const toggleSound = () => {
     setSoundOn((prev) => {
       setQuizSoundOn(!prev)
       return !prev
     })
+  }
+
+  useEffect(() => {
+    if (earlyPrimary) prefetchAnswerCharacters()
+  }, [earlyPrimary])
+
+  const notifySessionComplete = (payload: ReviewPayload, completed?: boolean, topicMastered?: boolean) => {
+    const firstTryPct = payload.score?.percentage ?? 0
+    const passing = Math.max(lesson.quiz?.passingScore || 60, 60)
+    const passed = typeof completed === 'boolean' ? completed : firstTryPct >= passing
+    onCompleteRef.current?.(displayPctFromReview(payload, lesson.grade), passed, !!topicMastered)
   }
 
   useEffect(() => {
@@ -96,6 +132,9 @@ export const AdaptiveQuizPanel = ({
         if (res.mode === 'review' && res.review) {
           setMode('review')
           setReview(res.review)
+          if (isGrade1to3(lesson.grade)) {
+            notifySessionComplete(res.review, res.completed)
+          }
         } else {
           setMode('adaptive')
           setSession(res.session || null)
@@ -114,6 +153,8 @@ export const AdaptiveQuizPanel = ({
     return () => {
       cancelled = true
     }
+    // lesson.grade is stable per lessonId; notify uses current lesson via closure + ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId])
 
   const reviewScorePct = () => {
@@ -157,7 +198,7 @@ export const AdaptiveQuizPanel = ({
     try {
       const res = (await api.learner.nextAdaptiveQuiz(lessonId, {
         session,
-        selectedOptionIndex: selectedOptionIndex ?? placedCount ?? submittedValue ?? 0,
+        selectedOptionIndex: Number(selectedOptionIndex ?? placedCount ?? submittedValue ?? 0),
         placedCount,
         submittedValue,
         responseTimeMs,
@@ -200,9 +241,7 @@ export const AdaptiveQuizPanel = ({
         setReview(res.review)
         setQuestion(null)
         setHeldLabel(null)
-        const pct = res.review.score?.percentage ?? 0
-        const passing = Math.max(lesson.quiz?.passingScore || 60, 60)
-        onSessionComplete?.(pct, pct >= passing, !!res.topicMastered)
+        notifySessionComplete(res.review, res.completed, res.topicMastered)
       } else {
         setQuestion(res.question)
         setSelected(null)
@@ -264,6 +303,7 @@ export const AdaptiveQuizPanel = ({
   }
 
   if (mode === 'review' && review) {
+    if (earlyPrimary) return null
     return (
       <div className="space-y-6">
         <div>
@@ -369,6 +409,9 @@ export const AdaptiveQuizPanel = ({
           onSubmitNumeric={handleSubmitNumeric}
         />
         {flash?.correct ? <AnswerCelebration runKey={question.id} /> : null}
+        {earlyPrimary && flash ? (
+          <AnswerCharacterReaction correct={flash.correct} runKey={`${question.id}-${flash.correct}`} />
+        ) : null}
       </div>
     </div>
   )

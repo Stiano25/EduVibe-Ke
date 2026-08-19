@@ -463,6 +463,10 @@
       display: none;
     }
 
+    .ev-answer-character {
+      display: none;
+    }
+
     .ev-digit-in,
     .ev-carry-pop,
     .ev-line-draw,

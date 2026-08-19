@@ -24,6 +24,7 @@ import {
 import { additionWorkedSteps } from '../../utils/additionWorkedExample.js';
 import { normalizeQuizOption } from '../../utils/quizOptions.js';
 import { isTemplateBackedQuiz, targetMainLength } from '../../utils/quizSessionSize.js';
+import { computePracticeScore } from '../../utils/practiceScore.js';
 import {
   instantiateTemplate,
   difficultyTierFromMastery,
@@ -882,6 +883,9 @@ export const advanceAdaptiveSession = ({
     modality: question.modality || null,
     skillFocus: question.skillFocus || null,
     responseTimeMs,
+    ...(phase === 'retry' ? { retryFor: session.currentRetryFor || currentId } : {}),
+    ...(isNumeric ? { expectedValue, submittedValue } : {}),
+    ...(isDrag ? { expectedCount, placedCount: selectedOriginal } : {}),
     ...(twinPairId
       ? {
           twinPairId,
@@ -1047,11 +1051,14 @@ export const advanceAdaptiveSession = ({
   }
 
   const finalScore = firstTryScore(session);
+  const practiceScore = computePracticeScore(session, lesson);
 
   const reviewPayload = done
     ? {
         answered: session.answered,
         score: finalScore,
+        // Display-only sibling — never written to lesson_progress.progress
+        practiceScore,
         // Queryable copy of selection signals (also written to adaptive_modality_signal_log)
         modalitySignals: session.modalitySignalLog || [],
         twinPairs: session.twinPairs || [],
@@ -1169,6 +1176,7 @@ export const buildReviewView = (lesson, sessionReview) => {
   return {
     items,
     score: sessionReview?.score || null,
+    practiceScore: sessionReview?.practiceScore || null,
     modalitySignals: sessionReview?.modalitySignals || [],
     twinPairs: sessionReview?.twinPairs || [],
     completedAt: sessionReview?.completedAt || null

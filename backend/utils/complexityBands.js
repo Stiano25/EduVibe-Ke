@@ -24,3 +24,9 @@ export const usesQuestNavigation = (grade) => {
   const n = parseGradeNumber(grade);
   return Number.isFinite(n) && n <= 5;
 };
+
+/** Child-facing session-end (no review wall, Practice Score). K and Grade 4+ stay on the old path. */
+export const isGrade1to3 = (grade) => {
+  const n = parseGradeNumber(grade);
+  return n >= 1 && n <= 3;
+};

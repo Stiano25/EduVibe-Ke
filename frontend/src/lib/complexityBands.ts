@@ -12,6 +12,12 @@ export const usesQuestNavigation = (grade?: string | null) => {
   return Number.isFinite(n) && n <= 5
 }
 
+/** Child-facing session-end (no review wall, Practice Score). K and Grade 4+ stay on the old path. */
+export const isGrade1to3 = (grade?: string | null) => {
+  const n = parseGradeNumber(grade)
+  return n >= 1 && n <= 3
+}
+
 /** Learner-facing quest copy — all within the very_young 12-word / 1-sentence ceiling. */
 export const QUEST_COPY = {
   next: 'Next',

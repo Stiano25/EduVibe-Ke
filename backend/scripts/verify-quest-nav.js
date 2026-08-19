@@ -7,7 +7,7 @@
 import 'dotenv/config';
 import { getDbClient } from '../config/supabase.js';
 import { listLessonChoices, resolveNextTask } from '../learner/services/nextTaskService.js';
-import { usesQuestNavigation, complexityBandKey } from '../utils/complexityBands.js';
+import { usesQuestNavigation, complexityBandKey, isGrade1to3 } from '../utils/complexityBands.js';
 
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
@@ -34,6 +34,8 @@ const paginateSelect = async (db, table, columns) => {
 const runBandTests = () => {
   assert(usesQuestNavigation('K') && usesQuestNavigation('1') && usesQuestNavigation('5'), 'K–5 quest');
   assert(!usesQuestNavigation('6') && !usesQuestNavigation('7'), '6+ browse');
+  assert(isGrade1to3('1') && isGrade1to3('2') && isGrade1to3('3'), '1–3 early primary');
+  assert(!isGrade1to3('K') && !isGrade1to3('4') && !isGrade1to3('5'), 'K and 4+ not early primary');
   assert(complexityBandKey('1') === 'very_young', 'grade 1 band');
   assert(complexityBandKey('4') === 'young', 'grade 4 band');
   assert(complexityBandKey('7') === 'pre_teen', 'grade 7 band');

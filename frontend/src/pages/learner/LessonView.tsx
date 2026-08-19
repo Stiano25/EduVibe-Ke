@@ -13,7 +13,7 @@ import { AdaptiveQuizPanel } from '@/components/learner/AdaptiveQuizPanel'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { QuestNextCard, type NextTaskResponse } from '@/components/learner/QuestNextCard'
 import { QuestLessonSwitch } from '@/components/learner/QuestLessonSwitch'
-import { usesQuestNavigation } from '@/lib/complexityBands'
+import { usesQuestNavigation, isGrade1to3 } from '@/lib/complexityBands'
 
 export const LessonView = () => {
   const { id } = useParams()
@@ -26,6 +26,7 @@ export const LessonView = () => {
   // Quiz / adaptive session follow-up
   const [showResults, setShowResults] = useState(false)
   const [sessionPct, setSessionPct] = useState(0)
+  const [sessionPassed, setSessionPassed] = useState(false)
   const [similarLessons, setSimilarLessons] = useState<Lesson[]>([])
   const [loadingSimilar, setLoadingSimilar] = useState(false)
   const [nextLessons, setNextLessons] = useState<Lesson[]>([])
@@ -195,6 +196,7 @@ export const LessonView = () => {
     if (!lesson || !id) return
     setSessionPct(pct)
     setShowResults(true)
+    setSessionPassed(!!passed)
     setTopicMastered(!!masteredFromSession)
 
     try {
@@ -323,15 +325,23 @@ export const LessonView = () => {
         setError(null)
         setShowResults(false)
         setSessionPct(0)
+        setSessionPassed(false)
         setTopicMastered(false)
         const lessonData = (await api.learner.getLesson(id)) as Lesson & {
           isCompleted?: boolean
           progress?: number
+          sessionReview?: { score?: { percentage?: number }; practiceScore?: { percentage?: number } }
         }
         setLesson(lessonData)
         if (lessonData.isCompleted || (lessonData.progress != null && lessonData.progress >= 60)) {
           setShowResults(true)
-          setSessionPct(lessonData.progress || 100)
+          setSessionPassed(true)
+          const storedPractice = lessonData.sessionReview?.practiceScore?.percentage
+          setSessionPct(
+            isGrade1to3(lessonData.grade) && typeof storedPractice === 'number'
+              ? storedPractice
+              : lessonData.progress || 100
+          )
           try {
             const mastery = (await api.learner.getSkillMastery()) as Array<{
               learningOutcomeKey?: string
@@ -415,6 +425,7 @@ export const LessonView = () => {
   }
 
   const questNav = usesQuestNavigation(lesson.grade)
+  const earlyPrimary = isGrade1to3(lesson.grade)
   const quizScore = showResults ? { percentage: sessionPct, score: 0, total: 0 } : null
   const performanceCategory = quizScore ? getPerformanceCategory(quizScore.percentage) : null
   const performanceMessage = performanceCategory
@@ -546,9 +557,19 @@ export const LessonView = () => {
                       <div className="space-y-6">
                         <div className={`p-6 rounded-ev-md border-2 border-b-4 ${performanceMessage.color} ${performanceMessage.borderColor}`}>
                           <div className="flex items-start gap-4">
-                            <div className={`flex-shrink-0 ${performanceMessage.textColor}`}>
-                              {performanceMessage.icon}
-                            </div>
+                            {earlyPrimary && sessionPassed ? (
+                              <div className="flex-shrink-0 h-24 w-24 sm:h-32 sm:w-32 -mt-2 -mb-4">
+                                <LazyLottie
+                                  animationKey="happyBoy"
+                                  loop={false}
+                                  style={{ width: '100%', height: '100%' }}
+                                />
+                              </div>
+                            ) : (
+                              <div className={`flex-shrink-0 ${performanceMessage.textColor}`}>
+                                {performanceMessage.icon}
+                              </div>
+                            )}
                             <div className="flex-1">
                               <h3 className={`text-2xl font-black ${performanceMessage.textColor} mb-2`}>
                                 {performanceMessage.title} {sessionPct}%

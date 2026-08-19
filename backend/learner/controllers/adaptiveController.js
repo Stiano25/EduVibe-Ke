@@ -593,7 +593,7 @@ export const nextAdaptiveQuiz = async (req, res) => {
     if (result.meta.done && result.review) {
       const { getDbClient } = await import('../../config/supabase.js');
       const db = getDbClient();
-      const pct = result.review.score?.percentage ?? 0;
+      const pct = result.review.score?.percentage ?? 0; // first-try only; practiceScore stays in session_review
       const passing = Math.max(lesson.quiz?.passingScore || 60, 60);
       const completed = pct >= passing;
 

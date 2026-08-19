@@ -3,55 +3,64 @@ import {
   MODALITY_LABEL,
   STATUS_CLASS,
   STATUS_LABEL,
+  lessonProgressLabel,
   rateLabel,
+  retryPhrase,
   type LearnerReport,
-  type LearnerReportSkill,
+  type LearnerReportLesson,
   type MasteryStatus,
 } from '@/lib/learnerReport'
 
-const SkillList = ({
+const LessonList = ({
   title,
   empty,
-  skills,
+  lessons,
   tone,
 }: {
   title: string
   empty: string
-  skills: LearnerReportSkill[]
-  tone: 'strength' | 'weakness'
+  lessons: LearnerReportLesson[]
+  tone: 'strength' | 'weakness' | 'steady'
 }) => (
   <div
     className={`rounded-[16px] border-2 p-4 ${
-      tone === 'strength' ? 'border-emerald-100 bg-emerald-50/60' : 'border-rose-100 bg-rose-50/60'
+      tone === 'strength'
+        ? 'border-emerald-100 bg-emerald-50/60'
+        : tone === 'weakness'
+          ? 'border-rose-100 bg-rose-50/60'
+          : 'border-slate-200 bg-slate-50/60'
     }`}
   >
     <h3 className="text-sm font-bold text-[#0F172A] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
       {title}
     </h3>
-    {skills.length === 0 ? (
+    {lessons.length === 0 ? (
       <p className="text-sm text-slate-600">{empty}</p>
     ) : (
-      <ul className="space-y-2">
-        {skills.map((skill) => (
-          <li
-            key={skill.learningOutcomeKey}
-            className="flex items-start justify-between gap-3 bg-white/80 rounded-xl px-3 py-2 border border-white"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#0F172A]">{skill.skillFocus}</p>
-              {skill.preferredModality ? (
-                <p className="text-[11px] text-slate-500">
-                  Works best with {MODALITY_LABEL[skill.preferredModality] || skill.preferredModality}
-                </p>
-              ) : null}
-            </div>
-            <span
-              className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                STATUS_CLASS[skill.status]
-              }`}
-            >
-              {STATUS_LABEL[skill.status]}
-            </span>
+      <ul className="space-y-3">
+        {lessons.map((lesson) => (
+          <li key={lesson.lessonId} className="bg-white/80 rounded-xl px-3 py-2.5 border border-white">
+            <p className="text-sm font-semibold text-[#0F172A]">
+              {tone === 'weakness' ? 'Weakness: ' : tone === 'strength' ? 'Strength: ' : ''}
+              {lesson.title}
+            </p>
+            <p className="text-[12px] text-slate-600 mt-0.5">
+              {lesson.firstTryPercent}% first-try, {retryPhrase(lesson.retryCount)}
+            </p>
+            {lesson.practiceScorePercent != null &&
+            lesson.practiceScorePercent !== lesson.firstTryPercent ? (
+              <p className="text-[11px] text-slate-500">{lesson.practiceScorePercent}% with practice credit</p>
+            ) : null}
+            {lesson.misconception ? (
+              <p className="text-[12px] text-amber-900 italic mt-1">Mainly missing: {lesson.misconception}</p>
+            ) : null}
+            {lesson.bktPKnow != null ? (
+              <p className="text-[11px] text-slate-500 mt-1">
+                BKT {Math.round(lesson.bktPKnow * 100)}%
+                {lesson.bktNObservations != null ? ` · ${lesson.bktNObservations} obs` : ''}
+                {lesson.bktSkillFocus ? ` · ${lesson.bktSkillFocus}` : ''}
+              </p>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -65,6 +74,8 @@ export const LearnerReportCard = ({ report }: { report: LearnerReport }) => {
   const masteryEntries = (Object.entries(report.masteryCounts || {}) as Array<[MasteryStatus, number]>).filter(
     ([, count]) => count > 0
   )
+  const bestModality = report.bestModality
+  const steady = report.steady || []
 
   return (
     <article className="learner-report-card bg-white/90 border-2 border-slate-200 rounded-[24px] p-5 sm:p-6 print:border print:rounded-none print:shadow-none print:break-after-page">
@@ -85,17 +96,19 @@ export const LearnerReportCard = ({ report }: { report: LearnerReport }) => {
           { label: 'Strengths', value: String(report.summary.strengthsCount) },
           { label: 'Weaknesses', value: String(report.summary.weaknessesCount) },
           {
-            label: 'Quiz accuracy',
+            label: 'Quiz accuracy (all attempts)',
             value: report.summary.accuracyPercent != null ? `${report.summary.accuracyPercent}%` : '—',
           },
           {
-            label: 'Avg lesson score',
+            label: 'Avg lesson score (first try)',
             value: report.summary.averageScore != null ? `${report.summary.averageScore}%` : '—',
           },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl bg-slate-50 border border-slate-100 p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{stat.label}</p>
-            <p className="text-2xl font-bold text-[#0F172A]">{stat.value}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 leading-tight">
+              {stat.label}
+            </p>
+            <p className="text-2xl font-bold text-[#0F172A] mt-1">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -114,19 +127,30 @@ export const LearnerReportCard = ({ report }: { report: LearnerReport }) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-        <SkillList
+        <LessonList
           title="Strengths"
-          empty="No mastered or developing skills yet."
-          skills={report.strengths}
+          empty="No lessons at 75% first-try or above yet."
+          lessons={report.strengths}
           tone="strength"
         />
-        <SkillList
+        <LessonList
           title="Weaknesses"
-          empty="No struggling skills right now."
-          skills={report.weaknesses}
+          empty="No lessons at 60% first-try or below."
+          lessons={report.weaknesses}
           tone="weakness"
         />
       </div>
+
+      {steady.length > 0 && (
+        <div className="mb-5">
+          <LessonList
+            title="Steady"
+            empty=""
+            lessons={steady}
+            tone="steady"
+          />
+        </div>
+      )}
 
       {(bloomEntries.length > 0 || modalityEntries.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
@@ -148,6 +172,11 @@ export const LearnerReportCard = ({ report }: { report: LearnerReport }) => {
           {modalityEntries.length > 0 && (
             <div className="rounded-[16px] border-2 border-slate-200 p-4">
               <h3 className="text-sm font-bold text-[#0F172A] mb-2">How they learn best</h3>
+              {bestModality ? (
+                <p className="text-xs text-slate-600 mb-2">
+                  Works best with {MODALITY_LABEL[bestModality] || bestModality}
+                </p>
+              ) : null}
               <ul className="space-y-1.5">
                 {modalityEntries.map(([modality, pair]) => (
                   <li key={modality} className="flex items-center justify-between text-sm">
@@ -192,9 +221,7 @@ export const LearnerReportCard = ({ report }: { report: LearnerReport }) => {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[#0F172A] truncate">{lesson.title}</p>
-                  <p className="text-[11px] text-slate-500">
-                    {lesson.completed ? 'Completed' : `${lesson.progress}% progress`}
-                  </p>
+                  <p className="text-[11px] text-slate-500">{lessonProgressLabel(lesson)}</p>
                 </div>
                 <span className="text-sm font-bold text-indigo-700 shrink-0">
                   {lesson.scorePercentage != null ? `${lesson.scorePercentage}%` : '—'}

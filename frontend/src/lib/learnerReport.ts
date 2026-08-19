@@ -1,13 +1,31 @@
 export type MasteryStatus = 'unknown' | 'struggling' | 'scaffolding' | 'developing' | 'mastered'
 
+export type LessonBand = 'strength' | 'weakness' | 'steady'
+
 export type LearnerReportSkill = {
   skillFocus: string
   learningOutcomeKey: string
   status: MasteryStatus
   bktPKnow: number | null
+  bktNObservations?: number | null
   preferredModality: string | null
   consecutiveFailsAtLevel: number
   updatedAt?: string | null
+}
+
+export type LearnerReportLesson = {
+  lessonId: string
+  title: string
+  skillFocus: string
+  learningOutcomeKey: string
+  band: LessonBand
+  firstTryPercent: number
+  retryCount: number
+  practiceScorePercent: number | null
+  misconception: string | null
+  bktPKnow: number | null
+  bktNObservations: number | null
+  bktSkillFocus: string | null
 }
 
 export type CountPair = { correct: number; total: number }
@@ -18,6 +36,7 @@ export type LearnerReport = {
   summary: {
     lessonsTracked: number
     completed: number
+    fullyCompleted?: number
     inProgress: number
     averageScore: number | null
     skillsTracked: number
@@ -27,18 +46,23 @@ export type LearnerReport = {
     accuracyPercent: number | null
   }
   masteryCounts: Record<MasteryStatus, number>
-  strengths: LearnerReportSkill[]
-  weaknesses: LearnerReportSkill[]
+  strengths: LearnerReportLesson[]
+  weaknesses: LearnerReportLesson[]
+  steady?: LearnerReportLesson[]
   skillsNeedingPractice?: LearnerReportSkill[]
   bloomBreakdown: Record<string, CountPair>
   modalityBreakdown: Record<string, CountPair>
+  bestModality?: string | null
   misconceptions: Array<{ key: string; count: number }>
   recentLessons: Array<{
     lessonId: string
     title: string
     progress: number
     completed: boolean
+    fullyCompleted?: boolean
     scorePercentage: number | null
+    retryCount?: number
+    practiceScorePercent?: number | null
     lastAccessed?: string | null
   }>
 }
@@ -100,4 +124,19 @@ export const BLOOM_LABEL: Record<string, string> = {
 export const rateLabel = (pair?: CountPair | null) => {
   if (!pair || !pair.total) return '—'
   return `${Math.round((pair.correct / pair.total) * 100)}%`
+}
+
+export const retryPhrase = (count: number) => {
+  if (!count) return 'no retries'
+  return `needed ${count} ${count === 1 ? 'retry' : 'retries'}`
+}
+
+export const lessonProgressLabel = (lesson: {
+  fullyCompleted?: boolean
+  completed: boolean
+  progress: number
+}) => {
+  if (lesson.fullyCompleted) return 'Completed'
+  if (lesson.progress > 0) return `In progress (${lesson.progress}%)`
+  return 'Not started'
 }

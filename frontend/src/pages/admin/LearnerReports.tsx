@@ -254,7 +254,7 @@ export const AdminLearnerReports = () => {
                         <div>
                           <h3 className="text-sm font-bold text-rose-800 mb-2">Shared weaknesses</h3>
                           {insights.commonWeaknesses.length === 0 ? (
-                            <p className="text-sm text-slate-600">No overlapping weak skills.</p>
+                            <p className="text-sm text-slate-600">No overlapping weak lessons.</p>
                           ) : (
                             <ul className="space-y-1.5">
                               {insights.commonWeaknesses.map((item) => (
@@ -272,7 +272,7 @@ export const AdminLearnerReports = () => {
                         <div>
                           <h3 className="text-sm font-bold text-emerald-800 mb-2">Shared strengths</h3>
                           {insights.commonStrengths.length === 0 ? (
-                            <p className="text-sm text-slate-600">No overlapping strong skills yet.</p>
+                            <p className="text-sm text-slate-600">No overlapping strong lessons yet.</p>
                           ) : (
                             <ul className="space-y-1.5">
                               {insights.commonStrengths.map((item) => (
@@ -297,7 +297,7 @@ export const AdminLearnerReports = () => {
                                 key={item.id}
                                 className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-100 text-xs font-semibold text-amber-900"
                               >
-                                {item.name} · {item.weaknessesCount} weak skill
+                                {item.name} · {item.weaknessesCount} weak lesson
                                 {item.weaknessesCount === 1 ? '' : 's'}
                               </li>
                             ))}

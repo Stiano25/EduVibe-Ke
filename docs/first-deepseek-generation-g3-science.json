@@ -1,0 +1,372 @@
+{
+  "metrics": {
+    "lessonId": "613c3929-5a50-4041-83e5-601bdc5029f7",
+    "title": "How Each Plant Part Keeps It Alive",
+    "status": "pending",
+    "quizSource": "fixed_pool",
+    "bankSize": "0/30",
+    "questionCount": 0,
+    "coverageReport": {
+      "outcomes": [
+        "Explain the function of roots, stem, leaves and flowers"
+      ],
+      "remapped": [],
+      "realCovered": [],
+      "stillMissing": [
+        1
+      ]
+    },
+    "mechanicalGates": {
+      "answerInStem": 0,
+      "conceptRepetition": 0
+    },
+    "qaFlaggedCount": 0,
+    "qaFlags": [],
+    "difficulties": {},
+    "usage": {
+      "calls": 3,
+      "inputTokens": 2747,
+      "outputTokens": 5256,
+      "byLabel": [
+        {
+          "provider": "deepseek",
+          "label": "lesson 1 shell",
+          "inputTokens": 867,
+          "outputTokens": 903,
+          "maxTokens": 2500,
+          "stopReason": "stop",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "deepseek",
+          "label": "question-bank Plant parts",
+          "inputTokens": 509,
+          "outputTokens": 4197,
+          "maxTokens": 16000,
+          "stopReason": "stop",
+          "reachedTokenLimit": false
+        },
+        {
+          "provider": "deepseek",
+          "label": "question-bank quiz QA",
+          "inputTokens": 1371,
+          "outputTokens": 156,
+          "maxTokens": 4000,
+          "stopReason": "stop",
+          "reachedTokenLimit": false
+        }
+      ]
+    },
+    "cost": {
+      "pricingBand": "off-peak",
+      "utcHour": 20,
+      "inputUsdPerM": 0.66,
+      "outputUsdPerM": 1.98,
+      "inputTokens": 2747,
+      "outputTokens": 5256,
+      "usd": 0.01222,
+      "note": "Cache-miss list rates. Cache-hit input would be cheaper if the API reported hits on these calls."
+    },
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
+    "errors": [],
+    "generatedAt": "2026-08-19T20:50:08.331Z",
+    "pendingBankCount": 12,
+    "pendingBankQaFlaggedCount": 2,
+    "pendingBankMechanicalGates": {
+      "answerInStem": 0,
+      "conceptRepetition": 0
+    },
+    "pendingBankQaFlags": [
+      {
+        "id": "8425e9e0-3fcb-43fe-9f51-9bc77bf6c0ae",
+        "qa_issue": "too complex for grade: 21 words, 2 sentences",
+        "question": "A plant needs water, sunlight, and air. Which two parts work together to carry water from soil to the food-making part?"
+      },
+      {
+        "id": "686b7175-f5a8-4e5e-b37d-37d3db89eb83",
+        "qa_issue": "too complex for grade: 21 words, 4 sentences",
+        "question": "Which plant part is missing? A plant has roots, stem, and flowers. It has no leaves. What job cannot be done?"
+      }
+    ]
+  },
+  "sampleQuestions": [
+    {
+      "bankId": "8425e9e0-3fcb-43fe-9f51-9bc77bf6c0ae",
+      "status": "pending",
+      "difficulty": "advanced",
+      "bloomLevel": "reason",
+      "interactionType": "multiple_choice",
+      "qaFlagged": true,
+      "qaIssue": "too complex for grade: 21 words, 2 sentences",
+      "question": "A plant needs water, sunlight, and air. Which two parts work together to carry water from soil to the food-making part?",
+      "options": [
+        "Roots and stem",
+        "Leaves and flower",
+        "Petals and roots",
+        "Seeds and stem"
+      ],
+      "correctAnswerIndex": 0
+    },
+    {
+      "bankId": "31717b19-0aa9-4f74-9c4f-25b0448058df",
+      "status": "pending",
+      "difficulty": "easy",
+      "bloomLevel": "recall",
+      "interactionType": "multiple_choice",
+      "qaFlagged": false,
+      "qaIssue": null,
+      "question": "Which part of the plant makes seeds?",
+      "options": [
+        "Flower",
+        "Root",
+        "Stem",
+        "Leaf"
+      ],
+      "correctAnswerIndex": 0
+    },
+    {
+      "bankId": "6adb85e2-efdd-4dac-a0e6-737ffe56b0f9",
+      "status": "pending",
+      "difficulty": "intermediate",
+      "bloomLevel": "understand",
+      "interactionType": "multiple_choice",
+      "qaFlagged": false,
+      "qaIssue": null,
+      "question": "A plant grows taller and its leaves reach sunlight. Which part carries water up to the leaves?",
+      "options": [
+        "Stem",
+        "Flower",
+        "Root",
+        "Seed"
+      ],
+      "correctAnswerIndex": 0
+    },
+    {
+      "bankId": "0ee99e58-80ed-4553-b09c-8e0d8d6a7533",
+      "status": "pending",
+      "difficulty": "intermediate",
+      "bloomLevel": "understand",
+      "interactionType": "multiple_choice",
+      "qaFlagged": false,
+      "qaIssue": null,
+      "question": "Leaves are green and flat. What important job do they do for the plant?",
+      "options": [
+        "Make food",
+        "Take in water",
+        "Make seeds",
+        "Hold the plant down"
+      ],
+      "correctAnswerIndex": 0
+    },
+    {
+      "bankId": "7917a476-7222-4437-a829-03af3dccc6f1",
+      "status": "pending",
+      "difficulty": "advanced",
+      "bloomLevel": "apply",
+      "interactionType": "multiple_choice",
+      "qaFlagged": false,
+      "qaIssue": null,
+      "question": "A plant in dry soil wilts. Which part failed to do its job of absorbing water?",
+      "options": [
+        "Root",
+        "Leaf",
+        "Flower",
+        "Petal"
+      ],
+      "correctAnswerIndex": 0
+    },
+    {
+      "bankId": "be7377b5-8337-4498-b423-123adf22066f",
+      "status": "pending",
+      "difficulty": "intermediate",
+      "bloomLevel": "understand",
+      "interactionType": "multiple_choice",
+      "qaFlagged": false,
+      "qaIssue": null,
+      "question": "Which list shows the main parts of a flowering plant in the correct order from bottom to top?",
+      "options": [
+        "Roots, stem, leaves, flower",
+        "Flower, leaves, stem, roots",
+        "Leaves, roots, flower, stem",
+        "Stem, flower, roots, leaves"
+      ],
+      "correctAnswerIndex": 0
+    }
+  ],
+  "lesson": {
+    "id": "613c3929-5a50-4041-83e5-601bdc5029f7",
+    "title": "How Each Plant Part Keeps It Alive",
+    "description": "Discover the special job of roots, stem, leaves and flowers through a farm visit.",
+    "grade": "3",
+    "status": "pending",
+    "learningObjectives": [
+      "Explain the function of roots, stem, leaves and flowers"
+    ],
+    "content": "Imagine you are walking through a farm early in the morning. A tall {{term:maize}} plant stands in the soil. It does not have hands or a mouth, yet it eats, drinks and grows. Each part of the plant has a job that keeps the whole plant alive.\n\nYou can see this for yourself at home. Put a {{example:celery}} stalk into a glass of water with a few drops of food colouring. Leave it for some hours. The coloured water moves up the stem and reaches the leaves. This shows how the stem carries water from the roots to the whole plant.",
+    "contentBlocks": [
+      {
+        "id": "cb-1",
+        "text": "Imagine you are walking through a farm early in the morning. A tall {{term:maize}} plant stands in the soil. It does not have hands or a mouth, yet it eats, drinks and grows. Each part of the plant has a job that keeps the whole plant alive.",
+        "type": "text"
+      },
+      {
+        "id": "cb-2",
+        "type": "diagram",
+        "briefId": "vb-1"
+      },
+      {
+        "id": "cb-3",
+        "text": "You can see this for yourself at home. Put a {{example:celery}} stalk into a glass of water with a few drops of food colouring. Leave it for some hours. The coloured water moves up the stem and reaches the leaves. This shows how the stem carries water from the roots to the whole plant.",
+        "type": "text"
+      },
+      {
+        "id": "cb-4",
+        "type": "diagram",
+        "briefId": "vb-2"
+      }
+    ],
+    "visualBriefs": [
+      {
+        "id": "vb-1",
+        "brief": "A labelled plant showing roots at the bottom with arrows to water in the soil, a straight stem, green leaves near the sun, and a flower at the top with tiny seeds inside.",
+        "scope": "teaching",
+        "params": {
+          "items": [
+            {
+              "text": "Absorb water and hold the plant in the soil",
+              "label": "Roots"
+            },
+            {
+              "text": "Carries water and holds the plant upright",
+              "label": "Stem"
+            },
+            {
+              "text": "Make food using sunlight",
+              "label": "Leaves"
+            },
+            {
+              "text": "Make seeds for new plants",
+              "label": "Flowers"
+            }
+          ],
+          "title": "Jobs of Plant Parts"
+        },
+        "outcomeKey": "23ef747d4f2fc4cc",
+        "skillFocus": "Identifying the function of each plant part",
+        "diagramType": "labeled_boxes"
+      },
+      {
+        "id": "vb-2",
+        "brief": "Four arrow-linked boxes showing water moving from soil into roots, up the stem, into leaves, and finally reaching the flower.",
+        "scope": "teaching",
+        "params": {
+          "steps": [
+            "Roots absorb water from the soil",
+            "Stem carries water upward",
+            "Leaves use water to make food",
+            "Flower stays healthy and makes seeds"
+          ],
+          "title": "Path of Water in a Plant"
+        },
+        "outcomeKey": "c5c2a42738dbd101",
+        "skillFocus": "Observing how water travels in a plant",
+        "diagramType": "process_flow"
+      }
+    ],
+    "quiz": {
+      "title": "Quiz Challenge",
+      "source": "fixed_pool",
+      "bankStats": {
+        "total": 0,
+        "byBloom": {},
+        "byOutcome": {},
+        "byModality": {}
+      },
+      "questions": [],
+      "timeLimit": 12,
+      "passingScore": 65,
+      "visualAssets": [],
+      "visualBriefs": [
+        {
+          "id": "vb-1",
+          "brief": "A labelled plant showing roots at the bottom with arrows to water in the soil, a straight stem, green leaves near the sun, and a flower at the top with tiny seeds inside.",
+          "scope": "teaching",
+          "params": {
+            "items": [
+              {
+                "text": "Absorb water and hold the plant in the soil",
+                "label": "Roots"
+              },
+              {
+                "text": "Carries water and holds the plant upright",
+                "label": "Stem"
+              },
+              {
+                "text": "Make food using sunlight",
+                "label": "Leaves"
+              },
+              {
+                "text": "Make seeds for new plants",
+                "label": "Flowers"
+              }
+            ],
+            "title": "Jobs of Plant Parts"
+          },
+          "outcomeKey": "23ef747d4f2fc4cc",
+          "skillFocus": "Identifying the function of each plant part",
+          "diagramType": "labeled_boxes"
+        },
+        {
+          "id": "vb-2",
+          "brief": "Four arrow-linked boxes showing water moving from soil into roots, up the stem, into leaves, and finally reaching the flower.",
+          "scope": "teaching",
+          "params": {
+            "steps": [
+              "Roots absorb water from the soil",
+              "Stem carries water upward",
+              "Leaves use water to make food",
+              "Flower stays healthy and makes seeds"
+            ],
+            "title": "Path of Water in a Plant"
+          },
+          "outcomeKey": "c5c2a42738dbd101",
+          "skillFocus": "Observing how water travels in a plant",
+          "diagramType": "process_flow"
+        }
+      ],
+      "contentBlocks": [
+        {
+          "id": "cb-1",
+          "text": "Imagine you are walking through a farm early in the morning. A tall {{term:maize}} plant stands in the soil. It does not have hands or a mouth, yet it eats, drinks and grows. Each part of the plant has a job that keeps the whole plant alive.",
+          "type": "text"
+        },
+        {
+          "id": "cb-2",
+          "type": "diagram",
+          "briefId": "vb-1"
+        },
+        {
+          "id": "cb-3",
+          "text": "You can see this for yourself at home. Put a {{example:celery}} stalk into a glass of water with a few drops of food colouring. Leave it for some hours. The coloured water moves up the stem and reaches the leaves. This shows how the stem carries water from the roots to the whole plant.",
+          "type": "text"
+        },
+        {
+          "id": "cb-4",
+          "type": "diagram",
+          "briefId": "vb-2"
+        }
+      ],
+      "coverageReport": {
+        "outcomes": [
+          "Explain the function of roots, stem, leaves and flowers"
+        ],
+        "remapped": [],
+        "realCovered": [],
+        "stillMissing": [
+          1
+        ]
+      }
+    }
+  }
+}

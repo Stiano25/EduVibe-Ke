@@ -46,8 +46,10 @@ cp .env.example .env
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key (optional, for admin operations)
 - `GEMINI_API_KEY`: Your Google Gemini API key
-- `GENERATION_PROVIDER`: Optional. Lesson generation provider — `claude` (default) or `gemini`. Embeddings and OCR stay on Gemini regardless.
-- `ANTHROPIC_API_KEY`: Required for Claude generation (default provider)
+- `GENERATION_PROVIDER`: Optional. Lesson generation provider — `deepseek` (default), `claude`, or `gemini`. Embeddings and OCR stay on Gemini regardless.
+- `DEEPSEEK_API_KEY`: Required for DeepSeek generation (default provider)
+- `DEEPSEEK_MODEL`: Optional. DeepSeek model id (default `deepseek-v4-pro`; `deepseek-v4-flash` is also valid)
+- `ANTHROPIC_API_KEY`: Required when `GENERATION_PROVIDER=claude`
 - `CLAUDE_MODEL`: Optional. Claude model id (default `claude-sonnet-5`)
 - `QUIZ_QA_ENABLED`: Optional. Batched quiz QA after lesson generation (default on). Set to `false` or `0` to skip the extra generation call per lesson.
 - `FRONTEND_URL`: Your frontend URL (for CORS)

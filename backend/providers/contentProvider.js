@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import * as geminiProvider from './geminiContentProvider.js';
 import * as claudeProvider from './claudeContentProvider.js';
+import * as deepseekProvider from './deepseekContentProvider.js';
 
 /** Re-read .env so GENERATION_PROVIDER changes apply without stale process env. */
 const refreshEnv = () => {
@@ -87,12 +88,13 @@ const recordUsage = (provider, result, label, maxTokens) => {
 
 export const getGenerationProvider = () => {
   refreshEnv();
-  return (process.env.GENERATION_PROVIDER || 'claude').toLowerCase().trim();
+  return (process.env.GENERATION_PROVIDER || 'deepseek').toLowerCase().trim();
 };
 
 /**
  * Shared generation entry point for lessonGenerationService.
- * Default: claude. Set GENERATION_PROVIDER=gemini to use getModel / AI_PROVIDER.
+ * Default: deepseek. Set GENERATION_PROVIDER=claude | gemini to use those adapters.
+ * Embeddings and OCR stay on Gemini regardless.
  *
  * @returns {{ text: string, inputTokens: number, outputTokens: number }}
  */
@@ -106,6 +108,8 @@ export const generateContent = async (options = {}) => {
     result = await geminiProvider.generateContent(options);
   } else if (provider === 'claude') {
     result = await claudeProvider.generateContent(options);
+  } else if (provider === 'deepseek') {
+    result = await deepseekProvider.generateContent(options);
   } else {
     console.warn(
       `[generation] Unknown GENERATION_PROVIDER="${provider}" — falling back to claude`

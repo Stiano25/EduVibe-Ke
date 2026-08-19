@@ -12,12 +12,17 @@ export {
   MAX_REPORT_LEARNERS,
   STRENGTH_STATUSES,
   WEAKNESS_STATUSES,
+  LESSON_STRENGTH_MIN,
+  LESSON_WEAKNESS_MAX,
   emptyMasteryCounts,
   emptyBloomBreakdown,
   mapSkill,
   classifyMastery,
   summarizeAttempts,
   mapLessonProgress,
+  classifyLessonBand,
+  classifyLessons,
+  bestModalityFromBreakdown,
   buildReportPayload,
   buildClassInsights
 } from './learnerReportMath.js';

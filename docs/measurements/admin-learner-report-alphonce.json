@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-08-19T19:47:23.911Z",
+  "reports": [
+    {
+      "learner": {
+        "id": "d0b9f845-55b3-4f4f-95d4-ed039e0a2acd",
+        "name": "Alphonce Thuku",
+        "email": "AlphonceThuku@gmail.com",
+        "grade": "1"
+      },
+      "generatedAt": "2026-08-19T19:47:23.911Z",
+      "summary": {
+        "lessonsTracked": 4,
+        "completed": 4,
+        "inProgress": 0,
+        "averageScore": 72,
+        "skillsTracked": 4,
+        "strengthsCount": 3,
+        "weaknessesCount": 1,
+        "attemptCount": 55,
+        "accuracyPercent": 75
+      },
+      "masteryCounts": {
+        "unknown": 0,
+        "struggling": 1,
+        "scaffolding": 0,
+        "developing": 1,
+        "mastered": 2
+      },
+      "strengths": [
+        {
+          "skillFocus": "Add multiples of 10 up to 100",
+          "learningOutcomeKey": "d02489793ffb01e2",
+          "status": "mastered",
+          "bktPKnow": 0.999999999,
+          "preferredModality": "practice",
+          "consecutiveFailsAtLevel": 0,
+          "updatedAt": "2026-08-17T18:27:21.607089+00:00"
+        },
+        {
+          "skillFocus": "Add a 2-digit number and a 1-digit number without regrouping",
+          "learningOutcomeKey": "b5e4ac30d74ab4d6",
+          "status": "mastered",
+          "bktPKnow": 0.999996201263174,
+          "preferredModality": "practice",
+          "consecutiveFailsAtLevel": 0,
+          "updatedAt": "2026-08-18T10:24:59.767665+00:00"
+        },
+        {
+          "skillFocus": "represent numbers 1-30 using concrete objects",
+          "learningOutcomeKey": "f0ee410529a15b33",
+          "status": "developing",
+          "bktPKnow": 0.760975609756098,
+          "preferredModality": "visual",
+          "consecutiveFailsAtLevel": 0,
+          "updatedAt": "2026-08-16T11:39:04.934489+00:00"
+        }
+      ],
+      "weaknesses": [
+        {
+          "skillFocus": "A group has only one count",
+          "learningOutcomeKey": "de83fac6a9c29179",
+          "status": "struggling",
+          "bktPKnow": 0.335593220338983,
+          "preferredModality": "visual",
+          "consecutiveFailsAtLevel": 1,
+          "updatedAt": "2026-08-17T12:34:21.662809+00:00"
+        }
+      ],
+      "skillsNeedingPractice": [
+        {
+          "skillFocus": "A group has only one count",
+          "learningOutcomeKey": "de83fac6a9c29179",
+          "status": "struggling",
+          "bktPKnow": 0.335593220338983,
+          "preferredModality": "visual",
+          "consecutiveFailsAtLevel": 1,
+          "updatedAt": "2026-08-17T12:34:21.662809+00:00"
+        }
+      ],
+      "bloomBreakdown": {
+        "recall": {
+          "correct": 0,
+          "total": 0
+        },
+        "understand": {
+          "correct": 3,
+          "total": 3
+        },
+        "apply": {
+          "correct": 36,
+          "total": 47
+        },
+        "reason": {
+          "correct": 2,
+          "total": 5
+        }
+      },
+      "modalityBreakdown": {
+        "practice": {
+          "correct": 27,
+          "total": 36
+        },
+        "visual": {
+          "correct": 4,
+          "total": 8
+        },
+        "text_steps": {
+          "correct": 10,
+          "total": 11
+        }
+      },
+      "misconceptions": [
+        {
+          "key": "Counted one banana too many.",
+          "count": 1
+        },
+        {
+          "key": "Rounded the ones up too far",
+          "count": 1
+        }
+      ],
+      "recentLessons": [
+        {
+          "lessonId": "e77e2251-5f2d-4c18-b3ae-f5696246386f",
+          "title": "Writing Addition Sentences with + and =",
+          "progress": 70,
+          "completed": true,
+          "fullyCompleted": true,
+          "completedAt": "2026-08-18T10:25:00.195+00:00",
+          "lastAccessed": "2026-08-18T10:25:00.195+00:00",
+          "scorePercentage": 70,
+          "scoreCorrect": 7,
+          "scoreTotal": 10
+        },
+        {
+          "lessonId": "b0c55697-cb5b-4a24-aa1e-3c1e125adc49",
+          "title": "Adding 2 single-digit numbers up to 10",
+          "progress": 60,
+          "completed": true,
+          "fullyCompleted": false,
+          "completedAt": null,
+          "lastAccessed": "2026-08-17T18:27:21.74+00:00",
+          "scorePercentage": 60,
+          "scoreCorrect": 6,
+          "scoreTotal": 10
+        },
+        {
+          "lessonId": "7509a440-fb35-42ca-926f-058d304579a3",
+          "title": "Practice: Addition - Part 3",
+          "progress": 90,
+          "completed": true,
+          "fullyCompleted": true,
+          "completedAt": "2026-08-17T12:39:51.973+00:00",
+          "lastAccessed": "2026-08-17T12:39:51.973+00:00",
+          "scorePercentage": 90,
+          "scoreCorrect": 9,
+          "scoreTotal": 10
+        },
+        {
+          "lessonId": "eb2371b7-78e7-47fd-a912-799c0df4d34b",
+          "title": "Adding a 2-Digit Number and a 1-Digit Number",
+          "progress": 67,
+          "completed": true,
+          "fullyCompleted": true,
+          "completedAt": "2026-08-17T05:47:53.745+00:00",
+          "lastAccessed": "2026-08-17T05:47:53.746+00:00",
+          "scorePercentage": 67,
+          "scoreCorrect": 8,
+          "scoreTotal": 12
+        }
+      ]
+    }
+  ],
+  "classInsights": null
+}

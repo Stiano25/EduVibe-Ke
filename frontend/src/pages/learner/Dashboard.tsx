@@ -55,7 +55,6 @@ export const LearnerDashboard = () => {
   const { path, loading: loadingPath } = useLearnerPath({ enabled: questNav })
   const pathLessons = flattenPathLessons(path.subjects)
   const hasOpenLessons = pathLessons.some(({ lesson }) => lesson.isUnlocked && !lesson.isDone)
-  const doneCount = pathLessons.filter(({ lesson }) => lesson.isDone).length
 
   useEffect(() => {
     if (questNav) {
@@ -120,36 +119,27 @@ export const LearnerDashboard = () => {
     <LearnerPage>
       <StaggeredEntry>
             <div className="print:hidden">
-              <WelcomeHeader />
               {questNav ? (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <QuestNextCard
                     data={nextTask}
                     loading={loadingNextTask}
                     showPickerLink={false}
                     hasOpenLessons={hasOpenLessons}
+                    showGreeting
                   />
                   {path.subjects.length > 0 || loadingPath ? (
-                    <div>
-                      <div className="mb-3 flex items-end justify-between gap-3">
-                        <h2 className="text-xl font-black text-ev-ink">Your path</h2>
-                        {doneCount > 0 ? (
-                          <p className="text-sm font-bold text-ev-muted">
-                            {doneCount}/{pathLessons.length} done
-                          </p>
-                        ) : null}
-                      </div>
-                      <LearnerPathBoard
-                        subjects={path.subjects}
-                        currentLessonId={path.currentLessonId}
-                        loading={loadingPath}
-                      />
-                    </div>
+                    <LearnerPathBoard
+                      subjects={path.subjects}
+                      currentLessonId={path.currentLessonId}
+                      loading={loadingPath}
+                    />
                   ) : null}
                   <UnitCompleteCelebration subjects={path.subjects} />
                 </div>
               ) : (
                 <>
+                  <WelcomeHeader />
                   <SearchBar value={searchQuery} onChange={setSearchQuery} />
                   <SubjectNavigation />
                   <DailyExerciseCard />

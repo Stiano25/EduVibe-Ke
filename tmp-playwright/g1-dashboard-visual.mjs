@@ -19,8 +19,8 @@ const dump = JSON.parse(fs.readFileSync(path.join(outDir, 'g1-path-empty-learner
 
 const user = {
   id: 'shot-learner',
-  name: 'Amina',
-  email: 'amina@example.com',
+  name: 'Alphonce',
+  email: 'alphonce@example.com',
   role: 'learner',
   grade: '1'
 };
@@ -151,7 +151,7 @@ const shot = async (page, name) => {
   console.log('Wrote', file, pngSize(file));
 };
 
-const login = async (page, fromStop = L1) => {
+const login = async (page, fromStop = L1, who = user) => {
   await page.addInitScript(
     ({ user: u, fromStop: stop }) => {
       sessionStorage.setItem('token', 'shot-token');
@@ -161,8 +161,33 @@ const login = async (page, fromStop = L1) => {
       sessionStorage.setItem('ev-path-vehicle-stop', `lesson:${stop}`);
       localStorage.setItem('ev-unit-celebrated-d4da54ca-7e04-4f5a-8179-4610a0fa360b', '1');
     },
-    { user, fromStop }
+    { user: who, fromStop }
   );
+};
+
+const assertNameFits = async (page, expected) => {
+  const el = page.locator('[data-identity-name]');
+  await el.waitFor({ timeout: 15000 });
+  const info = await el.evaluate((node) => {
+    const styles = getComputedStyle(node);
+    return {
+      text: (node.textContent || '').trim(),
+      scrollWidth: node.scrollWidth,
+      clientWidth: node.clientWidth,
+      textOverflow: styles.textOverflow,
+      overflow: styles.overflow
+    };
+  });
+  console.log('name-fit', expected, info);
+  if (info.textOverflow === 'ellipsis') {
+    throw new Error(`Name is ellipsized: ${JSON.stringify(info)}`);
+  }
+  if (info.scrollWidth > info.clientWidth + 1) {
+    throw new Error(`Name overflows: ${JSON.stringify(info)}`);
+  }
+  if (!info.text.includes(expected.split(/\s+/)[0])) {
+    throw new Error(`Name missing from hero: expected ${expected}, got ${info.text}`);
+  }
 };
 
 const browser = await chromium.launch({ headless: true });
@@ -175,8 +200,34 @@ try {
     await login(page);
     await page.goto(`${BASE}/learner`, { waitUntil: 'networkidle', timeout: 60000 });
     await page.locator('[data-welcome-header]').waitFor({ timeout: 15000 });
+    await page.locator('[data-quest-hero]').waitFor({ timeout: 15000 });
     await page.locator('[data-path-vehicle]').waitFor({ state: 'attached', timeout: 15000 });
     await page.waitForTimeout(900);
+
+    const greetingInsideHero = await page
+      .locator('[data-quest-hero] [data-welcome-header]')
+      .count();
+    if (!greetingInsideHero) throw new Error('Greeting is not inside the hero');
+
+    const yourPath = await page.getByText('Your path', { exact: true }).count();
+    if (yourPath) throw new Error('"Your path" heading is still on the page');
+
+    const mathHeadings = await page.locator('h3').filter({ hasText: 'Mathematics' }).count();
+    if (mathHeadings) throw new Error('Standalone Mathematics subject label is still on the page');
+
+    const strand = await page.locator('[data-strand-banner]').first().boundingBox();
+    if (!strand || strand.height > 40) throw new Error(`Strand divider too tall: ${JSON.stringify(strand)}`);
+
+    const firstNode = await page.locator('[data-path-node]').first().boundingBox();
+    console.log('chrome', {
+      greetingInsideHero,
+      strandHeight: strand.height,
+      firstNodeY: firstNode?.y
+    });
+    if (!firstNode || firstNode.y > 720) {
+      throw new Error(`First lesson node still too far down: ${JSON.stringify(firstNode)}`);
+    }
+    await assertNameFits(page, 'Alphonce');
 
     const matatu = await page.locator('[data-path-vehicle]').boundingBox();
     const obstacle = await page.locator('[data-path-obstacle] svg').first().boundingBox();
@@ -217,6 +268,29 @@ try {
     await page.locator('[data-welcome-header]').waitFor({ timeout: 15000 });
     await page.waitForTimeout(600);
     await shot(page, 'g1-dashboard-visual-all-done.png');
+    await page.close();
+  }
+
+  const nameCases = [
+    { id: 'short', name: 'Ann' },
+    { id: 'medium', name: 'Alphonce' },
+    { id: 'long', name: 'Anne-Marie-Elizabeth Mwangi' }
+  ];
+  const payload = mixedPath();
+  for (const c of nameCases) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.route(`${API}/**`, (route) => route.fulfill(handleApi(route.request().url(), payload)));
+    await login(page, L1, { ...user, name: c.name });
+    await page.goto(`${BASE}/learner`, { waitUntil: 'networkidle', timeout: 60000 });
+    await page.locator('[data-identity-name]').waitFor({ timeout: 15000 });
+    await page.waitForTimeout(500);
+    await assertNameFits(page, c.name);
+    await shot(page, `g1-hero-name-${c.id}.png`);
+    await page.screenshot({
+      path: path.join(outDir, `g1-hero-name-${c.id}-top.png`),
+      fullPage: false,
+      animations: 'disabled'
+    });
     await page.close();
   }
 

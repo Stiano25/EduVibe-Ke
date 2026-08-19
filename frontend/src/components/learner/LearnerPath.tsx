@@ -1,9 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, Flag, Lock, Star } from 'lucide-react'
-import { LazyLottie } from '@/components/ui/LazyLottie'
 import { QUEST_COPY } from '@/lib/complexityBands'
-import { ACCENT_BG, accentFor, type LearnerAccent } from '@/lib/learnerUi'
+import { ACCENT_BG, accentFor } from '@/lib/learnerUi'
 import { justUnlockedAgainstSeen, rememberUnlocked } from '@/lib/learnerPathChrome'
 import {
   currentStopIndex,
@@ -33,7 +32,6 @@ import {
 import { PathVehicle } from './path/PathVehicle'
 import { QuestObstacleArt, QuestObstacleSilhouette, OBSTACLE_LABEL } from './path/QuestObstacleArt'
 import { ResistanceMeter } from './path/ResistanceMeter'
-import { BannerDecor } from '@/components/learner/BannerDecor'
 
 type NodeState = 'locked' | 'current' | 'done' | 'open'
 
@@ -49,12 +47,6 @@ const NODE_SIZE: Record<NodeState, string> = {
   open: 'h-16 w-16',
   done: 'h-[4.25rem] w-[4.25rem]',
   current: 'h-[4.75rem] w-[4.75rem]',
-}
-
-const STRAND_FILL: Record<LearnerAccent, string> = {
-  green: 'bg-ev-green',
-  blue: 'bg-ev-blue',
-  pink: 'bg-ev-pink',
 }
 
 const UNIT_CARD: Record<UnitVisualState, string> = {
@@ -446,23 +438,15 @@ const StrandSection = ({
   const sectionDone = strandHasCompletedPath(strand)
 
   return (
-    <section data-path-strand={strand.strandId} className="space-y-3">
-      <div
-        className={`relative overflow-hidden rounded-ev-lg px-5 py-5 text-white ev-banner-depth ${STRAND_FILL[accent]}`}
-        data-strand-banner="true"
-      >
-        <BannerDecor accent={accent} variant="strand" />
-        <div className="relative z-10 pr-6">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-white/85">Strand</p>
-          <p className="text-2xl font-black leading-tight">{strand.strandName}</p>
-        </div>
+    <section data-path-strand={strand.strandId} className="space-y-2">
+      <div className="flex items-center gap-2 px-1" data-strand-banner="inline">
+        <span className={`h-2.5 w-2.5 rounded-full ${ACCENT_BG[accent]}`} aria-hidden />
+        <h2 className="text-sm font-black text-ev-ink">{strand.strandName}</h2>
         {sectionDone ? (
-          <div className="pointer-events-none absolute -bottom-5 -right-3 h-24 w-24" aria-hidden>
-            <LazyLottie animationKey="cuteTiger" style={{ width: '100%', height: '100%' }} />
-          </div>
+          <span className="text-[11px] font-bold text-ev-green-edge">{QUEST_COPY.statusDone}</span>
         ) : null}
       </div>
-      <div className="rounded-ev-lg bg-white/70 py-4 shadow-ev-sm">
+      <div className="rounded-ev-lg bg-white/70 py-3 shadow-ev-sm">
         <StrandRoad strand={strand} currentLessonId={currentLessonId} justUnlocked={justUnlocked} />
       </div>
     </section>
@@ -473,18 +457,22 @@ const SubjectPath = ({
   subject,
   currentLessonId,
   justUnlocked,
+  showSubjectLabel,
 }: {
   subject: PathSubject
   currentLessonId: string | null
   justUnlocked: Set<string>
+  showSubjectLabel: boolean
 }) => {
   const accent = accentFor(subject.subjectName)
   return (
-    <article data-path-subject={subject.subjectId} className="space-y-6">
-      <div className="flex items-center gap-3">
-        <span className={`h-3 w-3 rounded-full ${ACCENT_BG[accent]}`} aria-hidden />
-        <h3 className="text-xl font-black text-ev-ink">{subject.subjectName}</h3>
-      </div>
+    <article data-path-subject={subject.subjectId} className="space-y-5">
+      {showSubjectLabel ? (
+        <div className="flex items-center gap-2 px-1">
+          <span className={`h-2.5 w-2.5 rounded-full ${ACCENT_BG[accent]}`} aria-hidden />
+          <h3 className="text-sm font-black text-ev-ink">{subject.subjectName}</h3>
+        </div>
+      ) : null}
       {subject.strands.map((strand) => (
         <StrandSection
           key={strand.strandId}
@@ -538,13 +526,14 @@ export const LearnerPathBoard = ({
   }
 
   return (
-    <div data-learner-path="true" className="space-y-10">
+    <div data-learner-path="true" className="space-y-8">
       {subjects.map((subject) => (
         <SubjectPath
           key={subject.subjectId}
           subject={subject}
           currentLessonId={currentLessonId}
           justUnlocked={justUnlocked}
+          showSubjectLabel={subjects.length > 1}
         />
       ))}
     </div>

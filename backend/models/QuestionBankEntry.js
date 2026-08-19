@@ -70,7 +70,14 @@ export class QuestionBankEntry {
     return oneOrNull(data, error, (row) => this.mapToModel(row));
   }
 
-  static async list({ status = null, subStrandId = null, limit = 50 } = {}) {
+  static async list({
+    status = null,
+    subStrandId = null,
+    grade = null,
+    subjectId = null,
+    strandId = null,
+    limit = 50
+  } = {}) {
     let q = getDbClient()
       .from(this.tableName)
       .select('*')
@@ -78,6 +85,9 @@ export class QuestionBankEntry {
       .limit(Math.min(Number(limit) || 50, 200));
     if (status) q = q.eq('status', status);
     if (subStrandId) q = q.eq('sub_strand_id', subStrandId);
+    if (grade) q = q.eq('grade', String(grade));
+    if (subjectId) q = q.eq('subject_id', subjectId);
+    if (strandId) q = q.eq('strand_id', strandId);
     const { data, error } = await q;
     if (error) throw error;
     return (data || []).map((row) => this.mapToModel(row));

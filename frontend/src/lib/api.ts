@@ -129,10 +129,20 @@ class ApiClient {
     deleteKnowledge: (id: string) =>
       this.request(`/admin/knowledge/${id}`, { method: 'DELETE' }),
 
-    listQuestionBank: (params?: { status?: string; subStrandId?: string; limit?: number }) => {
+    listQuestionBank: (params?: {
+      status?: string
+      subStrandId?: string
+      grade?: string
+      subjectId?: string
+      strandId?: string
+      limit?: number
+    }) => {
       const qs = new URLSearchParams()
       if (params?.status) qs.set('status', params.status)
       if (params?.subStrandId) qs.set('subStrandId', params.subStrandId)
+      if (params?.grade) qs.set('grade', params.grade)
+      if (params?.subjectId) qs.set('subjectId', params.subjectId)
+      if (params?.strandId) qs.set('strandId', params.strandId)
       if (params?.limit) qs.set('limit', String(params.limit))
       const suffix = qs.toString() ? `?${qs.toString()}` : ''
       return this.request(`/admin/question-bank${suffix}`)

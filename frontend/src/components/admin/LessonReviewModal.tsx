@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { Check, ChevronLeft, ChevronRight, Edit, FileText, HelpCircle, ImageIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Check, ChevronLeft, ChevronRight, Edit, FileText, HelpCircle, ImageIcon, Library, Loader2, RefreshCw, Upload } from 'lucide-react'
 import { Modal } from '@/components/modals/Modal'
 import { api } from '@/lib/api'
 import { modalityLabel } from '@/lib/modalityQuiz'
@@ -10,6 +11,7 @@ import { OptionVisual } from '@/components/learner/OptionVisual'
 import { ColumnOperation } from '@/components/learner/quiz/ColumnAddition'
 import { AdditionWorkedExample } from '@/components/learner/quiz/AdditionWorkedExample'
 import { additionWorkedSteps, resolveAdditionLayout, resolveColumnOperation } from '@/lib/additionLayout'
+import { questionBankReviewHref } from '@/lib/questionBank'
 import type { Lesson, LessonVisualBrief, QuizQuestion } from '@/types'
 
 const DIAGRAM_TYPES = [
@@ -69,6 +71,8 @@ export const LessonReviewModal = ({
   const [qaFilter, setQaFilter] = useState<'all' | 'flagged'>('all')
   const [toppingUp, setToppingUp] = useState(false)
   const [topUpMessage, setTopUpMessage] = useState<string | null>(null)
+  const [pendingBankCount, setPendingBankCount] = useState(0)
+  const navigate = useNavigate()
 
   const SESSION_TARGET = 12
   const templateBacked = lesson.quiz?.source === 'templates'
@@ -137,6 +141,43 @@ export const LessonReviewModal = ({
 
   const qCount = questions.length
   const canApprove = templateBacked || qCount > 0
+  const sessionTarget = Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0)
+  const quizShort = !templateBacked && qCount < sessionTarget
+  const blockingBankHref = questionBankReviewHref({
+    status: 'pending',
+    grade: lesson.grade,
+    subjectId: lesson.subjectId,
+    strandId: lesson.strandId,
+    subStrandId: lesson.subStrandId,
+  })
+
+  useEffect(() => {
+    if (!isOpen || templateBacked || !lesson.subStrandId) {
+      setPendingBankCount(0)
+      return
+    }
+    let cancelled = false
+    api.admin
+      .listQuestionBank({
+        status: 'pending',
+        subStrandId: lesson.subStrandId,
+        limit: 200,
+      })
+      .then((list) => {
+        if (!cancelled) setPendingBankCount(Array.isArray(list) ? list.length : 0)
+      })
+      .catch(() => {
+        if (!cancelled) setPendingBankCount(0)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, templateBacked, lesson.subStrandId, lesson.id, qCount])
+
+  const openBlockingBank = () => {
+    onClose()
+    navigate(blockingBankHref)
+  }
   const safeIndex = Math.min(Math.max(currentQuestionIndex, 0), Math.max(qCount - 1, 0))
   const q = questions[safeIndex] as QuizQuestion | undefined
   const numericLayout =
@@ -457,7 +498,7 @@ export const LessonReviewModal = ({
             title={
               canApprove
                 ? 'Approve lesson'
-                : 'Cannot approve until the quiz has questions. Review the question bank, then top up.'
+                : 'Cannot approve until the quiz has questions. Review pending bank items for this lesson.'
             }
             onClick={async () => {
               if (!canApprove) return
@@ -532,6 +573,17 @@ export const LessonReviewModal = ({
               >
                 You can review the teaching content. Approve stays off until this lesson has quiz questions.
               </p>
+            )}
+            {quizShort && pendingBankCount > 0 && (
+              <button
+                type="button"
+                onClick={openBlockingBank}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-600 text-white text-sm font-semibold"
+                style={{ fontFamily: 'Manrope, sans-serif' }}
+              >
+                <Library className="w-4 h-4" />
+                Review {pendingBankCount} pending question{pendingBankCount === 1 ? '' : 's'} blocking this lesson
+              </button>
             )}
             {lesson.learningObjectives && lesson.learningObjectives.length > 0 && (
               <div className="rounded-[16px] border-2 border-indigo-100 bg-indigo-50/60 p-4">
@@ -849,8 +901,20 @@ export const LessonReviewModal = ({
             {qCount === 0 && !templateBacked ? (
               <div className="space-y-3">
                 <p className="text-sm text-slate-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  No quiz questions yet. Switch to Content to review the lesson. Approve pending bank items, then top up.
+                  No quiz questions yet. Switch to Content to review the lesson. Approve pending bank items
+                  for this sub-strand — they attach automatically.
                 </p>
+                {pendingBankCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={openBlockingBank}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-600 text-white text-sm font-semibold"
+                    style={{ fontFamily: 'Manrope, sans-serif' }}
+                  >
+                    <Library className="w-4 h-4" />
+                    Review {pendingBankCount} pending question{pendingBankCount === 1 ? '' : 's'} blocking this lesson
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleTopUpBank}
@@ -873,13 +937,25 @@ export const LessonReviewModal = ({
                   {!templateBacked && (
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs font-bold text-slate-700" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      Question bank: {bankCoverage.total}/{Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0)} · outcomes covered:{' '}
+                      Question bank: {bankCoverage.total}/{sessionTarget} · outcomes covered:{' '}
                       {bankCoverage.outcomesCovered}
-                      {bankCoverage.total < Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0) ? (
+                      {quizShort ? (
                         <span className="text-amber-700 font-semibold"> · short — top up recommended</span>
                       ) : null}
                     </p>
-                    {bankCoverage.total < Math.max(SESSION_TARGET, lesson.learningObjectives?.length || 0) && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {pendingBankCount > 0 && quizShort && (
+                        <button
+                          type="button"
+                          onClick={openBlockingBank}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-600 text-white text-[11px] font-semibold"
+                          style={{ fontFamily: 'Manrope, sans-serif' }}
+                        >
+                          <Library className="w-3.5 h-3.5" />
+                          Review {pendingBankCount} pending question{pendingBankCount === 1 ? '' : 's'} blocking this lesson
+                        </button>
+                      )}
+                    {quizShort && (
                       <button
                         type="button"
                         onClick={handleTopUpBank}
@@ -895,6 +971,7 @@ export const LessonReviewModal = ({
                         Pull approved items
                       </button>
                     )}
+                    </div>
                   </div>
                   )}
                   {topUpMessage && (

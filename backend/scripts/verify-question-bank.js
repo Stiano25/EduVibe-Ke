@@ -133,6 +133,18 @@ assert(
   genService.includes('template-backed — top-up does not apply'),
   'template-backed top-up is a no-op'
 );
+assert(
+  genService.includes('attachApprovedBankToWaitingLessons'),
+  'waiting-lesson pickup is exported from lesson generation'
+);
+assert(
+  genService.includes('enqueueIfShort'),
+  'pickup path can skip enqueueing more pending items'
+);
+assert(
+  bankService.includes('attachApprovedBankToWaitingLessons'),
+  'approve triggers waiting-lesson pickup'
+);
 
 assert(
   emptyFixedPoolDraftStatus({

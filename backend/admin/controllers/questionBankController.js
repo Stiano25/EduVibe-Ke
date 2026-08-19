@@ -6,10 +6,13 @@ import {
 
 export const getQuestionBank = async (req, res) => {
   try {
-    const { status, subStrandId, limit } = req.query || {};
+    const { status, subStrandId, grade, subjectId, strandId, limit } = req.query || {};
     const entries = await listQuestionBank({
       status: status || null,
       subStrandId: subStrandId || null,
+      grade: grade || null,
+      subjectId: subjectId || null,
+      strandId: strandId || null,
       limit
     });
     res.json(entries);

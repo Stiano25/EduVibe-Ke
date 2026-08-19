@@ -255,12 +255,21 @@ export const reviewQuestionBankEntry = async (id, { action, question, rejectReas
     if (existing.flaggedNearDuplicate) {
       throw new Error('Near-duplicate of source material cannot be approved — edit it first');
     }
-    return QuestionBankEntry.update(id, {
+    const updated = await QuestionBankEntry.update(id, {
       status: 'approved',
       reviewedBy: reviewerId || null,
       reviewedAt: new Date().toISOString(),
       rejectReason: null
     });
+    try {
+      const { attachApprovedBankToWaitingLessons } = await import(
+        './lessonGenerationService.js'
+      );
+      await attachApprovedBankToWaitingLessons(updated);
+    } catch (pickupErr) {
+      console.warn('Approve pickup skipped:', pickupErr.message || pickupErr);
+    }
+    return updated;
   }
   if (action === 'reject') {
     return QuestionBankEntry.update(id, {

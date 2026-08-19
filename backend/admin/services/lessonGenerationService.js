@@ -2065,8 +2065,11 @@ export const generateLessonsFromSubStrand = async (
 /**
  * Pull more approved bank items into a fixed-pool lesson. Template-backed
  * lessons are a no-op. Does not pad to BANK_SIZE with unreviewed AI stems.
+ *
+ * Pass enqueueIfShort: false when attaching after a bank approval — generating
+ * another pending batch as a side-effect of Approve is surprising.
  */
-export const topUpLessonQuizBank = async (lessonId) => {
+export const topUpLessonQuizBank = async (lessonId, { enqueueIfShort = true } = {}) => {
   const { Lesson } = await import('../../models/Lesson.js');
   const lesson = await Lesson.findById(lessonId);
   if (!lesson) throw new Error('Lesson not found');
@@ -2127,7 +2130,7 @@ export const topUpLessonQuizBank = async (lessonId) => {
     console.log(`Top-up: pulled ${newRaw.length} approved question-bank entries`);
 
     const stillShort = Math.max(0, needed - newRaw.length);
-    if (stillShort > 0 && !isGradeOneAdditionContext(ctx)) {
+    if (stillShort > 0 && enqueueIfShort && !isGradeOneAdditionContext(ctx)) {
       try {
         const batch = await generateQuestionBankBatch(ctx.subStrand.id, { count: stillShort });
         pendingEnqueued = batch.pending || 0;
@@ -2232,5 +2235,51 @@ export const topUpLessonQuizBank = async (lessonId) => {
     bankStats: quiz.bankStats,
     pendingEnqueued
   };
+};
+
+const isWaitingOnBank = (lesson, bankEntry) => {
+  if (!lesson) return false;
+  if (lesson.status !== 'pending' && lesson.status !== 'draft') return false;
+  if (isTemplateBackedQuiz(lesson.quiz)) return false;
+  if (bankEntry?.grade && lesson.grade && String(lesson.grade) !== String(bankEntry.grade)) {
+    return false;
+  }
+  const existing = lesson.quiz?.questions || [];
+  const outcomes = lesson.learningObjectives || [];
+  const sessionNeed = fixedPoolTargetSize(outcomes.length);
+  const { uncovered } = checkOutcomeCoverage(existing, outcomes);
+  return existing.length < sessionNeed || uncovered.length > 0;
+};
+
+/**
+ * After a bank item is approved, attach eligible approved items to pending/draft
+ * lessons on the same sub-strand that are still short of a session. Does not
+ * enqueue a new pending batch.
+ */
+export const attachApprovedBankToWaitingLessons = async (bankEntry) => {
+  if (!bankEntry?.subStrandId) return { attached: 0, lessons: [] };
+  const { Lesson } = await import('../../models/Lesson.js');
+  const siblings = await Lesson.findBySubStrand(bankEntry.subStrandId);
+  const waiting = siblings.filter((lesson) => isWaitingOnBank(lesson, bankEntry));
+  const results = [];
+  for (const lesson of waiting) {
+    try {
+      const result = await topUpLessonQuizBank(lesson.id, { enqueueIfShort: false });
+      if (result.added > 0) {
+        results.push({ lessonId: lesson.id, added: result.added });
+      }
+    } catch (err) {
+      console.warn(
+        `Approve pickup skipped for lesson ${lesson.id}:`,
+        err.message || err
+      );
+    }
+  }
+  if (results.length) {
+    console.log(
+      `Approve pickup: attached approved items to ${results.length} waiting lesson(s) on ${bankEntry.subStrandId}`
+    );
+  }
+  return { attached: results.length, lessons: results };
 };
 

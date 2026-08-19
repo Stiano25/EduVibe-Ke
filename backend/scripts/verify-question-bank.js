@@ -10,6 +10,8 @@ import {
   emptyFixedPoolDraftStatus,
   assignedOutcomeForLesson,
   fallbackShellTitle,
+  titleFromOutcome,
+  uniqueTitleAmong,
   applyAssignedShellOutcome,
   buildLessonShellPrompt
 } from '../admin/services/lessonGenerationService.js';
@@ -18,6 +20,7 @@ import {
   advanceAdaptiveSession
 } from '../learner/services/adaptiveQuizService.js';
 import { isGradeOneAdditionContext } from '../utils/additionTemplate.js';
+import { disambiguateDuplicateTitles } from '../learner/services/nextTaskService.js';
 
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
@@ -217,7 +220,41 @@ const forced = applyAssignedShellOutcome(
   ['Adding a 2-Digit Number and a 1-Digit Number']
 );
 assert(forced.learningObjectives[0] === additionOutcomes[0], 'forced shell uses the assigned outcome');
-assert(forced.title === 'Practice: Addition - Part 1', 'duplicate titles are replaced');
+assert(
+  forced.title === titleFromOutcome(additionOutcomes[0]),
+  'duplicate model titles become the assigned outcome title'
+);
+
+assert(
+  uniqueTitleAmong(
+    ['Adding a 2-Digit Number and a 1-Digit Number', titleFromOutcome(additionOutcomes[0]), fallbackShellTitle('Addition', 1)],
+    ['Adding a 2-Digit Number and a 1-Digit Number', titleFromOutcome(additionOutcomes[0]), 'Practice: Addition - Part 1']
+  ) === 'Practice: Addition - Part 1 (2)',
+  'fallback collision gets a numeric suffix'
+);
+
+const emptyExisting = applyAssignedShellOutcome(
+  { title: 'Adding a 2-Digit Number and a 1-Digit Number', learningObjectives: [additionOutcomes[4]] },
+  shellCtx,
+  1,
+  []
+);
+assert(
+  emptyExisting.title === 'Adding a 2-Digit Number and a 1-Digit Number',
+  'unique titles are kept when the catalog is empty'
+);
+
+const labeled = disambiguateDuplicateTitles([
+  { lessonId: 'a', title: 'Adding a 2-Digit Number and a 1-Digit Number' },
+  { lessonId: 'b', title: 'Adding a 2-Digit Number and a 1-Digit Number' },
+  { lessonId: 'c', title: 'Writing Addition Sentences with + and =' }
+]);
+assert(labeled[0].title.endsWith('(1)'), 'listing suffixes the first duplicate');
+assert(labeled[1].title.endsWith('(2)'), 'listing suffixes the second duplicate');
+assert(
+  labeled[2].title === 'Writing Addition Sentences with + and =',
+  'unique titles are not rewritten in the listing'
+);
 
 const entryModel = readFileSync(join(here, '../models/QuestionBankEntry.js'), 'utf8');
 assert(

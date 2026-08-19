@@ -51,9 +51,12 @@ export const QuestNextCard = ({
 }: QuestNextCardProps) => {
   if (loading) {
     return (
-      <div className="flex min-h-[168px] items-center justify-center rounded-ev-lg bg-white shadow-ev-card">
-        <div className="h-16 w-16">
-          <LazyLottie animationKey="loading" style={{ width: '100%', height: '100%' }} />
+      <div className="relative min-h-[176px] overflow-hidden rounded-ev-lg bg-ev-green shadow-ev-card">
+        <div className="relative z-10 flex min-h-[176px] max-w-[62%] flex-col justify-center p-5 sm:p-6">
+          <p className="text-2xl font-black leading-tight text-white sm:text-3xl">Loading…</p>
+        </div>
+        <div className="pointer-events-none absolute -bottom-6 -right-4 h-44 w-44 sm:-bottom-8 sm:-right-2 sm:h-56 sm:w-56">
+          <LazyLottie animationKey="happyBoy" style={{ width: '100%', height: '100%' }} />
         </div>
       </div>
     )

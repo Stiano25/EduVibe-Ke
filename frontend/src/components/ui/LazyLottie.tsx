@@ -53,7 +53,17 @@ export const LazyLottie = ({
   }, [speed, animationData])
 
   if (!animationData) {
-    return <div className={className} style={style} aria-hidden />
+    return (
+      <div
+        className={className}
+        style={{
+          ...style,
+          background: 'rgba(255,255,255,0.18)',
+          borderRadius: '18px',
+        }}
+        aria-hidden
+      />
+    )
   }
 
   return (

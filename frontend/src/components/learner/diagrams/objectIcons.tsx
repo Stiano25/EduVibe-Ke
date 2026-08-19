@@ -4,6 +4,7 @@ export const OBJECT_KINDS = [
   'ball',
   'banana',
   'apple',
+  'orange',
   'mango',
   'bead',
   'block',
@@ -22,6 +23,7 @@ const KEYWORDS: Record<ObjectKind, RegExp> = {
   ball: /\bballs?\b/i,
   banana: /\bbananas?\b/i,
   apple: /\bapples?\b/i,
+  orange: /\boranges?\b/i,
   mango: /\bmangoes?\b/i,
   bead: /\bbeads?\b/i,
   block: /\bblocks?\b/i,
@@ -50,6 +52,16 @@ export const inferObjectKind = (text = '', fallback: ObjectKind | null = null): 
 export const resolveObjectKind = (value?: string | null, stem = ''): ObjectKind => {
   if (isObjectKind(value)) return value
   return inferObjectKind(stem, DEFAULT_OBJECT_KIND) || DEFAULT_OBJECT_KIND
+}
+
+/** True when the text names a real-world countable object from the library. */
+export const namesCountableObject = (text = '') => inferObjectKind(text) != null
+
+/** First 1–20 count mentioned in a stem or option, if any. */
+export const extractObjectCount = (text = ''): number | null => {
+  const m = String(text || '').match(/\b([1-9]|1[0-9]|20)\b/)
+  if (!m) return null
+  return Number(m[1])
 }
 
 type IconProps = { className?: string; title?: string }
@@ -105,6 +117,16 @@ export const ObjectIcon = ({
           <circle cx="12" cy="14" r="7.5" fill="#DC2626" stroke="#7F1D1D" strokeWidth="1.4" />
           <path d="M12 7 C13 5 15 4.5 16 6" fill="none" stroke="#166534" strokeWidth="1.6" />
           <ellipse cx="14.5" cy="6.5" rx="2.2" ry="1.1" fill="#22C55E" />
+        </>
+      )
+    case 'orange':
+      return wrap(
+        label,
+        className,
+        <>
+          <circle cx="12" cy="13" r="8" fill="#F97316" stroke="#C2410C" strokeWidth="1.4" />
+          <path d="M12 5 C13 3.5 15 3.5 16 5" fill="none" stroke="#166534" strokeWidth="1.5" />
+          <ellipse cx="10" cy="10" rx="2.2" ry="1.4" fill="#FDBA74" opacity="0.85" />
         </>
       )
     case 'mango':
@@ -250,4 +272,21 @@ export const ObjectQuantityStrip = ({
       ))}
     </div>
   )
+}
+
+/** Icons for a stem or option that names a countable object, instead of leaving it as prose. */
+export const ObjectMentionVisual = ({
+  text,
+  compact = false,
+}: {
+  text: string
+  compact?: boolean
+}) => {
+  const kind = inferObjectKind(text)
+  if (!kind) return null
+  const count = extractObjectCount(text)
+  if (count) {
+    return <ObjectQuantityStrip params={{ objectKind: kind, count }} compact={compact} />
+  }
+  return <ObjectIcon kind={kind} className={compact ? 'h-8 w-8' : 'h-10 w-10'} title={kind} />
 }

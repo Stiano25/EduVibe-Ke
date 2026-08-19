@@ -3,6 +3,7 @@ import { modalityLabel } from '@/lib/modalityQuiz'
 import { MathText } from '@/components/ui/MathText'
 import { TapSelectOptions } from '../TapSelectOptions'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
+import { ObjectMentionVisual, inferObjectKind } from '../diagrams/objectIcons'
 import { LEARNER_PANEL } from '@/lib/learnerUi'
 import type { MultipleChoiceLiveProps } from './types'
 
@@ -51,6 +52,8 @@ export const MultipleChoiceLive = ({
           alt={`Picture for the question: ${question.question}`}
           className="max-h-52 mx-auto rounded-ev-sm border border-violet-100"
         />
+      ) : inferObjectKind(question.question) ? (
+        <ObjectMentionVisual text={question.question} />
       ) : null}
 
       <MathText

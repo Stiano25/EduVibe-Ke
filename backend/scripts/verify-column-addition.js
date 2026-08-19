@@ -236,7 +236,7 @@ const scaffoldLesson = {
 };
 const scaffolded = createAdaptiveSession({ lesson: scaffoldLesson });
 assert(Array.isArray(scaffolded.question.workedSteps), 'text_steps gets templated steps');
-assert(scaffolded.question.workedSteps.length === 4, 'four tap-to-reveal steps');
+assert(scaffolded.question.workedSteps.length === 4, 'four worked-example steps');
 assert(scaffolded.question.workedSteps[2].text.includes('Carry'), 'carry step present');
 assert(scaffolded.question.answerFormula == null, 'formula still not leaked on scaffold');
 

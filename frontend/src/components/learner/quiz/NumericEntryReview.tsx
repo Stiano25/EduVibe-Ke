@@ -3,6 +3,7 @@ import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
 import { resolveAdditionLayout, resolveColumnOperation } from '@/lib/additionLayout'
 import { ColumnOperation } from './ColumnAddition'
+import { EV_NUMERAL_ENTRY } from '@/lib/learnerNumerals'
 import type { MultipleChoiceReviewProps } from './types'
 
 export const NumericEntryReview = ({
@@ -64,9 +65,15 @@ export const NumericEntryReview = ({
       ) : null}
 
       <MathText as="p" text={item.question} className="font-bold text-ev-ink mb-3" />
-      <p className="text-sm text-slate-700">
-        You wrote: {submitted == null ? '—' : submitted}
-        {expected != null ? ` · Answer: ${expected}` : ''}
+      <p className="text-sm text-slate-700 flex flex-wrap items-center gap-2">
+        <span>You wrote</span>
+        <span className={EV_NUMERAL_ENTRY}>{submitted == null ? '—' : submitted}</span>
+        {expected != null ? (
+          <>
+            <span>Answer</span>
+            <span className={EV_NUMERAL_ENTRY}>{expected}</span>
+          </>
+        ) : null}
       </p>
     </div>
   )

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
+import { ObjectMentionVisual, inferObjectKind } from '../diagrams/objectIcons'
 import { useVisibleResponseTimer } from '@/hooks/useVisibleResponseTimer'
 import {
   resolveAdditionLayout,
@@ -15,6 +16,7 @@ import {
 import { ColumnOperation } from './ColumnAddition'
 import { AdditionWorkedExample } from './AdditionWorkedExample'
 import { LEARNER_PANEL, learnerButton } from '@/lib/learnerUi'
+import { EV_NUMERAL_ENTRY } from '@/lib/learnerNumerals'
 import type { MultipleChoiceLiveProps } from './types'
 
 const FALLBACK_DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -146,6 +148,8 @@ export const NumericEntryLive = ({
             alt={`Picture for the question: ${question.question}`}
             className="max-h-52 mx-auto rounded-ev-sm border border-violet-100"
           />
+        ) : !vertical && inferObjectKind(question.question) ? (
+          <ObjectMentionVisual text={question.question} />
         ) : null}
 
         <MathText as="p" text={question.question} className="text-lg font-bold text-ev-ink" />
@@ -163,7 +167,7 @@ export const NumericEntryLive = ({
               className="min-h-14 rounded-ev-md border-2 border-ev-blue bg-ev-blue-soft flex items-center justify-center px-4"
               aria-live="polite"
             >
-              <span className="text-3xl font-black tracking-widest text-ev-ink">
+              <span className={EV_NUMERAL_ENTRY}>
                 {digits || '—'}
               </span>
             </div>
@@ -185,7 +189,7 @@ export const NumericEntryLive = ({
             className="min-h-16 rounded-ev-md border-2 border-ev-blue bg-ev-blue-soft flex items-center justify-center px-4"
             aria-live="polite"
           >
-            <span className="text-4xl font-black tracking-widest text-ev-ink">
+            <span className={EV_NUMERAL_ENTRY}>
               {digits || '—'}
             </span>
           </div>

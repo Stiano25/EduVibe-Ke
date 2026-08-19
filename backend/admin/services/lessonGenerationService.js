@@ -1222,6 +1222,35 @@ export const loadGenerationContext = async (subStrandId) => {
 export const fallbackShellTitle = (subStrandName, lessonOrder) =>
   `Practice: ${String(subStrandName || 'Lesson').trim()} - Part ${lessonOrder}`;
 
+export const titleFromOutcome = (outcome) => {
+  let t = String(outcome || '').trim();
+  if (!t) return '';
+  t = t.replace(/, horizontally and vertically.*$/i, '');
+  t = t.replace(/ with sum not exceeding \d+/i, '');
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  if (t.length > 72) t = `${t.slice(0, 69).trim()}…`;
+  return t;
+};
+
+export const uniqueTitleAmong = (candidates = [], existingTitles = []) => {
+  const taken = new Set(
+    (existingTitles || []).map((t) => String(t || '').trim().toLowerCase()).filter(Boolean)
+  );
+  for (const candidate of candidates) {
+    const title = String(candidate || '').trim();
+    if (title && !taken.has(title.toLowerCase())) return title;
+  }
+  const nonempty = (candidates || []).map((c) => String(c || '').trim()).filter(Boolean);
+  const base = nonempty[nonempty.length - 1] || 'Practice: Lesson';
+  let n = 2;
+  let next = `${base} (${n})`;
+  while (taken.has(next.toLowerCase())) {
+    n += 1;
+    next = `${base} (${n})`;
+  }
+  return next;
+};
+
 export const assignedOutcomeForLesson = (outcomes = [], lessonOrder) => {
   const idx = Number(lessonOrder) - 1;
   if (!Number.isInteger(idx) || idx < 0 || idx >= outcomes.length) return null;
@@ -1232,17 +1261,15 @@ export const applyAssignedShellOutcome = (shell, ctx, lessonOrder, existingTitle
   const outcomes = ctx.sourceOutcomes || [];
   const assigned = assignedOutcomeForLesson(outcomes, lessonOrder);
   const next = { ...(shell || {}) };
+  const fallback = fallbackShellTitle(ctx.subStrand?.name, lessonOrder);
   if (assigned) {
     next.learningObjectives = [assigned];
+    next.title = uniqueTitleAmong(
+      [next.title, titleFromOutcome(assigned), fallback],
+      existingTitles
+    );
   } else {
-    next.title = fallbackShellTitle(ctx.subStrand?.name, lessonOrder);
-  }
-  const taken = new Set(
-    (existingTitles || []).map((t) => String(t || '').trim().toLowerCase()).filter(Boolean)
-  );
-  const title = String(next.title || '').trim();
-  if (!title || taken.has(title.toLowerCase())) {
-    next.title = fallbackShellTitle(ctx.subStrand?.name, lessonOrder);
+    next.title = uniqueTitleAmong([fallback], existingTitles);
   }
   return next;
 };
@@ -1821,6 +1848,9 @@ export const generateLessonsFromSubStrand = async (
     const { Lesson } = await import('../../models/Lesson.js');
     const existingLessons = await Lesson.findBySubStrand(subStrandId);
     const usedTitles = existingLessons.map((l) => l.title).filter(Boolean);
+    const occupiedOrders = new Set(
+      existingLessons.map((l) => Number(l.lessonOrder) || 0).filter((n) => n > 0)
+    );
     const maxOrder = existingLessons.reduce(
       (m, l) => Math.max(m, Number(l.lessonOrder) || 0),
       0
@@ -1832,7 +1862,9 @@ export const generateLessonsFromSubStrand = async (
     for (let i = 0; i < total; i++) {
       const span = 78 / total;
       const start = 14 + i * span;
-      const lessonOrder = maxOrder + i + 1;
+      let lessonOrder = maxOrder + i + 1;
+      while (occupiedOrders.has(lessonOrder)) lessonOrder += 1;
+      occupiedOrders.add(lessonOrder);
 
       // ——— Phase 1: lesson shell (no quiz) ———
       reportProgress(

@@ -9,6 +9,7 @@ export const OBJECT_KINDS = Object.freeze([
   'ball',
   'banana',
   'apple',
+  'orange',
   'mango',
   'bead',
   'block',
@@ -25,6 +26,7 @@ const KEYWORDS = Object.freeze({
   ball: /\bballs?\b/i,
   banana: /\bbananas?\b/i,
   apple: /\bapples?\b/i,
+  orange: /\boranges?\b/i,
   mango: /\bmangoes?\b/i,
   bead: /\bbeads?\b/i,
   block: /\bblocks?\b/i,
@@ -68,6 +70,10 @@ export const objectIconInner = (kind) => {
       return `<circle cx="12" cy="14" r="7.5" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.4"/>
         <path d="M12 7 C13 5 15 4.5 16 6" fill="none" stroke="#166534" stroke-width="1.6"/>
         <ellipse cx="14.5" cy="6.5" rx="2.2" ry="1.1" fill="#22C55E"/>`;
+    case 'orange':
+      return `<circle cx="12" cy="13" r="8" fill="#F97316" stroke="#C2410C" stroke-width="1.4"/>
+        <path d="M12 5 C13 3.5 15 3.5 16 5" fill="none" stroke="#166534" stroke-width="1.5"/>
+        <ellipse cx="10" cy="10" rx="2.2" ry="1.4" fill="#FDBA74" opacity="0.85"/>`;
     case 'mango':
       return `<ellipse cx="12" cy="13" rx="7" ry="8" fill="#F59E0B" stroke="#B45309" stroke-width="1.4"/>
         <path d="M12 5 C13 3.5 15 3 16 4.5" fill="none" stroke="#166534" stroke-width="1.5"/>`;

@@ -55,9 +55,11 @@ const LessonRow = ({ choice, state }: RowProps) => {
           state === 'locked' ? 'bg-ev-line' : ACCENT_BG[accent]
         }`}
       >
-        <div className="absolute -bottom-3 -right-2 h-16 w-16 sm:h-[72px] sm:w-[72px]">
-          <LazyLottie animationKey={animationKey} style={{ width: '100%', height: '100%' }} />
-        </div>
+        <LazyLottie
+          animationKey={animationKey}
+          className="h-full w-full"
+          style={{ width: '100%', height: '100%' }}
+        />
       </div>
 
       <span className="min-w-0 flex-1 text-left">

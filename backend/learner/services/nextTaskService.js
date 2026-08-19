@@ -204,5 +204,22 @@ export const listLessonChoices = async (userId, grade) => {
     }
   }
 
-  return { grade, choices };
+  return { grade, choices: disambiguateDuplicateTitles(choices) };
+};
+
+/** Same title on two approved lessons in a list is a data bug; still show distinct labels. */
+export const disambiguateDuplicateTitles = (choices = []) => {
+  const counts = new Map();
+  for (const choice of choices) {
+    const key = String(choice.title || '').trim().toLowerCase();
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  const seen = new Map();
+  return choices.map((choice) => {
+    const key = String(choice.title || '').trim().toLowerCase();
+    if ((counts.get(key) || 0) < 2) return choice;
+    const n = (seen.get(key) || 0) + 1;
+    seen.set(key, n);
+    return { ...choice, title: `${choice.title} (${n})` };
+  });
 };

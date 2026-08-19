@@ -1,6 +1,6 @@
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from './diagrams/LiveDiagram'
-import { ObjectQuantityStrip } from './diagrams/objectIcons'
+import { ObjectMentionVisual, ObjectQuantityStrip, inferObjectKind } from './diagrams/objectIcons'
 import type { QuizOption } from './quiz/types'
 
 export const isVisualQuizOption = (
@@ -16,7 +16,11 @@ export const OptionVisual = ({
   compact?: boolean
 }) => {
   if (!isVisualQuizOption(option)) {
-    return <MathText text={String(option ?? '')} />
+    const text = String(option ?? '')
+    if (inferObjectKind(text)) {
+      return <ObjectMentionVisual text={text} compact={compact} />
+    }
+    return <MathText text={text} />
   }
   if (option.diagramType === 'object_quantity') {
     return (

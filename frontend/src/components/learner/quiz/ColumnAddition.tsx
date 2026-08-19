@@ -1,4 +1,5 @@
 import { columnWorking, placeValueRows, resolveColumnOperation, type ColumnOperation, type ColumnReveal } from '@/lib/additionLayout'
+import { EV_CARRY, EV_EQ_SIGN, EV_NUMERAL, EV_NUMERAL_MUTED, EV_NUMERAL_SUM, EV_OP_SIGN } from '@/lib/learnerNumerals'
 
 type ColumnOperationProps = {
   a: number
@@ -32,22 +33,18 @@ const DigitCell = ({
   active?: boolean
 }) => {
   const empty = ch === ' '
-  const color =
-    tone === 'sum' ? 'text-ev-blue-edge' : tone === 'muted' ? 'text-ev-muted' : 'text-ev-ink'
+  const toneClass =
+    tone === 'sum' ? EV_NUMERAL_SUM : tone === 'muted' ? EV_NUMERAL_MUTED : EV_NUMERAL
   const box = slot
-    ? `rounded-md border-2 ${
-        active
-          ? 'border-ev-blue bg-white ring-4 ring-ev-blue/30'
-          : empty
-            ? 'border-dashed border-ev-line bg-white/70'
-            : 'border-ev-blue/40 bg-white'
-      }`
+    ? active
+      ? 'ring-4 ring-ev-blue/30'
+      : empty
+        ? 'border-2 border-dashed border-ev-line bg-white/70 shadow-none'
+        : ''
     : ''
   return (
     <span
-      className={`inline-flex h-10 w-8 items-center justify-center text-3xl font-black tabular-nums ${color} ${box} ${
-        animate && !empty ? 'ev-digit-in' : ''
-      }`}
+      className={`${toneClass} ${box} ${animate && !empty ? 'ev-digit-in' : ''}`}
       style={{ animationDelay: animate && !empty ? `${delayMs}ms` : undefined }}
     >
       {empty ? '' : ch}
@@ -65,12 +62,11 @@ const CarryBox = ({
   pop: boolean
 }) => (
   <span
-    className={`inline-flex h-8 w-8 items-center justify-center rounded-md border-2 text-lg font-black tabular-nums ${
+    className={`${EV_CARRY} ${
       filled
-        ? 'border-amber-400 bg-ev-pink-soft text-amber-800'
-        : 'border-dashed border-amber-300 bg-ev-pink-soft/40 text-amber-300'
+        ? 'border-ev-pink bg-ev-pink-soft text-ev-pink-edge'
+        : 'border-dashed border-ev-pink/40 bg-ev-pink-soft/40 text-ev-pink/40'
     } ${pop && filled ? 'ev-carry-pop' : ''}`}
-   
     aria-label={filled ? `carry ${digit}` : 'carry box'}
   >
     {filled && digit > 0 ? digit : ''}
@@ -127,10 +123,10 @@ export const ColumnOperation = ({
     >
       {scaffoldCarry && !subtract ? (
         <div className="flex items-center gap-1">
-          <span className="inline-flex h-8 w-8" />
+          <span className="inline-flex h-10 w-10" />
           {Array.from({ length: rows.cols }, (_, i) =>
             i === onesIndex ? (
-              <span key={`c-${i}`} className="inline-flex h-8 w-8" />
+              <span key={`c-${i}`} className="inline-flex h-10 w-10" />
             ) : (
               <CarryBox
                 key={`c-${i}`}
@@ -144,16 +140,14 @@ export const ColumnOperation = ({
       ) : null}
 
       <div className={`flex items-center gap-1 rounded-md ${highlightOnes && rank >= 1 ? 'ev-col-pulse' : ''}`}>
-        <span className="inline-flex h-10 w-8" />
+        <span className="inline-flex h-14 w-12" />
         {rows.a.map((ch, i) => (
           <DigitCell key={`a-${i}`} ch={ch} animate={animate} delayMs={40 * i} />
         ))}
       </div>
       <div className="flex items-center gap-1">
         <span
-          className={`inline-flex h-10 w-8 items-center justify-center text-2xl font-black text-ev-ink ${
-            animate ? 'ev-digit-in' : ''
-          }`}
+          className={`${EV_OP_SIGN} ${animate ? 'ev-digit-in' : ''}`}
           style={{ animationDelay: animate ? '120ms' : undefined }}
         >
           {sign}
@@ -164,11 +158,13 @@ export const ColumnOperation = ({
       </div>
       <div
         className={`h-1 rounded-full bg-[#0F172A] self-stretch mt-0.5 ${animate ? 'ev-line-draw' : ''}`}
-        style={{ minWidth: `${(rows.cols + 1) * 2.25}rem` }}
+        style={{ minWidth: `${(rows.cols + 1) * 3.25}rem` }}
       />
       {showSumSlot ? (
-        <div className="flex items-center gap-1 min-h-10">
-          <span className="inline-flex h-10 w-8" />
+        <div className="flex items-center gap-1 min-h-14">
+          <span className={`${EV_EQ_SIGN}`} aria-hidden>
+            =
+          </span>
           {sumRows.sum.map((ch, i) => (
             <DigitCell
               key={`s-${i}`}

@@ -2,6 +2,7 @@ import { CheckCircle, XCircle } from 'lucide-react'
 import { modalityLabel } from '@/lib/modalityQuiz'
 import { MathText } from '@/components/ui/MathText'
 import { LiveDiagram, isLiveDiagramType } from '../diagrams/LiveDiagram'
+import { ObjectMentionVisual, inferObjectKind } from '../diagrams/objectIcons'
 import { OptionVisual } from '../OptionVisual'
 import type { MultipleChoiceReviewProps } from './types'
 
@@ -53,6 +54,10 @@ export const MultipleChoiceReview = ({
         alt={`Picture for the question: ${item.question}`}
         className="mb-3 max-h-48 mx-auto rounded-ev-sm border border-ev-line"
       />
+    ) : inferObjectKind(item.question) ? (
+      <div className="mb-3">
+        <ObjectMentionVisual text={item.question} />
+      </div>
     ) : null}
 
     <MathText

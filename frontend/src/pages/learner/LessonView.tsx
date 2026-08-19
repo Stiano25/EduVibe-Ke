@@ -517,7 +517,7 @@ export const LessonView = () => {
                       </p>
                     </div>
                   </div>
-                ) : lesson.content || (lesson.contentBlocks && lesson.contentBlocks.length > 0) ? (
+                ) : earlyPrimary ? null : lesson.content || (lesson.contentBlocks && lesson.contentBlocks.length > 0) ? (
                   <LessonTeachingFromLesson
                     lesson={lesson}
                     showDiagrams={
@@ -541,10 +541,12 @@ export const LessonView = () => {
                   </div>
                 )}
 
-                {/* Quiz Section — live one-by-one; review = all answers at once */}
+                {/* Quiz Section — live one-by-one; review = all answers at once.
+                    Grade 1–3 (isGrade1to3, not quest-nav K–5) skip teaching notes
+                    and open on the first question. */}
                 {lesson.quiz &&
                   ((lesson.quiz.questionCount ?? lesson.quiz.questions?.length) || 0) > 0 && (
-                  <div className="mt-8 pt-8 border-t border-ev-line space-y-6">
+                  <div className={earlyPrimary ? 'space-y-6' : 'mt-8 pt-8 border-t border-ev-line space-y-6'}>
                     <AdaptiveQuizPanel
                       lesson={lesson as Lesson & { isCompleted?: boolean; progress?: number }}
                       lessonId={id!}

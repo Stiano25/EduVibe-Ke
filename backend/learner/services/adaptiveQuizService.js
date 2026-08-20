@@ -26,6 +26,11 @@ import { normalizeQuizOption } from '../../utils/quizOptions.js';
 import { isTemplateBackedQuiz, targetMainLength } from '../../utils/quizSessionSize.js';
 import { computePracticeScore } from '../../utils/practiceScore.js';
 import {
+  isMatchingPairsQuestion,
+  shuffleRightOrder,
+  gradeMatchingPairs
+} from '../../utils/matchingPairs.js';
+import {
   instantiateTemplate,
   difficultyTierFromMastery,
   templatesForSession,
@@ -176,13 +181,26 @@ const publicQuestion = (q, indexInBank, session = null) => {
   }
   const interactionType = resolveInteractionType(q.interactionType || q.type);
   const numericFields = interactionType === 'numeric_entry' ? publicNumericFields(q) : {};
+  const isMatching = interactionType === 'matching_pairs' || isMatchingPairsQuestion(q);
+  let matchingRight = Array.isArray(q.right) ? q.right : [];
+  let matchingRightOrder = matchingRight.map((_, i) => i);
+  if (isMatching && session) {
+    matchingRightOrder = shuffleRightOrder(matchingRight.length);
+    session.matchingRightOrders = {
+      ...(session.matchingRightOrders || {}),
+      [id]: matchingRightOrder
+    };
+    matchingRight = matchingRightOrder.map((oi) => matchingRight[oi]);
+  }
   return {
     id,
     question: numericFields.question || q.question,
     type: q.type || 'multiple-choice',
     interactionType,
     activity: q.activity || undefined,
-    options: shuffled.options,
+    options: isMatching ? [] : shuffled.options,
+    left: isMatching ? q.left || [] : undefined,
+    right: isMatching ? matchingRight : undefined,
     points: q.points || 15,
     skillFocus: q.skillFocus,
     bloomLevel: q.bloomLevel,
@@ -717,6 +735,7 @@ export const createAdaptiveSession = ({
     modalitySignalLog: [],
     // displayIndex → originalIndex per questionId (for shuffled options)
     optionOrders: {},
+    matchingRightOrders: {},
     // Twin-consistency is Addition-template-only in Phase 1.
     additionTemplateResponseTimes: [],
     twinQueue: [],
@@ -776,6 +795,7 @@ export const advanceAdaptiveSession = ({
   selectedOptionIndex,
   placedCount: rawPlacedCount,
   submittedValue: rawSubmittedValue,
+  submittedPairs: rawSubmittedPairs,
   responseTimeMs: rawResponseTimeMs,
   masteryRows = [],
   modalitySuccessMap = new Map()
@@ -794,6 +814,7 @@ export const advanceAdaptiveSession = ({
     mainScoreTotal: rawSession.mainScoreTotal ?? 0,
     modalitySignalLog: [...(rawSession.modalitySignalLog || [])],
     optionOrders: { ...(rawSession.optionOrders || {}) },
+    matchingRightOrders: { ...(rawSession.matchingRightOrders || {}) },
     additionTemplateResponseTimes: [...(rawSession.additionTemplateResponseTimes || [])],
     twinQueue: [...(rawSession.twinQueue || [])],
     twinPairs: (rawSession.twinPairs || []).map((pair) => ({ ...pair })),
@@ -815,6 +836,7 @@ export const advanceAdaptiveSession = ({
   const interactionType = resolveInteractionType(question.interactionType || question.type);
   const isDrag = interactionType === 'drag_to_target';
   const isNumeric = interactionType === 'numeric_entry' || isNumericEntryQuestion(question);
+  const isMatching = interactionType === 'matching_pairs' || isMatchingPairsQuestion(question);
   const order = session.optionOrders?.[currentId];
   let selectedDisplay = Number(selectedOptionIndex);
   let selectedOriginal = selectedDisplay;
@@ -823,8 +845,20 @@ export const advanceAdaptiveSession = ({
   let expectedCount = null;
   let expectedValue = null;
   let submittedValue = null;
+  let matchingGrade = null;
 
-  if (isDrag) {
+  if (isMatching) {
+    const rightOrder = session.matchingRightOrders?.[currentId] || null;
+    matchingGrade = gradeMatchingPairs({
+      correctPairs: question.correctPairs || [],
+      submittedPairs: rawSubmittedPairs,
+      rightOrder
+    });
+    correct = matchingGrade.correct;
+    selectedDisplay = matchingGrade.matched;
+    selectedOriginal = matchingGrade.matched;
+    displayCorrect = matchingGrade.total;
+  } else if (isDrag) {
     expectedCount = expectedCountForQuestion(question);
     const placed =
       rawPlacedCount != null && Number.isFinite(Number(rawPlacedCount))
@@ -886,6 +920,13 @@ export const advanceAdaptiveSession = ({
     ...(phase === 'retry' ? { retryFor: session.currentRetryFor || currentId } : {}),
     ...(isNumeric ? { expectedValue, submittedValue } : {}),
     ...(isDrag ? { expectedCount, placedCount: selectedOriginal } : {}),
+    ...(isMatching && matchingGrade
+      ? {
+          matchedPairs: matchingGrade.matched,
+          totalPairs: matchingGrade.total,
+          submittedPairs: matchingGrade.submittedCanonical
+        }
+      : {}),
     ...(twinPairId
       ? {
           twinPairId,
@@ -1075,7 +1116,10 @@ export const advanceAdaptiveSession = ({
       explanation: question.explanation,
       optionExplanations: applyStoredOrder(question, order).optionExplanations,
       ...(isDrag ? { expectedCount, placedCount: selectedOriginal } : {}),
-      ...(isNumeric ? { expectedValue, submittedValue } : {})
+      ...(isNumeric ? { expectedValue, submittedValue } : {}),
+      ...(isMatching && matchingGrade
+        ? { matchedPairs: matchingGrade.matched, totalPairs: matchingGrade.total }
+        : {})
     },
     meta: {
       phase: session.phase,
@@ -1149,6 +1193,12 @@ export const buildReviewView = (lesson, sessionReview) => {
       placedCount: isCountIntoBoxQuestion(q) ? a.selectedOptionIndex : undefined,
       expectedValue: isNumericEntryQuestion(q) ? expectedScalarForQuestion(q) : undefined,
       submittedValue: isNumericEntryQuestion(q) ? a.selectedOptionIndex : undefined,
+      left: Array.isArray(q.left) ? q.left : undefined,
+      right: Array.isArray(q.right) ? q.right : undefined,
+      correctPairs: Array.isArray(q.correctPairs) ? q.correctPairs : undefined,
+      matchedPairs: a.matchedPairs,
+      totalPairs: a.totalPairs,
+      submittedPairs: a.submittedPairs,
       ...(isNumericEntryQuestion(q) && hasIntegerAddends(q.params)
         ? {
             layout: resolveAdditionLayout(q.params.layout),

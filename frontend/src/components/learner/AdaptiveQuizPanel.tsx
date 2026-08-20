@@ -193,12 +193,14 @@ export const AdaptiveQuizPanel = ({
     selectedOptionIndex,
     placedCount,
     submittedValue,
+    submittedPairs,
     responseTimeMs,
     optimistic,
   }: {
     selectedOptionIndex?: number
     placedCount?: number
     submittedValue?: string | number
+    submittedPairs?: number[][]
     responseTimeMs: number
     optimistic?: LiveFlash
   }) => {
@@ -218,6 +220,7 @@ export const AdaptiveQuizPanel = ({
         selectedOptionIndex: Number(selectedOptionIndex ?? placedCount ?? submittedValue ?? 0),
         placedCount,
         submittedValue,
+        submittedPairs,
         responseTimeMs,
       })) as {
         session: Record<string, unknown>
@@ -227,6 +230,8 @@ export const AdaptiveQuizPanel = ({
           correct: boolean
           correctAnswerIndex: number
           expectedValue?: number
+          matchedPairs?: number
+          totalPairs?: number
           explanation?: string
         }
         review?: ReviewPayload
@@ -239,6 +244,8 @@ export const AdaptiveQuizPanel = ({
           correct: res.lastAnswer.correct,
           correctAnswerIndex: res.lastAnswer.correctAnswerIndex,
           expectedValue: res.lastAnswer.expectedValue,
+          matchedPairs: res.lastAnswer.matchedPairs,
+          totalPairs: res.lastAnswer.totalPairs,
           explanation: res.lastAnswer.explanation,
         })
         if (!optimistic) playAnswerSound(res.lastAnswer.correct)
@@ -304,6 +311,11 @@ export const AdaptiveQuizPanel = ({
     }
     return submitAnswer(payload)
   }
+
+  const handleSubmitMatching = (payload: {
+    submittedPairs: number[][]
+    responseTimeMs: number
+  }) => submitAnswer(payload)
 
   if (loading) {
     return (
@@ -436,6 +448,7 @@ export const AdaptiveQuizPanel = ({
           onSelect={handleSelectAndSubmit}
           onSubmitDrag={handleSubmitDrag}
           onSubmitNumeric={handleSubmitNumeric}
+          onSubmitMatching={handleSubmitMatching}
         />
         {flash?.correct ? <AnswerCelebration runKey={question.id} /> : null}
         {earlyPrimary && flash ? (

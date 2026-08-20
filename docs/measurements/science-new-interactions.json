@@ -1,0 +1,354 @@
+{
+  "attempts": [
+    {
+      "topic": "Plant parts",
+      "created": 8,
+      "pending": 8,
+      "rejected": 0,
+      "qaFlagged": 2,
+      "types": {
+        "multiple_choice": 6,
+        "matching_pairs": 1,
+        "odd_one_out": 1
+      },
+      "samples": [
+        {
+          "id": "d5e3f45c-b6a4-4669-9806-9282efaa25df",
+          "status": "pending",
+          "interactionType": "multiple_choice",
+          "stem": "A bean seed is planted in wet soil. Which plant part grows down into the soil first?",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "Stem",
+            "Root",
+            "Leaf",
+            "Flower"
+          ],
+          "correctAnswerIndex": 1,
+          "diagramType": null
+        },
+        {
+          "id": "4d44bba9-b1be-4636-9954-7deee4a3d4f0",
+          "status": "pending",
+          "interactionType": "matching_pairs",
+          "stem": "Match each plant part to its main job.",
+          "left": [
+            "Roots",
+            "Stem",
+            "Leaves",
+            "Flowers"
+          ],
+          "right": [
+            "Make seeds",
+            "Take in water and hold plant",
+            "Carry water and food",
+            "Make food using sunlight"
+          ],
+          "correctPairs": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              0
+            ]
+          ],
+          "options": [],
+          "correctAnswerIndex": 0,
+          "diagramType": null
+        },
+        {
+          "id": "a8aa3521-56c7-44f0-943d-f84e8d82045d",
+          "status": "pending",
+          "interactionType": "multiple_choice",
+          "stem": "A plant is kept in a dark cupboard for one week. What will most likely happen to its leaves?",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "They turn green and grow bigger.",
+            "They turn yellow and become weak.",
+            "They stay the same.",
+            "They turn red and smell sweet."
+          ],
+          "correctAnswerIndex": 1,
+          "diagramType": null
+        },
+        {
+          "id": "b54be846-7540-40a9-8810-cf084f4bd9c7",
+          "status": "pending",
+          "interactionType": "odd_one_out",
+          "stem": "Which one does NOT belong with the others?",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "Root",
+            "Stem",
+            "Leaf",
+            "Stone"
+          ],
+          "correctAnswerIndex": 3,
+          "diagramType": null
+        },
+        {
+          "id": "a6e0a541-61b8-4670-b81f-f9b86674757f",
+          "status": "pending",
+          "interactionType": "multiple_choice",
+          "stem": "A child waters a potted plant but keeps the pot sealed inside a clear plastic bag. After one day, water drops appear on the inside of the bag. Where did the water drops come from?",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "The roots pushed water out through the leaves.",
+            "The plastic bag made water by itself.",
+            "The soil turned into water drops.",
+            "The flower made rain inside the bag."
+          ],
+          "correctAnswerIndex": 0,
+          "diagramType": null
+        },
+        {
+          "id": "d24ff037-d854-4abf-bdc6-9522efe6f559",
+          "status": "pending",
+          "interactionType": "multiple_choice",
+          "stem": "Look at the diagram of a flowering plant.",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "Roots",
+            "Stem",
+            "Leaves",
+            "Flowers"
+          ],
+          "correctAnswerIndex": 1,
+          "diagramType": "labeled_boxes"
+        },
+        {
+          "id": "39190131-e33e-48b5-ab27-f3bbbfa85a20",
+          "status": "pending",
+          "interactionType": "multiple_choice",
+          "stem": "Why does a plant with broken roots droop and look weak after a few hours?",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "The roots can no longer take in enough water.",
+            "The leaves stop smelling the air.",
+            "The stem becomes too heavy.",
+            "The flowers make too many seeds."
+          ],
+          "correctAnswerIndex": 0,
+          "diagramType": null
+        },
+        {
+          "id": "18ec1203-dd44-4b5c-9be7-4e552d5839e3",
+          "status": "pending",
+          "interactionType": "multiple_choice",
+          "stem": "Which list shows the correct order of how a plant grows from a seed?",
+          "left": null,
+          "right": null,
+          "correctPairs": null,
+          "options": [
+            "Flower → seed → stem → root",
+            "Seed → root → stem → leaf → flower",
+            "Leaf → flower → root → seed",
+            "Stem → root → flower → seed"
+          ],
+          "correctAnswerIndex": 1,
+          "diagramType": null
+        }
+      ]
+    }
+  ],
+  "matching": {
+    "id": "4d44bba9-b1be-4636-9954-7deee4a3d4f0",
+    "status": "pending",
+    "question": {
+      "id": "q-2",
+      "left": [
+        "Roots",
+        "Stem",
+        "Leaves",
+        "Flowers"
+      ],
+      "type": "matching-pairs",
+      "right": [
+        "Make seeds",
+        "Take in water and hold plant",
+        "Carry water and food",
+        "Make food using sunlight"
+      ],
+      "points": 15,
+      "options": [],
+      "modality": "practice",
+      "question": "Match each plant part to its main job.",
+      "bloomLevel": "understand",
+      "difficulty": "intermediate",
+      "skillFocus": "Explain the function of roots, stem, leaves and flowers",
+      "distractors": [],
+      "explanation": "Roots anchor and absorb, stems transport, leaves make food, flowers make seeds.",
+      "correctPairs": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "diagramBriefId": null,
+      "feedbackCorrect": "Well done!",
+      "interactionType": "matching_pairs",
+      "feedbackIncorrect": "Review this skill and try again.",
+      "correctAnswerIndex": 0,
+      "learningOutcomeKey": "2d9c677a7f3e029b",
+      "optionExplanations": [],
+      "learningOutcomeIndex": 2
+    }
+  },
+  "oddOneOut": {
+    "id": "b54be846-7540-40a9-8810-cf084f4bd9c7",
+    "status": "pending",
+    "question": {
+      "id": "q-4",
+      "type": "multiple-choice",
+      "points": 15,
+      "options": [
+        "Root",
+        "Stem",
+        "Leaf",
+        "Stone"
+      ],
+      "activity": "odd_one_out",
+      "modality": "practice",
+      "question": "Which one does NOT belong with the others?",
+      "bloomLevel": "understand",
+      "difficulty": "easy",
+      "skillFocus": "Name the main parts of a flowering plant",
+      "distractors": [
+        {
+          "optionIndex": 0,
+          "misconception": "Root is a plant part."
+        },
+        {
+          "optionIndex": 1,
+          "misconception": "Stem is a plant part."
+        },
+        {
+          "optionIndex": 2,
+          "misconception": "Leaf is a plant part."
+        }
+      ],
+      "explanation": "Root, stem, and leaf are plant parts. Stone is not a plant part.",
+      "diagramBriefId": null,
+      "feedbackCorrect": "Well done!",
+      "interactionType": "odd_one_out",
+      "reviewRationale": [
+        "Root is a real plant part.",
+        "Stem is a real plant part.",
+        "Leaf is a real plant part.",
+        "Correct! Stone does not belong."
+      ],
+      "feedbackIncorrect": "Review this skill and try again.",
+      "correctAnswerIndex": 3,
+      "learningOutcomeKey": "198fc8314ed0818d",
+      "optionExplanations": [
+        "Root is a plant part.",
+        "Stem is a plant part.",
+        "Leaf is a plant part.",
+        "Root, stem, and leaf are plant parts. Stone is not a plant part."
+      ],
+      "learningOutcomeIndex": 1
+    }
+  },
+  "grading": {
+    "matchingPartial": {
+      "stem": "Match each plant part to its main job.",
+      "left": [
+        "Roots",
+        "Stem",
+        "Leaves",
+        "Flowers"
+      ],
+      "canonicalRight": [
+        "Make seeds",
+        "Take in water and hold plant",
+        "Carry water and food",
+        "Make food using sunlight"
+      ],
+      "displayedRight": [
+        "Carry water and food",
+        "Make seeds",
+        "Take in water and hold plant",
+        "Make food using sunlight"
+      ],
+      "submittedDisplayPairs": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "lastAnswer": {
+        "correct": false,
+        "matchedPairs": 1,
+        "totalPairs": 4
+      },
+      "practiceScore": {
+        "questionId": "4d44bba9-b1be-4636-9954-7deee4a3d4f0",
+        "credit": 0.25,
+        "tier": "partial"
+      }
+    },
+    "oddOneOut": {
+      "stem": "Which one does NOT belong with the others?",
+      "options": [
+        "Root",
+        "Stem",
+        "Leaf",
+        "Stone"
+      ],
+      "correctAnswerIndex": 3,
+      "wrongAttempt": {
+        "correct": false,
+        "selectedOptionIndex": 0
+      },
+      "correctAttempt": {
+        "correct": true
+      }
+    }
+  }
+}

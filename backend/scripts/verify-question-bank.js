@@ -21,6 +21,12 @@ import {
 } from '../learner/services/adaptiveQuizService.js';
 import { isGradeOneAdditionContext } from '../utils/additionTemplate.js';
 import { disambiguateDuplicateTitles } from '../learner/services/nextTaskService.js';
+import {
+  buildBankGenerationPrompt,
+  isColumnArithmeticTopic,
+  isFractionTopic
+} from '../admin/services/questionBankService.js';
+import { getSubjectProfile } from '../admin/services/subjectProfiles.js';
 
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
@@ -108,13 +114,209 @@ assert(
   'bank generation refuses any templatable sub-strand'
 );
 assert(
-  bankService.includes('params.operation "subtract"') &&
-    bankService.includes('question "Subtract."'),
-  'bank prompt describes Grade 1 subtraction columns'
+  !bankService.includes('For Grade 1 counting/addition, prefer numeric_entry'),
+  'bank prompt no longer applies Grade 1 addition mix to every non-subtraction strand'
+);
+
+assert(
+  isColumnArithmeticTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.4 Addition' }
+  }) === true,
+  'Grade 3 Addition is column-arithmetic'
 );
 assert(
-  bankService.includes('For Grade 1 counting/addition, prefer numeric_entry'),
-  'bank prompt keeps the addition default for non-subtraction strands'
+  isColumnArithmeticTopic({
+    subject: { name: 'Science' },
+    subStrand: { name: 'Plant parts' }
+  }) === false,
+  'Science is not column-arithmetic'
+);
+assert(
+  isColumnArithmeticTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: 'Length' }
+  }) === false,
+  'Length measurement is not column-arithmetic'
+);
+assert(
+  isFractionTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.3 Fractions' }
+  }) === true,
+  'Fractions topic is detected'
+);
+
+const scienceBankPrompt = buildBankGenerationPrompt(
+  {
+    grade: '3',
+    gradeNumber: 3,
+    ageGroup: 'young children',
+    subject: { name: 'Science' },
+    strand: { name: 'Plants' },
+    subStrand: { name: 'Plant parts' },
+    outcomesBlock: '1. Explain the function of roots, stem, leaves and flowers',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Science')
+  },
+  8,
+  ''
+);
+assert(scienceBankPrompt.includes('ORIGINAL quiz questions'), 'bank prompt no longer opens as MCQ-only');
+assert(
+  scienceBankPrompt.includes('Do NOT use numeric_entry with a vertical column'),
+  'Science bank prompt forbids column layout'
+);
+assert(scienceBankPrompt.includes('labeled_boxes'), 'Science bank prompt requests parts diagrams');
+assert(scienceBankPrompt.includes('process_flow'), 'Science bank prompt requests process diagrams');
+assert(
+  scienceBankPrompt.includes('Visual questions MUST include "diagram"'),
+  'Science bank prompt requires diagram objects on visual items'
+);
+assert(
+  !scienceBankPrompt.includes('COLUMN ARITHMETIC'),
+  'Science bank prompt does not request column arithmetic mix'
+);
+assert(
+  scienceBankPrompt.includes('INTERACTION MIX — SCIENCE'),
+  'Science bank prompt uses the Science interaction mix'
+);
+assert(scienceBankPrompt.includes('matching_pairs'), 'Science bank prompt asks for matching_pairs when pairing fits');
+assert(scienceBankPrompt.includes('odd_one_out'), 'Science bank prompt asks for odd_one_out when grouping fits');
+assert(
+  scienceBankPrompt.includes('Do NOT force matching'),
+  'Science bank prompt does not force matching onto identification MCQ'
+);
+
+const g3AddPrompt = buildBankGenerationPrompt(
+  {
+    grade: '3',
+    gradeNumber: 3,
+    ageGroup: 'young children',
+    subject: { name: 'Mathematics' },
+    strand: { name: 'Numbers' },
+    subStrand: { name: 'Addition' },
+    outcomesBlock: '1. add two 3-digit numbers without regrouping',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Mathematics')
+  },
+  8,
+  ''
+);
+assert(g3AddPrompt.includes('COLUMN ARITHMETIC'), 'Grade 3 Addition bank prompt requests column mix');
+assert(g3AddPrompt.includes('layout:"vertical"'), 'Grade 3 Addition bank prompt requests vertical layout');
+assert(g3AddPrompt.includes('question "Add."'), 'Grade 3 Addition bank prompt uses Add. stems');
+assert(g3AddPrompt.includes('object_quantity'), 'Grade 3 Addition still allows picture options');
+
+const g3SubPrompt = buildBankGenerationPrompt(
+  {
+    grade: '3',
+    gradeNumber: 3,
+    ageGroup: 'young children',
+    subject: { name: 'Mathematics' },
+    strand: { name: 'Numbers' },
+    subStrand: { name: 'Subtraction' },
+    outcomesBlock: '1. subtract up to 3-digit numbers without regrouping',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Mathematics')
+  },
+  8,
+  ''
+);
+assert(g3SubPrompt.includes('question "Subtract."'), 'Grade 3 Subtraction bank prompt uses Subtract. stems');
+assert(g3SubPrompt.includes('operation:"subtract"'), 'Grade 3 Subtraction bank prompt sets subtract operation');
+
+const lengthPrompt = buildBankGenerationPrompt(
+  {
+    grade: '3',
+    gradeNumber: 3,
+    ageGroup: 'young children',
+    subject: { name: 'Mathematics' },
+    strand: { name: 'Measurement' },
+    subStrand: { name: 'Length' },
+    outcomesBlock: '1. add and subtract length in metres',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Mathematics')
+  },
+  8,
+  ''
+);
+assert(
+  !lengthPrompt.includes('COLUMN ARITHMETIC'),
+  'Length measurement does not get column-arithmetic mix'
+);
+assert(
+  lengthPrompt.includes('Do NOT use numeric_entry with a vertical column'),
+  'Length bank prompt forbids vertical column'
+);
+assert(
+  !lengthPrompt.includes('INTERACTION MIX — SCIENCE'),
+  'Length does not get the Science matching/odd mix'
+);
+
+const fractionsPrompt = buildBankGenerationPrompt(
+  {
+    grade: '3',
+    gradeNumber: 3,
+    ageGroup: 'young children',
+    subject: { name: 'Mathematics' },
+    strand: { name: 'Numbers' },
+    subStrand: { name: 'Fractions' },
+    outcomesBlock: '1. identify 1/2, 1/4 and 1/8 as part of a whole',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Mathematics')
+  },
+  8,
+  ''
+);
+assert(fractionsPrompt.includes('fraction_bars'), 'Fractions bank prompt requests fraction_bars');
+assert(
+  fractionsPrompt.includes('Do NOT use a vertical addition/subtraction column'),
+  'Fractions bank prompt forbids column add'
+);
+
+const columnNormalized = normalizeQuiz(
+  {
+    questions: [
+      {
+        question: 'Add.',
+        interactionType: 'numeric_entry',
+        params: { a: 214, b: 53 },
+        answerFormula: 'a + b',
+        options: [],
+        learningOutcomeIndex: 1
+      }
+    ]
+  },
+  ['add two 3-digit numbers without regrouping'],
+  { modalityCycle: ['practice'], allowedDiagramTypes: ['number_line'], fallbackDiagramType: 'number_line' },
+  { defaultNumericLayout: 'vertical', gradeNumber: 3 }
+);
+assert(
+  columnNormalized.questions[0].params.layout === 'vertical',
+  'column-arithmetic bank items default to vertical layout'
+);
+
+const scienceNormalized = normalizeQuiz(
+  {
+    questions: [
+      {
+        question: 'Add.',
+        interactionType: 'numeric_entry',
+        params: { a: 2, b: 3 },
+        answerFormula: 'a + b',
+        options: [],
+        learningOutcomeIndex: 1
+      }
+    ]
+  },
+  ['Explain plant parts'],
+  { modalityCycle: ['practice'], allowedDiagramTypes: ['labeled_boxes'], fallbackDiagramType: 'labeled_boxes' },
+  { defaultNumericLayout: 'horizontal', gradeNumber: 3 }
+);
+assert(
+  scienceNormalized.questions[0].params.layout === 'horizontal',
+  'non-arithmetic bank numeric_entry still defaults horizontal'
 );
 
 const genService = readFileSync(join(here, '../admin/services/lessonGenerationService.js'), 'utf8');

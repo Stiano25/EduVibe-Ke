@@ -57,10 +57,18 @@ export interface QuizQuestion {
    * How the learner answers.
    * Distinct from legacy `type: 'multiple-choice'`, which is kept for older banks.
    */
-  interactionType?: 'multiple_choice' | 'drag_to_target' | 'numeric_entry'
+  interactionType?:
+    | 'multiple_choice'
+    | 'drag_to_target'
+    | 'numeric_entry'
+    | 'matching_pairs'
+    | 'odd_one_out'
   params?: Record<string, unknown>
   answerFormula?: string
   activity?: string
+  left?: string[]
+  right?: string[]
+  correctPairs?: number[][]
   diagramBriefId?: string | null
   steps?: string[]
   /** Set when AI output is too close to a past-paper exemplar — admin should review */
@@ -86,7 +94,12 @@ export interface QuizTemplate {
   rung?: string
   outcomeFamily?: string
   difficulty?: 'easy' | 'intermediate' | 'advanced'
-  interactionType?: 'multiple_choice' | 'drag_to_target' | 'numeric_entry'
+  interactionType?:
+    | 'multiple_choice'
+    | 'drag_to_target'
+    | 'numeric_entry'
+    | 'matching_pairs'
+    | 'odd_one_out'
   skillFocus?: string
   learningOutcomeIndex?: number
   learningOutcomeKey?: string

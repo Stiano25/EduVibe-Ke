@@ -6,12 +6,18 @@ import { DragToTargetLive } from './DragToTargetLive'
 import { DragToTargetReview } from './DragToTargetReview'
 import { NumericEntryLive } from './NumericEntryLive'
 import { NumericEntryReview } from './NumericEntryReview'
+import { MatchingPairsLive } from './MatchingPairsLive'
+import { MatchingPairsReview } from './MatchingPairsReview'
+import { OddOneOutLive } from './OddOneOutLive'
+import { OddOneOutReview } from './OddOneOutReview'
 import type { MultipleChoiceLiveProps, MultipleChoiceReviewProps } from './types'
 
 export const LIVE_INTERACTIONS: Record<InteractionType, ComponentType<MultipleChoiceLiveProps>> = {
   multiple_choice: MultipleChoiceLive,
   drag_to_target: DragToTargetLive,
   numeric_entry: NumericEntryLive,
+  matching_pairs: MatchingPairsLive,
+  odd_one_out: OddOneOutLive,
 }
 
 export const REVIEW_INTERACTIONS: Record<
@@ -21,6 +27,8 @@ export const REVIEW_INTERACTIONS: Record<
   multiple_choice: MultipleChoiceReview,
   drag_to_target: DragToTargetReview,
   numeric_entry: NumericEntryReview,
+  matching_pairs: MatchingPairsReview,
+  odd_one_out: OddOneOutReview,
 }
 
 export const LiveInteraction = (props: MultipleChoiceLiveProps) => {

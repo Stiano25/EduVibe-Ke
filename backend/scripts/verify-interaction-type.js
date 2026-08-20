@@ -20,14 +20,18 @@ const assert = (condition, message) => {
 assert(
   INTERACTION_TYPES.includes('multiple_choice') &&
     INTERACTION_TYPES.includes('drag_to_target') &&
-    INTERACTION_TYPES.includes('numeric_entry'),
-  'MCQ, drag_to_target, and numeric_entry are registered'
+    INTERACTION_TYPES.includes('numeric_entry') &&
+    INTERACTION_TYPES.includes('matching_pairs') &&
+    INTERACTION_TYPES.includes('odd_one_out'),
+  'MCQ, drag_to_target, numeric_entry, matching_pairs, and odd_one_out are registered'
 );
 assert(resolveInteractionType('numeric_entry') === 'numeric_entry', 'numeric_entry maps');
 assert(resolveInteractionType(undefined) === 'multiple_choice', 'missing → multiple_choice');
 assert(resolveInteractionType('multiple-choice') === 'multiple_choice', 'legacy type hyphen maps');
 assert(resolveInteractionType('MULTIPLE_CHOICE') === 'multiple_choice', 'canonical value maps');
 assert(resolveInteractionType('drag_to_target') === 'drag_to_target', 'drag_to_target maps');
+assert(resolveInteractionType('matching_pairs') === 'matching_pairs', 'matching_pairs maps');
+assert(resolveInteractionType('odd-one-out') === 'odd_one_out', 'odd-one-out hyphen maps');
 assert(
   resolveInteractionType('not_a_real_type') === 'multiple_choice',
   'unknown types fall back to multiple_choice'

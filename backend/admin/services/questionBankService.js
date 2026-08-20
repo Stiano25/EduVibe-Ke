@@ -5,11 +5,14 @@ import {
   chunkQuestions,
   flagNearDuplicateQuestions,
   normalizeQuiz,
+  prefersConcreteDiagrams,
   runQuizQAPass
 } from './lessonGenerationService.js';
 import { retrieveQuizExemplars, formatQuizExemplarsForPrompt } from './knowledgeRetrieveService.js';
-import { detectTemplatableSkill, familyFromContext } from '../../utils/templateLadders.js';
+import { getSubjectProfile } from './subjectProfiles.js';
+import { detectTemplatableSkill } from '../../utils/templateLadders.js';
 import { resolveInteractionType } from '../../utils/interactionTypes.js';
+import { OBJECT_KINDS } from '../../utils/objectKinds.js';
 import { QuestionBankEntry, QuestionBankServe } from '../../models/QuestionBankEntry.js';
 
 const BANK_BATCH_DEFAULT = 8;
@@ -22,23 +25,86 @@ const bloomForMix = (i) => {
   return cycle[i % cycle.length];
 };
 
-const buildBankGenerationPrompt = (ctx, count, quizExemplarsBlock) => {
+const stripSequencePrefix = (name = '') =>
+  String(name || '')
+    .toLowerCase()
+    .replace(/^\d+(\.\d+)?\s*/, '')
+    .trim();
+
+/** Two-operand column add/subtract only — not measurement word problems, not Science. */
+export const isColumnArithmeticTopic = (ctx = {}) => {
+  const subject = String(ctx.subject?.name || ctx.subjectName || '').toLowerCase();
+  if (!/math/.test(subject)) return false;
+  const sub = stripSequencePrefix(ctx.subStrand?.name || ctx.subStrandName || '');
+  return sub === 'addition' || sub === 'subtraction';
+};
+
+export const isFractionTopic = (ctx = {}) => {
+  const subject = String(ctx.subject?.name || ctx.subjectName || '').toLowerCase();
+  if (!/math/.test(subject)) return false;
+  return /fraction/.test(stripSequencePrefix(ctx.subStrand?.name || ctx.subStrandName || ''));
+};
+
+const objectKindList = OBJECT_KINDS.join(', ');
+
+const bankInteractionMix = (ctx) => {
+  if (isColumnArithmeticTopic(ctx)) {
+    const operation = stripSequencePrefix(ctx.subStrand?.name || '') === 'subtraction' ? 'subtract' : 'add';
+    const instruction = operation === 'subtract' ? 'Subtract.' : 'Add.';
+    const formula = operation === 'subtract' ? 'a - b' : 'a + b';
+    return `INTERACTION MIX — COLUMN ARITHMETIC (this topic only):
+- At least 2 items MUST be interactionType "numeric_entry" with params:{a,b,layout:"vertical",operation:"${operation}"}, answerFormula:"${formula}", question "${instruction}", options []. The figure is stacked digits, a line, and the answer underneath — never a shopkeeper story.
+- Use drag_to_target only when both addends are small enough to place as icons (target ≤ 20). Set activity:"count_into_box", params:{a,b,target,objectPool,objectKind} with objectKind from: ${objectKindList}.
+- Remaining items: multiple_choice. Use {diagramType:"object_quantity",params:{objectKind,count}} picture options when the choice is a quantity of a named object. Keep plain-text options for abstract comparisons and number patterns.
+- Vertical column layout is ONLY for two-operand ${operation}. Do not put it on word-problem MCQ.`;
+  }
+  if (isFractionTopic(ctx)) {
+    return `INTERACTION MIX — FRACTIONS:
+- Default to multiple_choice. Do NOT use a vertical addition/subtraction column.
+- Part of a whole: include "diagram": { "diagramType":"fraction_bars", "params":{...}, "brief":"..." } showing equal parts. Options may be fraction strings ($\\frac{1}{2}$) or picture options of equal parts.
+- Part of a group: picture options {diagramType:"object_quantity",params:{objectKind,count}} using objectKind from: ${objectKindList}.
+- numeric_entry only when the answer is a single count (how many objects is half of 10) — keypad, no column. drag_to_target only if the learner literally places objects.`;
+  }
+  const profile = ctx.profile || getSubjectProfile(ctx.subject?.name);
+  if (profile.key === 'sciences') {
+    return `INTERACTION MIX — SCIENCE:
+- Most items: multiple_choice. Visual items MUST include a real "diagram" (labeled_boxes for parts, process_flow for processes, comparison for contrasts).
+- Include exactly 1 matching_pairs item when an outcome is pairing (plant part ↔ job). Shape: left (3-4 names), right (matching jobs), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.
+- Include exactly 1 odd_one_out item when an outcome is grouping/classification. Shape: options of 4 items, correctAnswerIndex is the one that does not belong.
+- Remaining items stay multiple_choice.
+- Do NOT use numeric_entry with a vertical column. Do NOT use drag_to_target unless the task is literally counting objects into a set.`;
+  }
+  return `INTERACTION MIX — NON-ARITHMETIC (Science, measurement, place value, language, …):
+- Default to multiple_choice. Set interactionType "multiple_choice" on those items.
+- Do NOT use numeric_entry with a vertical column — that layout is only for addition/subtraction computation.
+- Do NOT use drag_to_target unless the task is literally counting objects into a set.
+- Visual items MUST include a real "diagram" object (see below). Parts/functions → labeled_boxes; processes → process_flow; contrasts → comparison.
+- Options stay plain text unless the choice itself is a figure or a countable quantity of a named object (${objectKindList}).`;
+};
+
+export const buildBankGenerationPrompt = (ctx, count, quizExemplarsBlock) => {
   const { grade, ageGroup, subject, strand, subStrand, outcomesBlock, complexityBand } = ctx;
+  const profile = ctx.profile || getSubjectProfile(subject?.name);
+  const diagramTypeList = (profile.allowedDiagramTypes || ['labeled_boxes']).join('|');
   const ceiling = complexityBand?.constrained
     ? `GRADE COMPLEXITY CEILING: at most ${complexityBand.maxSentences} sentence(s) and ${complexityBand.maxWords} words per stem.`
     : `Write clearly for ${ageGroup} (Grade ${grade}).`;
-  const family = familyFromContext(ctx);
-  const layoutHint =
-    family === 'subtraction'
-      ? `For Grade 1 subtraction, prefer numeric_entry with params.layout "vertical", params.operation "subtract", and question "Subtract." (stacked digits, no story), drag_to_target for "show this many", and picture options when the choice is a quantity of a named object. Keep plain-text multiple_choice for abstract number comparisons.`
-      : `For Grade 1 counting/addition, prefer numeric_entry with params.layout "vertical" and question "Add." (stacked digits, no story), drag_to_target for "show this many", and picture options when the choice is a quantity of a named object. Keep plain-text multiple_choice for abstract number comparisons.`;
+  const concreteDiagramLine = prefersConcreteDiagrams(ctx.gradeNumber ?? grade)
+    ? `\nAt this grade prefer concrete figures a child can point at — object_quantity (repeated icons of a named object from: ${objectKindList}), counting_circles (only when no object is named), number_line, fraction_bars, rectangle, cube. Do NOT use labeled_boxes for counting or "N of [object]" — that draws text in a rectangle, not the object. Science parts/processes still use labeled_boxes or process_flow.`
+    : '';
 
-  return `Create ${count} ORIGINAL multiple-choice quiz questions for Kenyan CBC Grade ${grade} ${subject.name} · ${strand.name} · ${subStrand.name}, for ${ageGroup}.
+  return `Create ${count} ORIGINAL quiz questions for Kenyan CBC Grade ${grade} ${subject.name} · ${strand.name} · ${subStrand.name}, for ${ageGroup}.
+interactionType is real and is graded — not every item is multiple_choice.
 
 Outcomes (use exact learningOutcomeIndex 1-based):
 ${outcomesBlock}
 
 ${ceiling}
+
+${profile.quizStyle || ''}
+MODALITY MIX for ${subject.name}: ${profile.modalityMixText || 'balanced mix'}. Treat that as the intended overall balance, not a target to exceed.
+
+${bankInteractionMix(ctx)}
 
 COPYRIGHT — this is a hard constraint, not a style preference:
 - Source / past-paper text below (if any) may inform TONE, FORMAT, and DIFFICULTY only.
@@ -51,10 +117,28 @@ ${quizExemplarsBlock || 'No source exemplars were available. Write from the outc
 Return ONLY one JSON object:
 { "quiz": { "questions": [ /* exactly ${count} items */ ] } }
 
-Each question: question, interactionType (multiple_choice, numeric_entry, or drag_to_target), options (3-4 strings or {diagramType,params} picture options) and correctAnswerIndex for multiple_choice, or params {a,b} and answerFormula for numeric_entry, or params {a,b,target,objectPool,objectKind} and answerFormula for drag_to_target, explanation (max 16 words), distractors[{"optionIndex","misconception":"max 8 words"}] for MCQ, reviewRationale[{"optionIndex","text"}] for EVERY MCQ option, learningOutcomeIndex, bloomLevel (recall|understand|apply|reason), modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced).
-${layoutHint}
+COMPACT QUESTION SHAPE — include ONLY:
+- question, interactionType (multiple_choice, numeric_entry, drag_to_target, matching_pairs, or odd_one_out)
+- for multiple_choice: options (3-4 strings OR {diagramType,params} picture options), correctAnswerIndex
+- for odd_one_out: options (4-5 strings), correctAnswerIndex of the item that does not belong
+- for matching_pairs: left[], right[], correctPairs:[[leftIndex,rightIndex],...]; options must be []
+- for numeric_entry: params {a,b,layout:"vertical",operation} and answerFormula when this is column add/subtract; otherwise params for the scalar answer; options must be []
+- for drag_to_target: activity "count_into_box", params {a,b,target,objectPool,objectKind}, answerFormula; options may be []
+- explanation (max 16 words)
+- distractors:[{"optionIndex","misconception":"max 8 words"}] for wrong MCQ options
+- reviewRationale:[{"optionIndex","text"}] for EVERY MCQ option, correct and wrong
+- learningOutcomeIndex, bloomLevel (recall|understand|apply|reason), modality (visual|text_steps|practice), difficulty (easy|intermediate|advanced)
 Do NOT include id, type, template, or feedback fields.
 Do NOT set template:true. These are fixed reviewed items, not parametrized templates.
+
+Visual questions MUST include "diagram": { "diagramType": one of ${diagramTypeList}, "params":{...}, "brief":"..." }.
+- "params" must hold real, specific values for THIS question — never {} and never generic placeholders.
+- "brief" must describe the actual figure to draw, in your own words. Never restate the question as the brief.
+- If you cannot design a genuine figure, do NOT tag it visual — use practice or text_steps.${concreteDiagramLine}
+Match diagram type to topic:
+${profile.diagramGuidance || ''}
+${profile.mathRule || ''}
+Do not force pictures onto abstract number comparisons ("which number is bigger") or bare symbolic math.
 Keep learner-facing strings concise. Complete valid JSON only. No markdown fences.`;
 };
 
@@ -125,7 +209,11 @@ export const generateQuestionBankBatch = async (subStrandId, { count = BANK_BATC
     { questions: raw },
     outcomes,
     profile,
-    { additionTemplates: false, gradeNumber: ctx.gradeNumber }
+    {
+      additionTemplates: false,
+      gradeNumber: ctx.gradeNumber,
+      defaultNumericLayout: isColumnArithmeticTopic(ctx) ? 'vertical' : 'horizontal'
+    }
   );
 
   await runQuizQAPass(questions, { label: 'question-bank', ctx });

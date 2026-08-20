@@ -8,7 +8,13 @@
  */
 export const DEFAULT_INTERACTION_TYPE = 'multiple_choice' as const
 
-export const INTERACTION_TYPES = ['multiple_choice', 'drag_to_target', 'numeric_entry'] as const
+export const INTERACTION_TYPES = [
+  'multiple_choice',
+  'drag_to_target',
+  'numeric_entry',
+  'matching_pairs',
+  'odd_one_out',
+] as const
 
 export type InteractionType = (typeof INTERACTION_TYPES)[number]
 
@@ -24,6 +30,12 @@ const LEGACY_TYPE_MAP: Record<string, InteractionType> = {
   numericentry: 'numeric_entry',
   free_response: 'numeric_entry',
   'free-response': 'numeric_entry',
+  matching_pairs: 'matching_pairs',
+  'matching-pairs': 'matching_pairs',
+  matchingpairs: 'matching_pairs',
+  odd_one_out: 'odd_one_out',
+  'odd-one-out': 'odd_one_out',
+  oddoneout: 'odd_one_out',
 }
 
 export const resolveInteractionType = (value?: string | null): InteractionType => {

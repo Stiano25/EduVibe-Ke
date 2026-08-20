@@ -497,6 +497,7 @@ class ApiClient {
         selectedOptionIndex: number
         placedCount?: number
         submittedValue?: string | number
+        submittedPairs?: number[][]
         responseTimeMs: number
       }
     ) =>

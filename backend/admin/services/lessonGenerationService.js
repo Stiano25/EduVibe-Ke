@@ -43,6 +43,8 @@ import {
 import { additionWorkedStepTexts } from '../../utils/additionWorkedExample.js';
 import { applyQuizQualityGates } from '../../utils/quizQualityGates.js';
 import { inferObjectKind, namesCountableObject } from '../../utils/objectKinds.js';
+import { isMatchingPairsQuestion, normalizeMatchingPairs } from '../../utils/matchingPairs.js';
+import { isOddOneOutQuestion, itemsFromOddOneOut } from '../../utils/oddOneOut.js';
 import {
   coercePictureOptions,
   inferGeometryDiagramType,
@@ -371,7 +373,12 @@ export const normalizeQuiz = (
   quiz,
   outcomes,
   profile,
-  { additionTemplates = false, gradeNumber = null, skipCoverageRemap = false } = {}
+  {
+    additionTemplates = false,
+    gradeNumber = null,
+    skipCoverageRemap = false,
+    defaultNumericLayout = null
+  } = {}
 ) => {
   if (!quiz || !Array.isArray(quiz.questions)) {
     return {
@@ -418,6 +425,47 @@ export const normalizeQuiz = (
       }
     }
     incomingInteraction = resolveInteractionType(q.interactionType || q.type);
+
+    if (incomingInteraction === 'matching_pairs' || isMatchingPairsQuestion(q)) {
+      const matched = normalizeMatchingPairs(q);
+      if (matched.ok) {
+        q = {
+          ...q,
+          interactionType: 'matching_pairs',
+          left: matched.left,
+          right: matched.right,
+          correctPairs: matched.correctPairs,
+          options: []
+        };
+        incomingInteraction = 'matching_pairs';
+      } else {
+        console.warn(`Question ${q.id || qi + 1}: matching_pairs invalid (${matched.reason}) — kept as MCQ`);
+        incomingInteraction = 'multiple_choice';
+        q = { ...q, interactionType: 'multiple_choice' };
+      }
+    } else if (incomingInteraction === 'odd_one_out' || isOddOneOutQuestion(q)) {
+      const items = itemsFromOddOneOut(q);
+      if (items.length >= 3) {
+        q = {
+          ...q,
+          interactionType: 'odd_one_out',
+          options: items,
+          type: 'multiple-choice'
+        };
+        incomingInteraction = 'odd_one_out';
+        if (items.length < 4 || items.length > 5) {
+          console.warn(
+            `Question ${q.id || qi + 1}: odd_one_out has ${items.length} items (prefer 4–5)`
+          );
+        }
+      } else {
+        console.warn(
+          `Question ${q.id || qi + 1}: odd_one_out needs 4–5 items — kept as MCQ`
+        );
+        incomingInteraction = 'multiple_choice';
+        q = { ...q, interactionType: 'multiple_choice' };
+      }
+    }
 
     if (incomingInteraction === 'drag_to_target' || isCountIntoBoxQuestion(q)) {
       const seed = makeCountIntoBoxQuestion({
@@ -481,14 +529,18 @@ export const normalizeQuiz = (
         bloomLevel: q.bloomLevel,
         learningOutcomeIndex: q.learningOutcomeIndex,
         objectKind: q.params?.objectKind || inferObjectKind(stemPreview),
-        layout: q.params?.layout || (additionTemplates ? 'vertical' : 'horizontal'),
+        layout:
+          q.params?.layout ||
+          defaultNumericLayout ||
+          (additionTemplates ? 'vertical' : 'horizontal'),
         operation: q.params?.operation
       });
       const params = { ...seed.params, ...(q.params && typeof q.params === 'object' ? q.params : {}) };
-      params.layout = resolveAdditionLayout(
-        params.layout,
-        { defaultLayout: additionTemplates ? DEFAULT_ADDITION_LAYOUT : 'horizontal' }
-      );
+      params.layout = resolveAdditionLayout(params.layout, {
+        defaultLayout:
+          defaultNumericLayout ||
+          (additionTemplates ? DEFAULT_ADDITION_LAYOUT : 'horizontal')
+      });
       params.scaffoldCarry = resolveScaffoldCarry(params.scaffoldCarry, { layout: params.layout });
       q = {
         ...seed,
@@ -511,7 +563,9 @@ export const normalizeQuiz = (
 
     const stem = String(q.question || q.questionText || '');
     const options =
-      incomingInteraction === 'numeric_entry' || incomingInteraction === 'drag_to_target'
+      incomingInteraction === 'numeric_entry' ||
+      incomingInteraction === 'drag_to_target' ||
+      incomingInteraction === 'matching_pairs'
         ? []
         : coercePictureOptions(Array.isArray(q.options) ? q.options : [], stem);
     let outcomeIndex = Number(q.learningOutcomeIndex);
@@ -583,15 +637,18 @@ export const normalizeQuiz = (
     const interactionType = resolveInteractionType(q.interactionType || q.type);
     const isDrag = interactionType === 'drag_to_target';
     const isNumeric = interactionType === 'numeric_entry';
+    const isMatching = interactionType === 'matching_pairs';
+    const isOddOneOut = interactionType === 'odd_one_out';
 
     let diagramBriefId = null;
+    let persistedDiagram = null;
     const embeddedDiagram = q.diagram && typeof q.diagram === 'object' ? q.diagram : null;
     const authoredBrief = normalizeOutcomeText(embeddedDiagram?.brief || q.diagramBrief || '');
     const wantsObjectFigure =
-      (!isDrag && shouldUseRepresentationalDiagram(`${q.question || ''} ${authoredBrief}`)) ||
+      (!isDrag && !isMatching && shouldUseRepresentationalDiagram(`${q.question || ''} ${authoredBrief}`)) ||
       (isNumeric && namesCountableObject(q.question || ''));
 
-    if (modality === 'visual' && !authoredBrief && !isDrag && !wantsObjectFigure) {
+    if (modality === 'visual' && !authoredBrief && !isDrag && !isMatching && !wantsObjectFigure) {
       // The model claimed a visual but never designed one. Shipping the old
       // `Figure for: <stem>` placeholder made the question overclaim a figure it
       // does not have, so demote it to a plain practice question instead.
@@ -601,7 +658,7 @@ export const normalizeQuiz = (
       downgradedVisuals.push(qid);
     }
 
-    if ((modality === 'visual' || wantsObjectFigure) && !isDrag) {
+    if ((modality === 'visual' || wantsObjectFigure) && !isDrag && !isMatching) {
       if (wantsObjectFigure) modality = 'visual';
       const embedded = embeddedDiagram;
       const skillFocus = (q.skillFocus || outcomeText || 'core skill').slice(0, 120);
@@ -672,6 +729,12 @@ export const normalizeQuiz = (
         questionId: qid
       });
       diagramBriefId = briefId;
+      persistedDiagram = {
+        id: briefId,
+        diagramType,
+        params,
+        brief: authoredBrief || `${diagramType} for ${skillFocus}`
+      };
     }
 
     let steps = Array.isArray(q.steps)
@@ -692,7 +755,13 @@ export const normalizeQuiz = (
     return {
       id: qid,
       question: q.question || `Question ${qi + 1}`,
-      type: isDrag ? 'drag-to-target' : isNumeric ? 'numeric-entry' : 'multiple-choice',
+      type: isDrag
+        ? 'drag-to-target'
+        : isNumeric
+          ? 'numeric-entry'
+          : isMatching
+            ? 'matching-pairs'
+            : 'multiple-choice',
       interactionType,
       ...(isDrag
         ? {
@@ -708,6 +777,14 @@ export const normalizeQuiz = (
             answerFormula: q.answerFormula || 'a + b'
           }
         : {}),
+      ...(isMatching
+        ? {
+            left: q.left,
+            right: q.right,
+            correctPairs: q.correctPairs
+          }
+        : {}),
+      ...(isOddOneOut ? { activity: 'odd_one_out' } : {}),
       options,
       correctAnswerIndex,
       explanation: q.explanation || '',
@@ -727,6 +804,7 @@ export const normalizeQuiz = (
       ...(hasReviewRationale ? { reviewRationale } : {}),
       modality,
       diagramBriefId: modality === 'visual' && !isDrag ? diagramBriefId : null,
+      ...(persistedDiagram ? { diagram: persistedDiagram } : {}),
       steps: modality === 'text_steps' ? steps || [] : undefined,
       ...(q.template === true
         ? {
@@ -1667,13 +1745,13 @@ ${band.rules.map((rule) => `   - ${rule}`).join('\n')}
     : `DO fail a question that is genuinely too wordy or convoluted for ${ageGroup}. Start the issue text with "too complex for grade" and give the specific reason.`;
 
   const qaPrompt = `
-You are QA-checking a set of multiple-choice questions for a children's CBC learning app.
+You are QA-checking quiz questions for a children's CBC learning app (multiple_choice, numeric_entry, drag_to_target, matching_pairs, or odd_one_out).
 
 GRADE: ${grade} (${ageGroup}). SUBJECT: ${subjectName}.
 
 For each question below, check:
-1. Does it have EXACTLY ONE unambiguously correct answer given the options provided?
-2. Are the distractors (wrong options) plausible but clearly incorrect — not accidentally also defensible as correct?
+1. multiple_choice / odd_one_out: exactly ONE unambiguously correct answer given the options. numeric_entry / drag_to_target / matching_pairs: options may be [] — check params/answerFormula or left/right/correctPairs instead, do not fail for missing options.
+2. Are the distractors (wrong options) plausible but clearly incorrect — not accidentally also defensible as correct? Skip this check when options is empty. For matching_pairs, check that each pairing is factually true and a bijection. For odd_one_out, the marked item must be the only one that does not belong.
 3. Is the question text clear and age-appropriate for Grade ${grade}, with no ambiguous wording?
 4. Is there any factual error in the question or the marked correct answer?
 ${complexityCheck}
@@ -1693,8 +1771,12 @@ ${JSON.stringify(
   questions.map((q, i) => ({
     i,
     q: q.question,
+    t: q.interactionType || q.type || null,
     o: q.options,
     a: q.correctAnswerIndex,
+    left: q.left || null,
+    right: q.right || null,
+    pairs: q.correctPairs || null,
     b: q.bloomLevel || null,
     w: countStemWords(q.question),
     s: countStemSentences(q.question)

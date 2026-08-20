@@ -79,14 +79,26 @@ const submittedAndExpected = (attempt, question) => {
 };
 
 const isNearMiss = (attempt, question) => {
+  const type = resolveInteractionType(question?.interactionType || question?.type);
+  if (type === 'matching_pairs') return false;
   const { submitted, expected } = submittedAndExpected(attempt, question);
   return isDigitTransposition(submitted, expected);
+};
+
+const matchingFirstTryCredit = (attempt) => {
+  const total = Number(attempt.totalPairs);
+  const matched = Number(attempt.matchedPairs);
+  if (!Number.isFinite(total) || total <= 0) return 0;
+  if (!Number.isFinite(matched) || matched < 0) return 0;
+  return Math.max(0, Math.min(1, matched / total));
 };
 
 /**
  * Per main-phase item (twins excluded). Tiers are mutually exclusive, highest first:
  * first-try correct → 1; first-try near-miss → 0.75 (kept even after a later retry);
  * retry correct → 0.5; else 0.
+ * matching_pairs uses pair accuracy on the first main attempt (matched/total).
+ * A later all-correct retry only applies if that first-try ratio was 0, then 0.5.
  */
 export const computePracticeScore = (session = {}, lesson = {}) => {
   const answered = session.answered || [];
@@ -102,9 +114,25 @@ export const computePracticeScore = (session = {}, lesson = {}) => {
 
   const items = mains.map((attempt) => {
     const question = lookupQuestion(session, lesson, attempt.questionId, attempt.questionSnapshot);
+    const type = resolveInteractionType(question?.interactionType || question?.type);
     let credit = PRACTICE_CREDIT.MISS;
     let tier = 'miss';
-    if (attempt.correct) {
+    if (type === 'matching_pairs') {
+      const ratio = matchingFirstTryCredit(attempt);
+      if (attempt.correct) {
+        credit = PRACTICE_CREDIT.FIRST_TRY;
+        tier = 'first_try';
+      } else if (ratio > 0) {
+        credit = ratio;
+        tier = 'partial';
+      } else {
+        const retries = retriesByOriginal.get(attempt.questionId) || [];
+        if (retries.some((r) => r.correct)) {
+          credit = PRACTICE_CREDIT.RETRY;
+          tier = 'retry';
+        }
+      }
+    } else if (attempt.correct) {
       credit = PRACTICE_CREDIT.FIRST_TRY;
       tier = 'first_try';
     } else if (isNearMiss(attempt, question)) {

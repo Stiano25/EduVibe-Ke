@@ -33,6 +33,8 @@ export type AdaptiveQuestion = {
   scaffoldCarry?: boolean
   workedSteps?: WorkedStep[]
   bankEntryId?: string
+  left?: string[]
+  right?: string[]
 }
 
 export type ReviewItem = {
@@ -62,6 +64,12 @@ export type ReviewItem = {
   operation?: 'add' | 'subtract'
   scaffoldCarry?: boolean
   phase?: string
+  left?: string[]
+  right?: string[]
+  correctPairs?: number[][]
+  matchedPairs?: number
+  totalPairs?: number
+  submittedPairs?: number[][]
 }
 
 export type LiveFlash = {
@@ -69,6 +77,8 @@ export type LiveFlash = {
   correctAnswerIndex?: number
   /** Numeric-entry only: the value the learner should have typed. */
   expectedValue?: number
+  matchedPairs?: number
+  totalPairs?: number
   explanation?: string
 }
 
@@ -94,6 +104,7 @@ export type MultipleChoiceLiveProps = {
   onSelect: (selection: TapSelection) => void
   onSubmitDrag?: (payload: { placedCount: number; responseTimeMs: number }) => void
   onSubmitNumeric?: (payload: { submittedValue: string | number; responseTimeMs: number }) => void
+  onSubmitMatching?: (payload: { submittedPairs: number[][]; responseTimeMs: number }) => void
 }
 
 export type MultipleChoiceReviewProps = {

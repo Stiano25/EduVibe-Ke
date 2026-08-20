@@ -21,8 +21,13 @@ assert(dots.every(isVisualOption), 'unicode dots become picture options');
 assert(dots[1].params.count === 5, 'five dots → count 5');
 assert(dots[1].params.objectKind === 'ball', 'kind from stem');
 
-const abstract = coercePictureOptions(['10', '30'], 'Which number is bigger, 10 or 30?');
-assert(!optionsHaveVisuals(abstract), 'abstract compare stays text');
+const labeled = coercePictureOptions(
+  [{ type: 'labeled_boxes', params: { items: [{ label: 'Leaf', text: 'Makes food' }] } }],
+  'Look at the diagram. Which label makes food?'
+);
+assert(labeled[0].diagramType === 'labeled_boxes', 'type alias becomes diagramType');
+assert(labeled[0].params.items[0].label === 'Leaf', 'labeled_boxes option params kept');
+assert(typeof labeled[0] === 'object', 'picture options stay objects, not [object Object] strings');
 
 const q = {
   question: 'Which shows 5 balls?',

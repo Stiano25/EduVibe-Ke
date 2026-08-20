@@ -27,6 +27,20 @@ import {
   isFractionTopic
 } from '../admin/services/questionBankService.js';
 import { getSubjectProfile } from '../admin/services/subjectProfiles.js';
+import {
+  BANK_MIXES,
+  resolveBankMix,
+  renderBankInteractionMix,
+  isMultiplicationTopic,
+  isDivisionTopic
+} from '../admin/services/bankMixProfiles.js';
+import {
+  detectTemplatableSkill,
+  outcomesNeedingBank,
+  resolveContentSource,
+  laddersForOutcomes
+} from '../utils/templateLadders.js';
+import { QUIZ_SOURCE_TEMPLATES, QUIZ_SOURCE_FIXED_POOL } from '../utils/quizSessionSize.js';
 
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
@@ -110,8 +124,12 @@ assert(bankService.includes('COPYRIGHT'), 'bank generation prompt has a hard cop
 assert(bankService.includes('Do NOT set template:true'), 'bank items are not addition templates');
 assert(bankService.includes('too close to source document'), 'near-dups are auto-rejected');
 assert(
-  bankService.includes('uses the template/twist engine'),
-  'bank generation refuses any templatable sub-strand'
+  bankService.includes('outcomesNeedingBank'),
+  'bank generation refuses per unmatched outcome, not the whole sub-strand'
+);
+assert(
+  !bankService.includes('Do not generate reviewed bank items for this sub-strand'),
+  'bank generation no longer refuses an entire templatable sub-strand'
 );
 assert(
   !bankService.includes('For Grade 1 counting/addition, prefer numeric_entry'),
@@ -145,6 +163,124 @@ assert(
     subStrand: { name: '1.3 Fractions' }
   }) === true,
   'Fractions topic is detected'
+);
+assert(
+  isMultiplicationTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.6 Multiplication' }
+  }) === true,
+  'Multiplication topic resolves from the mix record'
+);
+assert(
+  isDivisionTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.7 Division' }
+  }) === true,
+  'Division topic resolves from the mix record'
+);
+assert(
+  isColumnArithmeticTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.6 Multiplication' }
+  }) === false,
+  'Multiplication is not column-arithmetic'
+);
+assert(
+  isColumnArithmeticTopic({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.7 Division' }
+  }) === false,
+  'Division is not column-arithmetic'
+);
+assert(
+  detectTemplatableSkill({
+    grade: '3',
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.6 Multiplication' }
+  }) == null,
+  'Grade 3 Multiplication has no registered ladder'
+);
+assert(
+  detectTemplatableSkill({
+    grade: '3',
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.7 Division' }
+  }) == null,
+  'Grade 3 Division has no registered ladder'
+);
+
+const g3AddRoutingCtx = {
+  grade: '3',
+  subject: { name: 'Mathematics' },
+  subStrand: { name: '1.4 Addition' }
+};
+const g3ColumnOutcome =
+  'add a 3-digit number to up to a 2-digit number without regrouping with sum not exceeding 1000';
+const g3BankOnlyOutcomes = [
+  'add three single digit numbers with sum up to 27',
+  'work out missing numbers in patterns involving addition up to 1000',
+  'create number patterns involving addition up to 1000'
+];
+assert(
+  resolveContentSource(g3AddRoutingCtx, [g3ColumnOutcome]) === QUIZ_SOURCE_TEMPLATES,
+  'matched Grade 3 Addition outcome stays on templates'
+);
+assert(
+  g3BankOnlyOutcomes.every(
+    (o) => resolveContentSource(g3AddRoutingCtx, [o]) === QUIZ_SOURCE_FIXED_POOL
+  ),
+  'unmatched Grade 3 Addition outcomes fall through to the bank'
+);
+assert(
+  outcomesNeedingBank(g3AddRoutingCtx, [g3ColumnOutcome, ...g3BankOnlyOutcomes]).join('\n') ===
+    g3BankOnlyOutcomes.join('\n'),
+  'bank eligible list is the unmatched outcomes only'
+);
+assert(
+  outcomesNeedingBank(g3AddRoutingCtx, [g3ColumnOutcome]).length === 0,
+  'a fully template-backed request has no bank-eligible outcomes'
+);
+
+const g1AddRoutingCtx = {
+  grade: '1',
+  subject: { name: 'Mathematics' },
+  subStrand: { name: '1.3 Addition' }
+};
+assert(
+  resolveContentSource(g1AddRoutingCtx, [
+    'work out missing numbers in patterns involving addition of whole numbers up to 100'
+  ]) === QUIZ_SOURCE_FIXED_POOL,
+  'Grade 1 Addition missing-number patterns route to the bank, not singles templates'
+);
+assert(
+  laddersForOutcomes(g1AddRoutingCtx, [
+    'work out missing numbers in patterns involving addition of whole numbers up to 100'
+  ]).length === 0,
+  'Grade 1 Addition missing-number patterns attach no templates'
+);
+assert(
+  resolveContentSource(g1AddRoutingCtx, ['add 2-single digit numbers up to a sum of 10']) ===
+    QUIZ_SOURCE_TEMPLATES,
+  'Grade 1 two-single-digit addition stays on templates'
+);
+
+const g1NcRoutingCtx = {
+  grade: '1',
+  subject: { name: 'Mathematics' },
+  subStrand: { name: '1.1 Number Concept' }
+};
+assert(
+  outcomesNeedingBank(g1NcRoutingCtx, [
+    'sort and group objects according to different attributes within the classroom',
+    'pair and match objects in the environment',
+    'order and sequence objects in ascending and descending order',
+    'make patterns using real objects',
+    'recite number names in order up to 50',
+    'represent numbers 1-30 using concrete objects',
+    'demonstrate through counting that a group in all situations has only one count',
+    'appreciate the use of sorting and grouping items in day to day activities'
+  ]).length === 6,
+  'Number Concept bank-eligible outcomes are the six non-template ones'
 );
 
 const scienceBankPrompt = buildBankGenerationPrompt(
@@ -273,6 +409,377 @@ assert(fractionsPrompt.includes('fraction_bars'), 'Fractions bank prompt request
 assert(
   fractionsPrompt.includes('Do NOT use a vertical addition/subtraction column'),
   'Fractions bank prompt forbids column add'
+);
+assert(
+  fractionsPrompt.includes('matching_pairs'),
+  'Fractions mix offers matching_pairs when pairing notation to a picture'
+);
+
+const mulPrompt = buildBankGenerationPrompt(
+  {
+    grade: '3',
+    gradeNumber: 3,
+    ageGroup: 'young children',
+    subject: { name: 'Mathematics' },
+    strand: { name: 'Numbers' },
+    subStrand: { name: '1.6 Multiplication' },
+    outcomesBlock: '1. multiply single digit numbers by numbers 1-10 in different contexts',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Mathematics')
+  },
+  8,
+  ''
+);
+const divPrompt = buildBankGenerationPrompt(
+  {
+    grade: '2',
+    gradeNumber: 2,
+    ageGroup: 'very young children',
+    subject: { name: 'Mathematics' },
+    strand: { name: 'Numbers' },
+    subStrand: { name: '1.7 Division' },
+    outcomesBlock:
+      '1. represent division as equal sharing\n2. divide numbers up to 25 by 2, 3, 4 and 5 without a remainder in real life situations',
+    complexityBand: { constrained: true, maxSentences: 1, maxWords: 12 },
+    profile: getSubjectProfile('Mathematics')
+  },
+  8,
+  ''
+);
+
+const mixBlock = (prompt) => {
+  const start = prompt.indexOf('INTERACTION MIX');
+  const end = prompt.indexOf('\n\nCOPYRIGHT');
+  assert(start >= 0 && end > start, 'prompt has an INTERACTION MIX block');
+  return prompt.slice(start, end);
+};
+
+const goldens = JSON.parse(
+  readFileSync(join(here, 'fixtures/bank-mix-prompts.pre-refactor.json'), 'utf8')
+);
+const mixUnchangedKeys = [
+  ['addition', g3AddPrompt],
+  ['subtraction', g3SubPrompt],
+  ['length', lengthPrompt]
+];
+for (const [key, prompt] of mixUnchangedKeys) {
+  assert(
+    mixBlock(prompt) === mixBlock(goldens[key]),
+    `${key} INTERACTION MIX block is unchanged from the pre-refactor golden`
+  );
+}
+assert(
+  mixBlock(fractionsPrompt) !== mixBlock(goldens.fractions),
+  'Fractions INTERACTION MIX changed after adding restrained matching_pairs'
+);
+assert(
+  mixBlock(fractionsPrompt).includes('Do NOT force matching'),
+  'Fractions mix does not force matching onto every item'
+);
+assert(
+  !mixBlock(fractionsPrompt).includes('odd_one_out'),
+  'Fractions mix does not add odd_one_out (no classification outcome in the mix)'
+);
+assert(
+  BANK_MIXES.some((row) => row.key === 'multiplication'),
+  'Multiplication is a mix data record'
+);
+assert(
+  BANK_MIXES.some((row) => row.key === 'division'),
+  'Division is a mix data record'
+);
+assert(
+  resolveBankMix({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.6 Multiplication' },
+    profile: getSubjectProfile('Mathematics')
+  }).key === 'multiplication',
+  'Multiplication resolves from the data record, not a new if-branch'
+);
+assert(
+  resolveBankMix({
+    subject: { name: 'Mathematics' },
+    subStrand: { name: '1.7 Division' },
+    profile: getSubjectProfile('Mathematics')
+  }).key === 'division',
+  'Division resolves from the data record, not a new if-branch'
+);
+assert(
+  mulPrompt.includes('INTERACTION MIX — MULTIPLICATION'),
+  'Grade 3 Multiplication bank prompt uses the Multiplication mix'
+);
+assert(
+  mixBlock(mulPrompt).includes('groups:[n,n,...]'),
+  'Multiplication mix asks for equal-groups object_quantity params'
+);
+assert(
+  mixBlock(mulPrompt).includes('SUM of groups[] must stay ≤ 20'),
+  'Multiplication mix caps total icons, not only each group'
+);
+assert(
+  mixBlock(mulPrompt).includes('Do NOT force matching'),
+  'Multiplication mix does not force matching onto every item'
+);
+assert(
+  mixBlock(mulPrompt).includes('odd_one_out'),
+  'Multiplication mix offers odd_one_out when classification fits'
+);
+assert(
+  !mulPrompt.includes('INTERACTION MIX — COLUMN ARITHMETIC'),
+  'Multiplication does not inherit the column-arithmetic mix'
+);
+assert(
+  !mulPrompt.includes('INTERACTION MIX — SCIENCE'),
+  'Multiplication does not inherit the Science mix'
+);
+assert(
+  !mixBlock(mulPrompt).includes('layout:"vertical"'),
+  'Multiplication mix does not request a vertical column'
+);
+assert(
+  divPrompt.includes('INTERACTION MIX — DIVISION'),
+  'Grade 2 Division bank prompt uses the Division mix'
+);
+assert(
+  mixBlock(divPrompt).includes('groups:[n,n,...]'),
+  'Division mix asks for equal-sharing groups'
+);
+assert(
+  mixBlock(divPrompt).includes('Do NOT force matching'),
+  'Division mix does not force matching onto every item'
+);
+assert(
+  !divPrompt.includes('INTERACTION MIX — COLUMN ARITHMETIC'),
+  'Division does not inherit the column-arithmetic mix'
+);
+assert(
+  !mixBlock(divPrompt).includes('layout:"vertical"'),
+  'Division mix does not request a vertical column'
+);
+assert(
+  !bankService.includes("key === 'multiplication'"),
+  'questionBankService has no Multiplication mix if-branch'
+);
+assert(
+  !bankService.includes("key === 'division'"),
+  'questionBankService has no Division mix if-branch'
+);
+assert(
+  !bankService.includes('INTERACTION MIX — MULTIPLICATION'),
+  'questionBankService does not hardcode the Multiplication mix heading'
+);
+assert(
+  !bankService.includes('INTERACTION MIX — DIVISION'),
+  'questionBankService does not hardcode the Division mix heading'
+);
+assert(
+  g3AddPrompt.includes('Concrete count visuals'),
+  'Grade 3 Addition bank prompt includes magnitude-aware concrete-diagram guidance'
+);
+assert(
+  g3SubPrompt.includes('place_value (hundreds/tens/ones) or a vertical column'),
+  'Grade 3 Subtraction bank prompt routes large numbers to place_value or column'
+);
+assert(
+  scienceBankPrompt !== goldens.science,
+  'Science bank prompt changed after removing the plant-part mix example'
+);
+assert(
+  !mixBlock(scienceBankPrompt).includes('plant part ↔ job'),
+  'Science mix instruction no longer hardcodes a plant-part pairing example'
+);
+assert(
+  mixBlock(scienceBankPrompt).includes('item ↔ its function, role, or category'),
+  'Science mix uses a topic-agnostic pairing instruction'
+);
+assert(
+  mixBlock(scienceBankPrompt).includes('Plant parts'),
+  'Science mix still grounds pairing in the real sub-strand name'
+);
+
+assert(
+  resolveBankMix({
+    subject: { name: 'Science' },
+    subStrand: { name: 'Plant parts' },
+    profile: getSubjectProfile('Science')
+  }).key === 'sciences',
+  'Science still resolves to the sciences mix record'
+);
+assert(
+  BANK_MIXES.some((row) => row.key === 'social_studies'),
+  'Social Studies is a mix data record'
+);
+assert(
+  !bankService.includes("profile.key === 'sciences'"),
+  'questionBankService no longer branches mix on profile.key'
+);
+assert(
+  !bankService.includes('plant part ↔ job'),
+  'questionBankService no longer hardcodes the plant-part pairing example'
+);
+assert(
+  bankService.includes('renderBankInteractionMix'),
+  'bank prompt pulls mix text from config records'
+);
+
+const socialPrompt = buildBankGenerationPrompt(
+  {
+    grade: '4',
+    gradeNumber: 4,
+    ageGroup: 'young children',
+    subject: { name: 'Social Studies' },
+    strand: { name: 'Citizenship' },
+    subStrand: { name: 'Leaders and their roles' },
+    outcomesBlock: '1. Match community leaders to the work they do',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('Social Studies')
+  },
+  8,
+  ''
+);
+assert(
+  resolveBankMix({
+    subject: { name: 'Social Studies' },
+    subStrand: { name: 'Leaders and their roles' },
+    profile: getSubjectProfile('Social Studies')
+  }).key === 'social_studies',
+  'Social Studies resolves from the data record, not a new if-branch'
+);
+assert(
+  socialPrompt.includes('INTERACTION MIX — SOCIAL STUDIES'),
+  'Social Studies bank prompt uses the Social Studies mix'
+);
+assert(
+  mixBlock(socialPrompt).includes('matching_pairs'),
+  'Social Studies mix prefers matching_pairs'
+);
+assert(
+  mixBlock(socialPrompt).includes('people, figures, or places to roles, events, or categories'),
+  'Social Studies matching-pairs prefers people/figures to roles or events'
+);
+assert(
+  !socialPrompt.includes('INTERACTION MIX — SCIENCE'),
+  'Social Studies does not inherit the Science mix'
+);
+
+const historyPrompt = buildBankGenerationPrompt(
+  {
+    grade: '9',
+    gradeNumber: 9,
+    ageGroup: 'teens',
+    subject: { name: 'History and Citizenship' },
+    strand: { name: 'Heritage and diversity' },
+    subStrand: { name: 'National heroes' },
+    outcomesBlock: '1. Relate Kenyan heroes to the events they are known for',
+    complexityBand: { constrained: false },
+    profile: getSubjectProfile('History and Citizenship')
+  },
+  8,
+  ''
+);
+assert(
+  historyPrompt.includes('INTERACTION MIX — SOCIAL STUDIES'),
+  'History and Citizenship uses the Social Studies mix record'
+);
+
+const crePrompt = buildBankGenerationPrompt(
+  {
+    grade: '4',
+    gradeNumber: 4,
+    ageGroup: 'young children',
+    subject: { name: 'CRE' },
+    strand: { name: 'Values' },
+    subStrand: { name: 'The Good Samaritan' },
+    outcomesBlock: '1. Identify the values shown in the parable',
+    complexityBand: { constrained: true, maxSentences: 2, maxWords: 20 },
+    profile: getSubjectProfile('CRE')
+  },
+  8,
+  ''
+);
+const businessPrompt = buildBankGenerationPrompt(
+  {
+    grade: '9',
+    gradeNumber: 9,
+    ageGroup: 'teens',
+    subject: { name: 'Business Studies' },
+    strand: { name: 'Business' },
+    subStrand: { name: 'Entrepreneurship' },
+    outcomesBlock: '1. Identify traits of an entrepreneur',
+    complexityBand: { constrained: false },
+    profile: getSubjectProfile('Business Studies')
+  },
+  8,
+  ''
+);
+const geographyPrompt = buildBankGenerationPrompt(
+  {
+    grade: '9',
+    gradeNumber: 9,
+    ageGroup: 'teens',
+    subject: { name: 'Geography' },
+    strand: { name: 'Physical Geography' },
+    subStrand: { name: 'Weather and climate' },
+    outcomesBlock: '1. Distinguish weather from climate',
+    complexityBand: { constrained: false },
+    profile: getSubjectProfile('Geography')
+  },
+  8,
+  ''
+);
+assert(
+  crePrompt.includes('INTERACTION MIX — NON-ARITHMETIC'),
+  'CRE stays on the default mix'
+);
+assert(
+  businessPrompt.includes('INTERACTION MIX — NON-ARITHMETIC'),
+  'Business Studies stays on the default mix'
+);
+assert(
+  geographyPrompt.includes('INTERACTION MIX — NON-ARITHMETIC'),
+  'Geography stays on the default mix'
+);
+assert(
+  mixBlock(crePrompt) === mixBlock(goldens.length),
+  'CRE default mix text matches the pre-refactor non-arithmetic mix'
+);
+
+const g9SciencePrompt = buildBankGenerationPrompt(
+  {
+    grade: '9',
+    gradeNumber: 9,
+    ageGroup: 'teens (ages 14+)',
+    subject: { name: 'Integrated Science' },
+    strand: { name: 'Matter and materials' },
+    subStrand: { name: 'Elements, compounds and mixtures' },
+    outcomesBlock:
+      '1. Distinguish elements, compounds and mixtures\n2. Relate particle arrangement to the properties of matter',
+    complexityBand: { constrained: false },
+    profile: getSubjectProfile('Integrated Science')
+  },
+  8,
+  ''
+);
+assert(
+  g9SciencePrompt.includes('INTERACTION MIX — SCIENCE'),
+  'Grade 9 Integrated Science still uses the Science mix'
+);
+assert(
+  !g9SciencePrompt.toLowerCase().includes('plant part'),
+  'Grade 9 Integrated Science prompt does not mention plant parts'
+);
+assert(
+  mixBlock(g9SciencePrompt).includes('Elements, compounds and mixtures'),
+  'Grade 9 Science matching-pairs is grounded in the real sub-strand'
+);
+assert(
+  renderBankInteractionMix({
+    subject: { name: 'Integrated Science' },
+    subStrand: { name: 'Elements, compounds and mixtures' },
+    outcomesBlock: '1. Distinguish elements, compounds and mixtures',
+    profile: getSubjectProfile('Integrated Science')
+  }).includes('item ↔ its function, role, or category'),
+  'Science mix renderer stays topic-agnostic for matching_pairs'
 );
 
 const columnNormalized = normalizeQuiz(

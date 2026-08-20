@@ -1,0 +1,7 @@
+tmp-playwright
+**/node_modules
+.git
+backend/.env
+frontend/.env
+*.log
+.DS_Store

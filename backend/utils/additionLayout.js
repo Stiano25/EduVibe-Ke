@@ -58,6 +58,21 @@ export const hasIntegerAddends = (params = {}) => {
   return Number.isInteger(a) && Number.isInteger(b);
 };
 
+const VERTICAL_INSTRUCTION_STEM = /^(add|subtract)\.?$/i;
+
+/**
+ * Group-model column item: the stem is the instruction ("Add." / "Subtract."),
+ * the digits live in params. Not a missing question.
+ */
+export const isVerticalArithmeticInstruction = (question = {}) => {
+  const interaction = String(question.interactionType || question.type || '').trim();
+  if (interaction && interaction !== 'numeric_entry') return false;
+  const layout = resolveAdditionLayout(question.params?.layout, { defaultLayout: 'horizontal' });
+  if (layout !== 'vertical') return false;
+  if (!hasIntegerAddends(question.params)) return false;
+  return VERTICAL_INSTRUCTION_STEM.test(String(question.question || '').trim());
+};
+
 const asAbsInt = (n) => Math.trunc(Math.abs(Number(n) || 0));
 
 export const onesDigit = (n) => asAbsInt(n) % 10;

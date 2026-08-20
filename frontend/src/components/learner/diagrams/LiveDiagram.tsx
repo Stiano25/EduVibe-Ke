@@ -6,6 +6,7 @@ export const LIVE_DIAGRAM_TYPES = [
   'number_line',
   'fraction_bars',
   'object_quantity',
+  'place_value',
   'rectangle',
   'cube',
   'right_triangle',
@@ -27,9 +28,46 @@ const formatLabel = (raw: unknown) => {
 
 type DiagramParams = Record<string, unknown>
 
+/** start/end are aliases of min/max. Prefer start/end when min/max is the unused 0–10 default. */
+const resolveNumberLineRange = (params: DiagramParams) => {
+  const start = Number(params.start)
+  const end = Number(params.end)
+  const minRaw = Number(params.min)
+  const maxRaw = Number(params.max)
+  const hasStartEnd = Number.isFinite(start) && Number.isFinite(end) && start !== end
+  const hasMinMax = Number.isFinite(minRaw) && Number.isFinite(maxRaw)
+  let min: number
+  let max: number
+  if (hasStartEnd && hasMinMax) {
+    const minMaxDefault = minRaw === 0 && maxRaw === 10
+    const startEndDefault = start === 0 && end === 10
+    if (minMaxDefault && !startEndDefault) {
+      min = start
+      max = end
+    } else {
+      min = minRaw
+      max = maxRaw
+    }
+  } else if (hasStartEnd) {
+    min = start
+    max = end
+  } else if (hasMinMax) {
+    min = minRaw
+    max = maxRaw
+  } else {
+    min = 0
+    max = 10
+  }
+  if (max < min) {
+    const swap = min
+    min = max
+    max = swap
+  }
+  return { min, max }
+}
+
 const NumberLine = ({ params }: { params: DiagramParams }) => {
-  const min = Number.isFinite(Number(params.min)) ? Number(params.min) : 0
-  const max = Number.isFinite(Number(params.max)) ? Number(params.max) : 10
+  const { min, max } = resolveNumberLineRange(params)
   const step = Number(params.step) > 0 ? Number(params.step) : 1
   const highlight = params.highlight != null ? Number(params.highlight) : null
   const label = formatLabel(params.label)
@@ -361,6 +399,53 @@ const RightTriangle = ({ params }: { params: DiagramParams }) => {
   )
 }
 
+const PlaceValue = ({ params }: { params: DiagramParams }) => {
+  const headers = Array.isArray(params.headers) && (params.headers as unknown[]).length
+    ? (params.headers as unknown[]).map(String)
+    : ['H', 'T', 'O']
+  let digits: string[] = Array.isArray(params.digits)
+    ? (params.digits as unknown[]).map(String)
+    : []
+  if (digits.length === 0 && params.number != null) {
+    const s = String(params.number).replace(/\D/g, '')
+    digits = s.padStart(headers.length, '0').slice(-headers.length).split('')
+  }
+  while (digits.length < headers.length) digits.unshift('0')
+  digits = digits.slice(-headers.length)
+  const n = headers.length
+  const boxW = Math.min(100, 520 / n)
+  const gap = 12
+  const totalW = n * boxW + (n - 1) * gap
+  const x0 = (640 - totalW) / 2
+  const y0 = 90
+  const title = formatLabel(params.label || params.title || 'Place value')
+
+  return (
+    <svg viewBox="0 0 640 280" className="w-full h-auto" role="img">
+      <rect width="100%" height="100%" fill="#F8FAFC" />
+      {title ? (
+        <text x="320" y="44" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#0F172A">
+          {title}
+        </text>
+      ) : null}
+      {headers.map((h, i) => {
+        const x = x0 + i * (boxW + gap)
+        return (
+          <g key={`${h}-${i}`}>
+            <rect x={x} y={y0} width={boxW} height={100} fill="#F1F5F9" stroke="#334155" strokeWidth="2" rx="8" />
+            <text x={x + boxW / 2} y={y0 + 28} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="13" fill="#64748B">
+              {h}
+            </text>
+            <text x={x + boxW / 2} y={y0 + 72} textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="28" fontWeight="700" fill="#0F172A">
+              {digits[i] || '0'}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 type LiveDiagramProps = {
   diagramType?: string | null
   params?: DiagramParams | null
@@ -377,6 +462,7 @@ export const LiveDiagram = ({ diagramType, params, className = '' }: LiveDiagram
       {diagramType === 'labeled_boxes' ? <LabeledBoxes params={p} /> : null}
       {diagramType === 'counting_circles' ? <CountingCircles params={p} /> : null}
       {diagramType === 'object_quantity' ? <ObjectQuantityStrip params={p} /> : null}
+      {diagramType === 'place_value' ? <PlaceValue params={p} /> : null}
       {diagramType === 'rectangle' ? <RectangleShape params={p} /> : null}
       {diagramType === 'cube' ? <CubeShape params={p} /> : null}
       {diagramType === 'right_triangle' ? <RightTriangle params={p} /> : null}

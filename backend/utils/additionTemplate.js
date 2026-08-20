@@ -23,11 +23,12 @@ export const normalizeAdditionConstraints = (raw = {}) => {
   return {
     a: normalizeRange(raw.a, [1, 9]),
     b: normalizeRange(raw.b, [1, 9]),
-    sumMax: Math.min(100, Math.max(2, asInt(raw.sumMax, 10))),
+    sumMax: Math.min(1000, Math.max(2, asInt(raw.sumMax, 10))),
     operation: subtraction ? 'subtraction' : 'addition',
     ...(raw.aGteB === true || subtraction ? { aGteB: true } : {}),
     ...(raw.positiveDiff === true ? { positiveDiff: true } : {}),
     ...(raw.noRegrouping === true ? { noRegrouping: true } : {}),
+    ...(raw.singleRegrouping === true ? { singleRegrouping: true } : {}),
     ...(raw.noBorrowing === true ? { noBorrowing: true } : {}),
     ...(asInt(raw.aStep, 1) > 1 ? { aStep: asInt(raw.aStep, 1) } : {}),
     ...(asInt(raw.bStep, 1) > 1 ? { bStep: asInt(raw.bStep, 1) } : {})
@@ -126,6 +127,30 @@ export const onesPlace = (n) => Math.abs(Math.trunc(Number(n) || 0)) % 10;
 /** True when the ones column would borrow (ones of a smaller than ones of b). */
 export const pairNeedsBorrow = (a, b) => onesPlace(a) < onesPlace(b);
 
+/**
+ * How many columns actually carry when adding a + b.
+ * Used for "without regrouping" (0) and "single regrouping" (exactly 1).
+ * Ones-only checks are not enough for 3-digit + 2-digit (tens can carry alone).
+ */
+export const additionRegroupCount = (a, b) => {
+  let carries = 0;
+  let carry = 0;
+  let x = Math.abs(Math.trunc(Number(a) || 0));
+  let y = Math.abs(Math.trunc(Number(b) || 0));
+  while (x > 0 || y > 0) {
+    const sum = (x % 10) + (y % 10) + carry;
+    if (sum >= 10) {
+      carries += 1;
+      carry = 1;
+    } else {
+      carry = 0;
+    }
+    x = Math.floor(x / 10);
+    y = Math.floor(y / 10);
+  }
+  return carries;
+};
+
 export const enumerateAdditionPairs = (rawConstraints = {}) => {
   const constraints = normalizeAdditionConstraints(rawConstraints);
   const pairs = [];
@@ -137,7 +162,8 @@ export const enumerateAdditionPairs = (rawConstraints = {}) => {
       if (!subtract && a + b > constraints.sumMax) continue;
       if (constraints.aGteB && a < b) continue;
       if (constraints.positiveDiff && a <= b) continue;
-      if (!subtract && constraints.noRegrouping && (a % 10) + (b % 10) >= 10) continue;
+      if (!subtract && constraints.noRegrouping && additionRegroupCount(a, b) !== 0) continue;
+      if (!subtract && constraints.singleRegrouping && additionRegroupCount(a, b) !== 1) continue;
       if (constraints.noBorrowing && pairNeedsBorrow(a, b)) continue;
       pairs.push({ a, b });
     }

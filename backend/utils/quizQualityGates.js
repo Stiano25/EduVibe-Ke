@@ -8,6 +8,7 @@
  * Flags for review. Never auto-deletes.
  */
 import { resolveInteractionType } from './interactionTypes.js';
+import { isVerticalArithmeticInstruction } from './additionLayout.js';
 
 export const MAX_QUESTIONS_PER_CONCEPT = 2;
 
@@ -227,6 +228,34 @@ export const flagConceptRepetition = (
     }
   }
   return flagged;
+};
+
+const NO_QUESTION_ISSUE = /does not ask a question|\bno question\b/i;
+
+/**
+ * LLM QA treats "Add." / "Subtract." as a bare statement. Those stems are
+ * the deliberate instruction for vertical numeric_entry. Strip only that
+ * issue — other QA flags stay.
+ */
+export const clearVerticalInstructionNoQuestionFlags = (questions = []) => {
+  let cleared = 0;
+  for (const q of questions) {
+    if (!isVerticalArithmeticInstruction(q)) continue;
+    const issue = String(q.qa_issue || '');
+    if (!NO_QUESTION_ISSUE.test(issue)) continue;
+    const remaining = issue
+      .split(';')
+      .map((part) => part.trim())
+      .filter((part) => part && !NO_QUESTION_ISSUE.test(part));
+    if (remaining.length) {
+      q.qa_issue = remaining.join('; ').slice(0, 280);
+    } else {
+      q.qa_flagged = false;
+      q.qa_issue = null;
+    }
+    cleared += 1;
+  }
+  return cleared;
 };
 
 /** In-place. Returns { answerInStem, conceptRepetition }. */

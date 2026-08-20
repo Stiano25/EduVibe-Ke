@@ -8,12 +8,20 @@ import {
   prefersConcreteDiagrams,
   runQuizQAPass
 } from './lessonGenerationService.js';
+import { CONCRETE_DIAGRAM_MAGNITUDE_LINE } from '../../utils/magnitudeVisuals.js';
 import { retrieveQuizExemplars, formatQuizExemplarsForPrompt } from './knowledgeRetrieveService.js';
 import { getSubjectProfile } from './subjectProfiles.js';
-import { detectTemplatableSkill } from '../../utils/templateLadders.js';
+import {
+  renderBankInteractionMix,
+  isColumnArithmeticTopic,
+  isFractionTopic
+} from './bankMixProfiles.js';
+import { detectTemplatableSkill, outcomesNeedingBank } from '../../utils/templateLadders.js';
 import { resolveInteractionType } from '../../utils/interactionTypes.js';
 import { OBJECT_KINDS } from '../../utils/objectKinds.js';
 import { QuestionBankEntry, QuestionBankServe } from '../../models/QuestionBankEntry.js';
+
+export { isColumnArithmeticTopic, isFractionTopic };
 
 const BANK_BATCH_DEFAULT = 8;
 const BANK_BATCH_MAX = 20;
@@ -25,62 +33,7 @@ const bloomForMix = (i) => {
   return cycle[i % cycle.length];
 };
 
-const stripSequencePrefix = (name = '') =>
-  String(name || '')
-    .toLowerCase()
-    .replace(/^\d+(\.\d+)?\s*/, '')
-    .trim();
-
-/** Two-operand column add/subtract only — not measurement word problems, not Science. */
-export const isColumnArithmeticTopic = (ctx = {}) => {
-  const subject = String(ctx.subject?.name || ctx.subjectName || '').toLowerCase();
-  if (!/math/.test(subject)) return false;
-  const sub = stripSequencePrefix(ctx.subStrand?.name || ctx.subStrandName || '');
-  return sub === 'addition' || sub === 'subtraction';
-};
-
-export const isFractionTopic = (ctx = {}) => {
-  const subject = String(ctx.subject?.name || ctx.subjectName || '').toLowerCase();
-  if (!/math/.test(subject)) return false;
-  return /fraction/.test(stripSequencePrefix(ctx.subStrand?.name || ctx.subStrandName || ''));
-};
-
 const objectKindList = OBJECT_KINDS.join(', ');
-
-const bankInteractionMix = (ctx) => {
-  if (isColumnArithmeticTopic(ctx)) {
-    const operation = stripSequencePrefix(ctx.subStrand?.name || '') === 'subtraction' ? 'subtract' : 'add';
-    const instruction = operation === 'subtract' ? 'Subtract.' : 'Add.';
-    const formula = operation === 'subtract' ? 'a - b' : 'a + b';
-    return `INTERACTION MIX — COLUMN ARITHMETIC (this topic only):
-- At least 2 items MUST be interactionType "numeric_entry" with params:{a,b,layout:"vertical",operation:"${operation}"}, answerFormula:"${formula}", question "${instruction}", options []. The figure is stacked digits, a line, and the answer underneath — never a shopkeeper story.
-- Use drag_to_target only when both addends are small enough to place as icons (target ≤ 20). Set activity:"count_into_box", params:{a,b,target,objectPool,objectKind} with objectKind from: ${objectKindList}.
-- Remaining items: multiple_choice. Use {diagramType:"object_quantity",params:{objectKind,count}} picture options when the choice is a quantity of a named object. Keep plain-text options for abstract comparisons and number patterns.
-- Vertical column layout is ONLY for two-operand ${operation}. Do not put it on word-problem MCQ.`;
-  }
-  if (isFractionTopic(ctx)) {
-    return `INTERACTION MIX — FRACTIONS:
-- Default to multiple_choice. Do NOT use a vertical addition/subtraction column.
-- Part of a whole: include "diagram": { "diagramType":"fraction_bars", "params":{...}, "brief":"..." } showing equal parts. Options may be fraction strings ($\\frac{1}{2}$) or picture options of equal parts.
-- Part of a group: picture options {diagramType:"object_quantity",params:{objectKind,count}} using objectKind from: ${objectKindList}.
-- numeric_entry only when the answer is a single count (how many objects is half of 10) — keypad, no column. drag_to_target only if the learner literally places objects.`;
-  }
-  const profile = ctx.profile || getSubjectProfile(ctx.subject?.name);
-  if (profile.key === 'sciences') {
-    return `INTERACTION MIX — SCIENCE:
-- Most items: multiple_choice. Visual items MUST include a real "diagram" (labeled_boxes for parts, process_flow for processes, comparison for contrasts).
-- Include exactly 1 matching_pairs item when an outcome is pairing (plant part ↔ job). Shape: left (3-4 names), right (matching jobs), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.
-- Include exactly 1 odd_one_out item when an outcome is grouping/classification. Shape: options of 4 items, correctAnswerIndex is the one that does not belong.
-- Remaining items stay multiple_choice.
-- Do NOT use numeric_entry with a vertical column. Do NOT use drag_to_target unless the task is literally counting objects into a set.`;
-  }
-  return `INTERACTION MIX — NON-ARITHMETIC (Science, measurement, place value, language, …):
-- Default to multiple_choice. Set interactionType "multiple_choice" on those items.
-- Do NOT use numeric_entry with a vertical column — that layout is only for addition/subtraction computation.
-- Do NOT use drag_to_target unless the task is literally counting objects into a set.
-- Visual items MUST include a real "diagram" object (see below). Parts/functions → labeled_boxes; processes → process_flow; contrasts → comparison.
-- Options stay plain text unless the choice itself is a figure or a countable quantity of a named object (${objectKindList}).`;
-};
 
 export const buildBankGenerationPrompt = (ctx, count, quizExemplarsBlock) => {
   const { grade, ageGroup, subject, strand, subStrand, outcomesBlock, complexityBand } = ctx;
@@ -90,7 +43,7 @@ export const buildBankGenerationPrompt = (ctx, count, quizExemplarsBlock) => {
     ? `GRADE COMPLEXITY CEILING: at most ${complexityBand.maxSentences} sentence(s) and ${complexityBand.maxWords} words per stem.`
     : `Write clearly for ${ageGroup} (Grade ${grade}).`;
   const concreteDiagramLine = prefersConcreteDiagrams(ctx.gradeNumber ?? grade)
-    ? `\nAt this grade prefer concrete figures a child can point at — object_quantity (repeated icons of a named object from: ${objectKindList}), counting_circles (only when no object is named), number_line, fraction_bars, rectangle, cube. Do NOT use labeled_boxes for counting or "N of [object]" — that draws text in a rectangle, not the object. Science parts/processes still use labeled_boxes or process_flow.`
+    ? `\nAt this grade prefer concrete figures a child can point at — object_quantity (repeated icons of a named object from: ${objectKindList}), counting_circles (only when no object is named), number_line, fraction_bars, rectangle, cube. Do NOT use labeled_boxes for counting or "N of [object]" — that draws text in a rectangle, not the object. Science parts/processes still use labeled_boxes or process_flow.\n${CONCRETE_DIAGRAM_MAGNITUDE_LINE}`
     : '';
 
   return `Create ${count} ORIGINAL quiz questions for Kenyan CBC Grade ${grade} ${subject.name} · ${strand.name} · ${subStrand.name}, for ${ageGroup}.
@@ -104,7 +57,7 @@ ${ceiling}
 ${profile.quizStyle || ''}
 MODALITY MIX for ${subject.name}: ${profile.modalityMixText || 'balanced mix'}. Treat that as the intended overall balance, not a target to exceed.
 
-${bankInteractionMix(ctx)}
+${renderBankInteractionMix(ctx)}
 
 COPYRIGHT — this is a hard constraint, not a style preference:
 - Source / past-paper text below (if any) may inform TONE, FORMAT, and DIFFICULTY only.
@@ -163,14 +116,36 @@ const toBankRow = (normalizedQuestion, ctx, { status, styleSourceNote, qaFlagged
   rejectReason
 });
 
-export const generateQuestionBankBatch = async (subStrandId, { count = BANK_BATCH_DEFAULT } = {}) => {
+const ctxForBankOutcomes = (ctx, requested) => {
+  const pool = Array.isArray(requested) && requested.length ? requested : ctx.sourceOutcomes || [];
+  const bankOutcomes = outcomesNeedingBank(ctx, pool);
+  const familyNote = detectTemplatableSkill(ctx)
+    ? `\nThis sub-strand also has template-backed computation outcomes. Write ONLY for the outcomes listed above. Do not write two-operand vertical column Add./Subtract. items unless a listed outcome is itself two-operand computation. Pattern, missing-number, three-addend, sort/group, pairing, ordering, and reciting outcomes stay multiple_choice (or matching_pairs / odd_one_out when the outcome is pairing or grouping).`
+    : '';
+  return {
+    bankOutcomes,
+    promptCtx: {
+      ...ctx,
+      sourceOutcomes: bankOutcomes,
+      outcomesBlock:
+        bankOutcomes.map((o, i) => `${i + 1}. ${o}`).join('\n') + familyNote
+    }
+  };
+};
+
+export const generateQuestionBankBatch = async (
+  subStrandId,
+  { count = BANK_BATCH_DEFAULT, outcomes: requestedOutcomes } = {}
+) => {
   const n = Math.min(BANK_BATCH_MAX, Math.max(4, Number(count) || BANK_BATCH_DEFAULT));
-  const ctx = await loadGenerationContext(subStrandId);
-  if (detectTemplatableSkill(ctx)) {
+  const loaded = await loadGenerationContext(subStrandId);
+  const { bankOutcomes, promptCtx } = ctxForBankOutcomes(loaded, requestedOutcomes);
+  if (!bankOutcomes.length) {
     throw new Error(
-      `Grade ${ctx.grade} ${ctx.subStrand?.name || ''} uses the template/twist engine. Do not generate reviewed bank items for this sub-strand.`
+      `Grade ${loaded.grade} ${loaded.subStrand?.name || ''} uses the template/twist engine for the requested outcome(s). Do not generate reviewed bank items for template-backed outcomes.`
     );
   }
+  const ctx = promptCtx;
 
   let exemplars = [];
   try {

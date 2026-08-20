@@ -42,7 +42,7 @@ export const ADDITION_LADDER = [
     id: 'add-singles-easy-numeric',
     family: 'addition',
     rung: 'singles_to_10',
-    outcomeMatch: /2-single digit|two single.?digit|sum of 10|putting objects together|'\+' and '='|addition sentences/i,
+    outcomeMatch: /2-single digit|two single.?digit|putting objects together|'\+' and '='|addition sentences/i,
     difficulty: 'easy',
     interactionType: 'numeric_entry',
     skillFocus: 'Add two single-digit numbers up to 10',
@@ -57,7 +57,7 @@ export const ADDITION_LADDER = [
     id: 'add-singles-mid-numeric',
     family: 'addition',
     rung: 'singles_to_10',
-    outcomeMatch: /2-single digit|two single.?digit|sum of 10|putting objects together|'\+' and '='|addition sentences/i,
+    outcomeMatch: /2-single digit|two single.?digit|putting objects together|'\+' and '='|addition sentences/i,
     difficulty: 'intermediate',
     interactionType: 'numeric_entry',
     skillFocus: 'Add two single-digit numbers up to 10',
@@ -72,7 +72,7 @@ export const ADDITION_LADDER = [
     id: 'add-singles-easy-drag',
     family: 'addition',
     rung: 'singles_to_10',
-    outcomeMatch: /2-single digit|two single.?digit|sum of 10|putting objects together|model addition/i,
+    outcomeMatch: /2-single digit|two single.?digit|putting objects together|model addition/i,
     difficulty: 'easy',
     interactionType: 'drag_to_target',
     skillFocus: 'Model addition as putting objects together',
@@ -384,6 +384,130 @@ export const GRADE2_TWO_DIGIT_MINUS_TWO_DIGIT = {
 };
 
 /**
+ * Grade 3 KICD 1.4 Addition — two-addend column addition only.
+ * Excludes three-addend addition and missing-number patterns (same cut as G1 Phase 1).
+ *
+ * Rung order (easiest → hardest), matching the curriculum sequence:
+ *   3+2 no regroup → 3+2 single regroup → 3+3 no regroup → 3+3 single regroup
+ * Width first (fewer addend digits is easier), and within a width no-carry
+ * before carry. Instantiation is the existing vertical numeric_entry path.
+ */
+export const GRADE3_ADDITION_LADDER = [
+  {
+    id: 'add-g3-3plus2-no-regroup',
+    family: 'addition',
+    rung: 'three_plus_two_no_regroup',
+    outcomeMatch: /3-digit number to up to a 2-digit number without regrouping/i,
+    difficulty: 'easy',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Add a 3-digit number to a 2-digit number without regrouping',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Add.',
+    questionText: '{a} + {b}',
+    answerFormula: 'a + b',
+    params: { layout: 'vertical', operation: 'add' },
+    constraints: {
+      a: [100, 999],
+      b: [10, 99],
+      sumMax: 1000,
+      noRegrouping: true,
+      operation: 'addition'
+    },
+    seed: { a: 123, b: 45 },
+    distractorFormulas: [
+      { id: 'wrong_op', formula: 'a - b', misconception: 'subtracted instead of add' },
+      { id: 'off_by_ten', formula: 'a + b + 10', misconception: 'off by ten' },
+      { id: 'digit_slip', formula: 'a + b + 1', misconception: 'ones digit slip' }
+    ]
+  },
+  {
+    id: 'add-g3-3plus2-single-regroup',
+    family: 'addition',
+    rung: 'three_plus_two_single_regroup',
+    outcomeMatch: /3-digit number to up to a 2-digit number with single regrouping/i,
+    difficulty: 'intermediate',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Add a 3-digit number to a 2-digit number with single regrouping',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Add.',
+    questionText: '{a} + {b}',
+    answerFormula: 'a + b',
+    params: { layout: 'vertical', operation: 'add' },
+    constraints: {
+      a: [100, 999],
+      b: [10, 99],
+      sumMax: 1000,
+      singleRegrouping: true,
+      operation: 'addition'
+    },
+    seed: { a: 125, b: 17 },
+    distractorFormulas: [
+      { id: 'wrong_op', formula: 'a - b', misconception: 'subtracted instead of add' },
+      { id: 'off_by_ten', formula: 'a + b + 10', misconception: 'off by ten' },
+      { id: 'digit_slip', formula: 'a + b + 1', misconception: 'ones digit slip' }
+    ]
+  },
+  {
+    id: 'add-g3-3plus3-no-regroup',
+    family: 'addition',
+    rung: 'three_plus_three_no_regroup',
+    difficulty: 'intermediate',
+    interactionType: 'numeric_entry',
+    outcomeMatch: /two 3-digit numbers without regrouping/i,
+    skillFocus: 'Add two 3-digit numbers without regrouping',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Add.',
+    questionText: '{a} + {b}',
+    answerFormula: 'a + b',
+    params: { layout: 'vertical', operation: 'add' },
+    constraints: {
+      a: [100, 999],
+      b: [100, 999],
+      sumMax: 1000,
+      noRegrouping: true,
+      operation: 'addition'
+    },
+    seed: { a: 214, b: 321 },
+    distractorFormulas: [
+      { id: 'wrong_op', formula: 'a', misconception: 'forgot to add the second number' },
+      { id: 'off_by_ten', formula: 'a + b + 10', misconception: 'off by ten' },
+      { id: 'digit_slip', formula: 'a + b + 1', misconception: 'ones digit slip' }
+    ]
+  },
+  {
+    id: 'add-g3-3plus3-single-regroup',
+    family: 'addition',
+    rung: 'three_plus_three_single_regroup',
+    outcomeMatch: /two 3-digit numbers with single regrouping/i,
+    difficulty: 'advanced',
+    interactionType: 'numeric_entry',
+    skillFocus: 'Add two 3-digit numbers with single regrouping',
+    bloomLevel: 'apply',
+    modality: 'practice',
+    question: 'Add.',
+    questionText: '{a} + {b}',
+    answerFormula: 'a + b',
+    params: { layout: 'vertical', operation: 'add' },
+    constraints: {
+      a: [100, 999],
+      b: [100, 999],
+      sumMax: 1000,
+      singleRegrouping: true,
+      operation: 'addition'
+    },
+    seed: { a: 218, b: 327 },
+    distractorFormulas: [
+      { id: 'wrong_op', formula: 'a', misconception: 'forgot to add the second number' },
+      { id: 'off_by_ten', formula: 'a + b + 10', misconception: 'off by ten' },
+      { id: 'digit_slip', formula: 'a + b + 1', misconception: 'ones digit slip' }
+    ]
+  }
+];
+
+/**
  * Ladders keyed by `${grade}:${family}`. Family is the sub-strand slug
  * (e.g. "1.4 Subtraction" → subtraction). Adding Multiplication later is
  * registerLadder(2, 'multiplication', defs) — no new routing branches.
@@ -397,6 +521,8 @@ const registerLadder = (grade, family, defs) => {
 registerLadder(1, 'addition', ADDITION_LADDER);
 registerLadder(1, 'subtraction', SUBTRACTION_LADDER);
 registerLadder(1, 'number_concept', NUMBER_CONCEPT_LADDER);
+registerLadder(2, 'subtraction', [...SUBTRACTION_LADDER, GRADE2_TWO_DIGIT_MINUS_TWO_DIGIT]);
+registerLadder(3, 'addition', GRADE3_ADDITION_LADDER);
 
 export const familySlugFromSubStrand = (name = '') =>
   stripSequencePrefix(name)
@@ -420,12 +546,21 @@ export const isGradeOneSubtractionContext = (ctx = {}) => familyFromContext(ctx)
  * `rung` is the difficulty tier inside that family.
  */
 export const RUNG_ORDER = {
-  addition: ['singles_to_10', 'two_digit_one_digit', 'multiples_of_ten'],
+  addition: [
+    'singles_to_10',
+    'two_digit_one_digit',
+    'multiples_of_ten',
+    'three_plus_two_no_regroup',
+    'three_plus_two_single_regroup',
+    'three_plus_three_no_regroup',
+    'three_plus_three_single_regroup'
+  ],
   number_concept: ['one_count', 'represent_numbers'],
   subtraction: [
     'single_digit_minus_single_digit',
     'two_digit_minus_one_digit_no_borrow',
-    'multiples_of_ten_minus_multiples_of_ten'
+    'multiples_of_ten_minus_multiples_of_ten',
+    'two_digit_minus_two_digit_no_borrow'
   ]
 };
 
@@ -447,13 +582,11 @@ export const homeRungs = (family, outcomes = [], storedTemplates = [], grade = '
     }
   }
   if (!homes.size) {
-    const order = RUNG_ORDER[family] || [];
-    if (order.length) homes.add(order[0]);
-    else {
-      for (const t of storedTemplates || []) {
-        const rung = rungOf(t);
-        if (rung) homes.add(rung);
-      }
+    // Live session of a lesson that already stored templates. Never invent a
+    // default rung for an unmatched outcome — that served the wrong skill.
+    for (const t of storedTemplates || []) {
+      const rung = rungOf(t);
+      if (rung) homes.add(rung);
     }
   }
   return homes;
@@ -464,7 +597,8 @@ export const attachedRungs = (family, homes) => {
   const order = RUNG_ORDER[family] || [];
   if (!order.length) return new Set();
   const homeIdxes = [...(homes || [])].map((r) => order.indexOf(r)).filter((i) => i >= 0);
-  const cap = homeIdxes.length ? Math.max(...homeIdxes) : 0;
+  if (!homeIdxes.length) return new Set();
+  const cap = Math.max(...homeIdxes);
   return new Set(order.slice(0, cap + 1));
 };
 
@@ -555,6 +689,7 @@ export const laddersForOutcomes = (ctx, outcomes = []) => {
   }
 
   const homes = homeRungs(family, outcomes, [], ctx.grade);
+  if (!homes.size) return [];
   const allowed = attachedRungs(family, homes);
   return defs.filter((def) => allowed.has(rungOf(def))).map((def) => bindDef(def, outcomes));
 };
@@ -563,6 +698,14 @@ export const resolveContentSource = (ctx, outcomes = []) => {
   const rows = laddersForOutcomes(ctx, outcomes);
   return rows.length > 0 ? QUIZ_SOURCE_TEMPLATES : QUIZ_SOURCE_FIXED_POOL;
 };
+
+/**
+ * Outcomes on this sub-strand that have no matching template rung.
+ * Bank generation must use this list — never `detectTemplatableSkill`, which
+ * is family-level and would refuse unmatched outcomes along with matched ones.
+ */
+export const outcomesNeedingBank = (ctx, outcomes = []) =>
+  (outcomes || []).filter((text) => resolveContentSource(ctx, [text]) === QUIZ_SOURCE_FIXED_POOL);
 
 const baseTemplateId = (id) => String(id || '').replace(/__\d+$/, '');
 

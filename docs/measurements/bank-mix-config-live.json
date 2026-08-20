@@ -1,0 +1,936 @@
+{
+  "g3-science": {
+    "label": "g3-science",
+    "mixKey": "sciences",
+    "grade": "3",
+    "subject": "Science",
+    "topic": "Plant parts",
+    "mixBlock": "INTERACTION MIX — SCIENCE:\n- Most items: multiple_choice. Visual items MUST include a real \"diagram\" (labeled_boxes for parts, process_flow for processes, comparison for contrasts).\n- Include exactly 1 matching_pairs item when an outcome is pairing (item ↔ its function, role, or category). Ground pairings in this sub-strand (Plant parts): Name the main parts of a flowering plant; Explain the function of roots, stem, leaves and flowers. Shape: left (3-4 names), right (matching functions/roles/categories), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.\n- Include exactly 1 odd_one_out item when an outcome is grouping/classification. Shape: options of 4 items, correctAnswerIndex is the one that does not belong.\n- Remaining items stay multiple_choice.\n- Do NOT use numeric_entry with a vertical column. Do NOT use drag_to_target unless the task is literally counting objects into a set.",
+    "mixRenderer": "INTERACTION MIX — SCIENCE:\n- Most items: multiple_choice. Visual items MUST include a real \"diagram\" (labeled_boxes for parts, process_flow for processes, comparison for contrasts).\n- Include exactly 1 matching_pairs item when an outcome is pairing (item ↔ its function, role, or category). Ground pairings in this sub-strand (Plant parts): Name the main parts of a flowering plant; Explain the function of roots, stem, leaves and flowers. Shape: left (3-4 names), right (matching functions/roles/categories), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.\n- Include exactly 1 odd_one_out item when an outcome is grouping/classification. Shape: options of 4 items, correctAnswerIndex is the one that does not belong.\n- Remaining items stay multiple_choice.\n- Do NOT use numeric_entry with a vertical column. Do NOT use drag_to_target unless the task is literally counting objects into a set.",
+    "generatedCount": 8,
+    "types": {
+      "multiple_choice": 6,
+      "matching_pairs": 1,
+      "odd_one_out": 1
+    },
+    "matchingPairs": [
+      {
+        "interactionType": "matching_pairs",
+        "stem": "Match each plant part to its main job.",
+        "left": [
+          "Roots",
+          "Stem",
+          "Leaves",
+          "Flower"
+        ],
+        "right": [
+          "Make food using sunlight",
+          "Hold the plant in the ground",
+          "Carry water up the plant",
+          "Make seeds"
+        ],
+        "correctPairs": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "options": [],
+        "diagramType": null,
+        "explanation": "Roots anchor, stems carry, leaves make food, flowers make seeds."
+      }
+    ],
+    "oddOneOut": [
+      {
+        "interactionType": "odd_one_out",
+        "stem": "Which one does NOT belong with the other plant parts?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Root",
+          "Stem",
+          "Leaf",
+          "Stone"
+        ],
+        "diagramType": null,
+        "explanation": "Stone is not a plant part; root, stem and leaf are."
+      }
+    ],
+    "samples": [
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Wanjiku plants a bean seed in soil. After two weeks, which part grows first to hold the plant in the ground?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Root",
+          "Flower",
+          "Leaf",
+          "Stem"
+        ],
+        "diagramType": null,
+        "explanation": "Roots grow down first to anchor the plant and take in water."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Look at the picture showing parts of a flowering plant. Which labeled part makes seeds?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "diagramType": "labeled_boxes",
+        "explanation": "The flower is where seeds form after pollination."
+      },
+      {
+        "interactionType": "matching_pairs",
+        "stem": "Match each plant part to its main job.",
+        "left": [
+          "Roots",
+          "Stem",
+          "Leaves",
+          "Flower"
+        ],
+        "right": [
+          "Make food using sunlight",
+          "Hold the plant in the ground",
+          "Carry water up the plant",
+          "Make seeds"
+        ],
+        "correctPairs": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "options": [],
+        "diagramType": null,
+        "explanation": "Roots anchor, stems carry, leaves make food, flowers make seeds."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A pupil puts a white flower in a cup of red-coloured water. After one day, the petals turn red. Which plant part carried the red water up to the petals?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Roots",
+          "Stem",
+          "Leaves",
+          "Flower"
+        ],
+        "diagramType": null,
+        "explanation": "The stem has tiny tubes that carry water upward."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A maize plant loses its leaves. What will happen to the plant?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "It cannot make enough food",
+          "It will make more seeds",
+          "Its roots will grow longer",
+          "Its stem will turn green"
+        ],
+        "diagramType": null,
+        "explanation": "Leaves make food through photosynthesis; without them the plant starves."
+      },
+      {
+        "interactionType": "odd_one_out",
+        "stem": "Which one does NOT belong with the other plant parts?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Root",
+          "Stem",
+          "Leaf",
+          "Stone"
+        ],
+        "diagramType": null,
+        "explanation": "Stone is not a plant part; root, stem and leaf are."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Look at the flow diagram showing how water moves through a plant. Which step is missing?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Roots absorb water",
+          "Stem carries water up",
+          "Leaves make food",
+          "Flower makes seeds"
+        ],
+        "diagramType": "process_flow",
+        "explanation": "After roots absorb water, the stem carries it upward."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A pupil covers a leaf with a black paper for three days. What will happen to that leaf?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "It turns yellow and weak",
+          "It becomes bigger",
+          "It grows a flower",
+          "It changes to red"
+        ],
+        "diagramType": null,
+        "explanation": "Without sunlight, the leaf cannot make food and turns yellow."
+      }
+    ],
+    "plantPartMentions": [
+      "Match each plant part to its main job.",
+      "A pupil puts a white flower in a cup of red-coloured water. After one day, the petals turn red. Which plant part carried the red water up to the petals?",
+      "Which one does NOT belong with the other plant parts?"
+    ]
+  },
+  "g3-fractions": {
+    "label": "g3-fractions",
+    "mixKey": "fractions",
+    "grade": "3",
+    "subject": "Mathematics",
+    "topic": "Fractions",
+    "mixBlock": "INTERACTION MIX — FRACTIONS:\n- Default to multiple_choice. Do NOT use a vertical addition/subtraction column.\n- Part of a whole: include \"diagram\": { \"diagramType\":\"fraction_bars\", \"params\":{...}, \"brief\":\"...\" } showing equal parts. Options may be fraction strings ($\\frac{1}{2}$) or picture options of equal parts.\n- Part of a group: picture options {diagramType:\"object_quantity\",params:{objectKind,count}} using objectKind from: ball, banana, apple, orange, mango, bead, block, counter, spoon, pencil, crayon, hen, shell, star.\n- numeric_entry only when the answer is a single count (how many objects is half of 10) — keypad, no column. drag_to_target only if the learner literally places objects.",
+    "mixRenderer": "INTERACTION MIX — FRACTIONS:\n- Default to multiple_choice. Do NOT use a vertical addition/subtraction column.\n- Part of a whole: include \"diagram\": { \"diagramType\":\"fraction_bars\", \"params\":{...}, \"brief\":\"...\" } showing equal parts. Options may be fraction strings ($\\frac{1}{2}$) or picture options of equal parts.\n- Part of a group: picture options {diagramType:\"object_quantity\",params:{objectKind,count}} using objectKind from: ball, banana, apple, orange, mango, bead, block, counter, spoon, pencil, crayon, hen, shell, star.\n- numeric_entry only when the answer is a single count (how many objects is half of 10) — keypad, no column. drag_to_target only if the learner literally places objects.",
+    "generatedCount": 6,
+    "types": {
+      "multiple_choice": 3,
+      "numeric_entry": 3
+    },
+    "matchingPairs": [],
+    "oddOneOut": [],
+    "samples": [
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Which shape shows $\\frac{1}{2}$ shaded?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          {
+            "diagramType": "fraction_bars",
+            "params": {
+              "totalParts": 2,
+              "shadedParts": 1
+            }
+          },
+          {
+            "diagramType": "fraction_bars",
+            "params": {
+              "totalParts": 4,
+              "shadedParts": 1
+            }
+          },
+          {
+            "diagramType": "fraction_bars",
+            "params": {
+              "totalParts": 8,
+              "shadedParts": 1
+            }
+          }
+        ],
+        "diagramType": "fraction_bars",
+        "explanation": "Half means 1 of 2 equal parts."
+      },
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Juma has 8 mangoes. He eats $\\frac{1}{4}$ of them. How many mangoes does he eat?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [],
+        "diagramType": "object_quantity",
+        "explanation": "One fourth of 8 means 8 divided by 4, which gives 2."
+      },
+      {
+        "interactionType": "numeric_entry",
+        "stem": "A cake is cut into 8 equal slices. Wanjiru takes $\\frac{1}{8}$. How many slices does she take?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [],
+        "diagramType": null,
+        "explanation": "One eighth of 8 slices is 1 slice."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Which picture shows half of the 6 stars?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          {
+            "diagramType": "object_quantity",
+            "params": {
+              "objectKind": "star",
+              "count": 3
+            }
+          },
+          {
+            "diagramType": "object_quantity",
+            "params": {
+              "objectKind": "star",
+              "count": 2
+            }
+          },
+          {
+            "diagramType": "object_quantity",
+            "params": {
+              "objectKind": "star",
+              "count": 6
+            }
+          }
+        ],
+        "diagramType": "object_quantity",
+        "explanation": "Half of 6 is 3. Count 3 stars."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A ribbon is $\\frac{1}{2}$ metre long. Another ribbon is $\\frac{1}{4}$ metre long. Which ribbon is shorter?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "$\\frac{1}{2}$ metre",
+          "$\\frac{1}{4}$ metre",
+          "They are equal"
+        ],
+        "diagramType": null,
+        "explanation": "One fourth is smaller than one half, so the $\\frac{1}{4}$ m ribbon is shorter."
+      },
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Akinyi has 12 beads. She keeps $\\frac{1}{4}$ for herself. How many beads does she keep?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [],
+        "diagramType": "object_quantity",
+        "explanation": "One fourth of 12 is 12 divided by 4, which gives 3."
+      }
+    ],
+    "plantPartMentions": []
+  },
+  "g3-addition": {
+    "label": "g3-addition",
+    "mixKey": "column_arithmetic",
+    "grade": "3",
+    "subject": "Mathematics",
+    "topic": "Addition",
+    "mixBlock": "INTERACTION MIX — COLUMN ARITHMETIC (this topic only):\n- At least 2 items MUST be interactionType \"numeric_entry\" with params:{a,b,layout:\"vertical\",operation:\"add\"}, answerFormula:\"a + b\", question \"Add.\", options []. The figure is stacked digits, a line, and the answer underneath — never a shopkeeper story.\n- Use drag_to_target only when both addends are small enough to place as icons (target ≤ 20). Set activity:\"count_into_box\", params:{a,b,target,objectPool,objectKind} with objectKind from: ball, banana, apple, orange, mango, bead, block, counter, spoon, pencil, crayon, hen, shell, star.\n- Remaining items: multiple_choice. Use {diagramType:\"object_quantity\",params:{objectKind,count}} picture options when the choice is a quantity of a named object. Keep plain-text options for abstract comparisons and number patterns.\n- Vertical column layout is ONLY for two-operand add. Do not put it on word-problem MCQ.",
+    "mixRenderer": "INTERACTION MIX — COLUMN ARITHMETIC (this topic only):\n- At least 2 items MUST be interactionType \"numeric_entry\" with params:{a,b,layout:\"vertical\",operation:\"add\"}, answerFormula:\"a + b\", question \"Add.\", options []. The figure is stacked digits, a line, and the answer underneath — never a shopkeeper story.\n- Use drag_to_target only when both addends are small enough to place as icons (target ≤ 20). Set activity:\"count_into_box\", params:{a,b,target,objectPool,objectKind} with objectKind from: ball, banana, apple, orange, mango, bead, block, counter, spoon, pencil, crayon, hen, shell, star.\n- Remaining items: multiple_choice. Use {diagramType:\"object_quantity\",params:{objectKind,count}} picture options when the choice is a quantity of a named object. Keep plain-text options for abstract comparisons and number patterns.\n- Vertical column layout is ONLY for two-operand add. Do not put it on word-problem MCQ.",
+    "generatedCount": 6,
+    "types": {
+      "numeric_entry": 2,
+      "multiple_choice": 3,
+      "drag_to_target": 1
+    },
+    "matchingPairs": [],
+    "oddOneOut": [],
+    "samples": [
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Add.",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [],
+        "diagramType": null,
+        "explanation": "Add ones: 4 + 3 = 7. Add tens: 2 + 5 = 7. Add hundreds: 3 + 1 = 4."
+      },
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Add.",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [],
+        "diagramType": null,
+        "explanation": "Add ones: 2 + 4 = 6. Add tens: 1 + 7 = 8. Add hundreds: 5 + 2 = 7."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A shopkeeper has 236 oranges. On Monday, she buys 142 more oranges. How many oranges does she have now?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "378 oranges",
+          "368 oranges",
+          "478 oranges",
+          "358 oranges"
+        ],
+        "diagramType": "object_quantity",
+        "explanation": "236 + 142: add ones 6+2=8, tens 3+4=7, hundreds 2+1=3."
+      },
+      {
+        "interactionType": "drag_to_target",
+        "stem": "Move 8 beads and 5 beads into the box. How many beads are in the box?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [],
+        "diagramType": null,
+        "explanation": "8 beads and 5 beads make 13 beads in total."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A book costs 315 shillings. A pencil costs 120 shillings. How much money do they cost together?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "435 shillings",
+          "425 shillings",
+          "335 shillings",
+          "445 shillings"
+        ],
+        "diagramType": "object_quantity",
+        "explanation": "315 + 120: 5+0=5, 1+2=3, 3+1=4. Answer is 435 shillings."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Count the stars in each group and add them.",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          {
+            "diagramType": "object_quantity",
+            "params": {
+              "objectKind": "star",
+              "count": 14
+            }
+          },
+          {
+            "diagramType": "object_quantity",
+            "params": {
+              "objectKind": "star",
+              "count": 13
+            }
+          },
+          {
+            "diagramType": "object_quantity",
+            "params": {
+              "objectKind": "star",
+              "count": 15
+            }
+          }
+        ],
+        "diagramType": "object_quantity",
+        "explanation": "First group has 6 stars. Second group has 8 stars. Total is 14 stars."
+      }
+    ],
+    "plantPartMentions": []
+  },
+  "social-studies": {
+    "label": "social-studies",
+    "mixKey": "social_studies",
+    "grade": "4",
+    "subject": "Social Studies",
+    "topic": "Leaders and their roles",
+    "mixBlock": "INTERACTION MIX — SOCIAL STUDIES:\n- Default to multiple_choice. Set interactionType \"multiple_choice\" on those items.\n- Include exactly 1 matching_pairs item when an outcome is pairing people, figures, or places to roles, events, or categories. Ground pairings in this sub-strand (Leaders and their roles): Match community leaders and Kenyan figures to the work or events they are known for; Describe the role of a chief, a teacher and a parent in the community. Shape: left (3-4 names), right (matching roles/events/places), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.\n- Remaining items stay multiple_choice.\n- Do NOT use numeric_entry with a vertical column — that layout is only for addition/subtraction computation.\n- Do NOT use drag_to_target unless the task is literally counting objects into a set.\n- Visual items MUST include a real \"diagram\" object (see below). Parts/functions → labeled_boxes; processes → process_flow; contrasts → comparison.\n- Options stay plain text unless the choice itself is a figure or a countable quantity of a named object (ball, banana, apple, orange, mango, bead, block, counter, spoon, pencil, crayon, hen, shell, star).",
+    "mixRenderer": "INTERACTION MIX — SOCIAL STUDIES:\n- Default to multiple_choice. Set interactionType \"multiple_choice\" on those items.\n- Include exactly 1 matching_pairs item when an outcome is pairing people, figures, or places to roles, events, or categories. Ground pairings in this sub-strand (Leaders and their roles): Match community leaders and Kenyan figures to the work or events they are known for; Describe the role of a chief, a teacher and a parent in the community. Shape: left (3-4 names), right (matching roles/events/places), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.\n- Remaining items stay multiple_choice.\n- Do NOT use numeric_entry with a vertical column — that layout is only for addition/subtraction computation.\n- Do NOT use drag_to_target unless the task is literally counting objects into a set.\n- Visual items MUST include a real \"diagram\" object (see below). Parts/functions → labeled_boxes; processes → process_flow; contrasts → comparison.\n- Options stay plain text unless the choice itself is a figure or a countable quantity of a named object (ball, banana, apple, orange, mango, bead, block, counter, spoon, pencil, crayon, hen, shell, star).",
+    "generatedCount": 8,
+    "types": {
+      "multiple_choice": 7,
+      "matching_pairs": 1
+    },
+    "matchingPairs": [
+      {
+        "interactionType": "matching_pairs",
+        "stem": "Match each leader to the work they are known for.",
+        "left": [
+          "Wangari Maathai",
+          "Dedan Kimathi",
+          "A village chief",
+          "A teacher"
+        ],
+        "right": [
+          "Planted trees and protected the environment",
+          "Fought for freedom during the independence struggle",
+          "Settles disputes and keeps peace in the community",
+          "Guides learners to gain knowledge and skills"
+        ],
+        "correctPairs": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "options": [],
+        "diagramType": null,
+        "explanation": "Each leader has a unique contribution to Kenya and the community."
+      }
+    ],
+    "oddOneOut": [],
+    "samples": [
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A new family moves into your village. They ask who settles small disagreements between neighbours. Which leader should they visit?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "The chief",
+          "The school cook",
+          "The bus driver",
+          "The shopkeeper"
+        ],
+        "diagramType": null,
+        "explanation": "A chief helps settle disagreements and keeps peace in the community."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Jomo Kenyatta is remembered for leading Kenya to independence. What does independence mean for a country?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "The country rules itself",
+          "The country buys more food",
+          "The country builds taller houses",
+          "The country changes its flag colour"
+        ],
+        "diagramType": null,
+        "explanation": "Independence means a country governs itself and makes its own laws."
+      },
+      {
+        "interactionType": "matching_pairs",
+        "stem": "Match each leader to the work they are known for.",
+        "left": [
+          "Wangari Maathai",
+          "Dedan Kimathi",
+          "A village chief",
+          "A teacher"
+        ],
+        "right": [
+          "Planted trees and protected the environment",
+          "Fought for freedom during the independence struggle",
+          "Settles disputes and keeps peace in the community",
+          "Guides learners to gain knowledge and skills"
+        ],
+        "correctPairs": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "options": [],
+        "diagramType": null,
+        "explanation": "Each leader has a unique contribution to Kenya and the community."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A teacher notices a Grade 4 learner is struggling to read. What should the teacher do next?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Give extra reading practice and encourage the learner",
+          "Ignore the learner and move on",
+          "Tell the learner to stay home",
+          "Send the learner to the market"
+        ],
+        "diagramType": null,
+        "explanation": "A teacher guides every learner and gives support where needed."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A parent comes home from work tired. The children have not done their homework. What should the parent do first?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Rest a little, then help the children with homework",
+          "Scold the children and go to sleep",
+          "Ignore the homework completely",
+          "Send the children away from home"
+        ],
+        "diagramType": null,
+        "explanation": "A parent guides and supports children to learn good habits."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Which of these is a key duty of a parent in the community?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Providing food, shelter and love for the family",
+          "Collecting taxes from villagers",
+          "Making school timetables",
+          "Building roads across the county"
+        ],
+        "diagramType": null,
+        "explanation": "Parents care for their family's basic needs and wellbeing."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A dispute over a fence boundary between two farms has lasted for weeks. What should the chief do first?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Call both farmers to a meeting and hear each side",
+          "Punish one farmer without listening",
+          "Sell the land to a third person",
+          "Ignore the problem until it grows"
+        ],
+        "diagramType": null,
+        "explanation": "A chief listens to all sides before making a fair decision."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Which Kenyan leader is celebrated for planting millions of trees and winning the Nobel Peace Prize?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Wangari Maathai",
+          "Jomo Kenyatta",
+          "Dedan Kimathi",
+          "Daniel arap Moi"
+        ],
+        "diagramType": null,
+        "explanation": "Wangari Maathai led the Green Belt Movement and won the Nobel Peace Prize."
+      }
+    ],
+    "plantPartMentions": []
+  },
+  "g9-integrated-science": {
+    "label": "g9-integrated-science",
+    "mixKey": "sciences",
+    "grade": "9",
+    "subject": "Integrated Science",
+    "topic": "Elements, compounds and mixtures",
+    "mixBlock": "INTERACTION MIX — SCIENCE:\n- Most items: multiple_choice. Visual items MUST include a real \"diagram\" (labeled_boxes for parts, process_flow for processes, comparison for contrasts).\n- Include exactly 1 matching_pairs item when an outcome is pairing (item ↔ its function, role, or category). Ground pairings in this sub-strand (Elements, compounds and mixtures): Distinguish elements, compounds and mixtures; Relate particle arrangement to the properties of matter. Shape: left (3-4 names), right (matching functions/roles/categories), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.\n- Include exactly 1 odd_one_out item when an outcome is grouping/classification. Shape: options of 4 items, correctAnswerIndex is the one that does not belong.\n- Remaining items stay multiple_choice.\n- Do NOT use numeric_entry with a vertical column. Do NOT use drag_to_target unless the task is literally counting objects into a set.",
+    "mixRenderer": "INTERACTION MIX — SCIENCE:\n- Most items: multiple_choice. Visual items MUST include a real \"diagram\" (labeled_boxes for parts, process_flow for processes, comparison for contrasts).\n- Include exactly 1 matching_pairs item when an outcome is pairing (item ↔ its function, role, or category). Ground pairings in this sub-strand (Elements, compounds and mixtures): Distinguish elements, compounds and mixtures; Relate particle arrangement to the properties of matter. Shape: left (3-4 names), right (matching functions/roles/categories), correctPairs:[[leftIndex,rightIndex],...]. Do NOT force matching onto a single-fact identification question.\n- Include exactly 1 odd_one_out item when an outcome is grouping/classification. Shape: options of 4 items, correctAnswerIndex is the one that does not belong.\n- Remaining items stay multiple_choice.\n- Do NOT use numeric_entry with a vertical column. Do NOT use drag_to_target unless the task is literally counting objects into a set.",
+    "generatedCount": 8,
+    "types": {
+      "multiple_choice": 6,
+      "matching_pairs": 1,
+      "odd_one_out": 1
+    },
+    "matchingPairs": [
+      {
+        "interactionType": "matching_pairs",
+        "stem": "Match each substance to its correct classification based on what it is made of.",
+        "left": [
+          "Carbon dioxide (CO₂)",
+          "Air",
+          "Oxygen gas (O₂)",
+          "Brass"
+        ],
+        "right": [
+          "Compound",
+          "Mixture",
+          "Element",
+          "Mixture of metals (alloy)"
+        ],
+        "correctPairs": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "options": [],
+        "diagramType": null,
+        "explanation": "CO₂ is a compound; air and brass are mixtures; O₂ is an element."
+      }
+    ],
+    "oddOneOut": [
+      {
+        "interactionType": "odd_one_out",
+        "stem": "Which of the following does NOT belong with the others?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Salt water",
+          "Sugar solution",
+          "Carbon dioxide",
+          "Muddy water"
+        ],
+        "diagramType": null,
+        "explanation": "Carbon dioxide is a compound; the others are mixtures."
+      }
+    ],
+    "samples": [
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A lab technician mixes iron filings and sulfur powder in a dish. She then holds a magnet under the dish. What will she observe, and what does this tell her about the mixture?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "The iron is attracted to the magnet and separates from the sulfur, showing it is a mixture.",
+          "The sulfur is attracted to the magnet and separates from the iron, showing it is a compound.",
+          "Nothing moves because iron and sulfur form a compound when mixed.",
+          "Both substances move together, proving they have chemically combined."
+        ],
+        "diagramType": null,
+        "explanation": "Iron keeps its magnetic property in a mixture, so it can be separated physically."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "The diagrams below show the particles in four sealed jars at room temperature. Which jar contains a compound?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          {
+            "diagramType": "comparison",
+            "params": {
+              "leftLabel": "Jar A",
+              "rightLabel": "Jar B",
+              "leftItems": [
+                "separate single atoms of one type",
+                "no bonds between atoms"
+              ],
+              "rightItems": [
+                "groups of two different atoms bonded",
+                "no atoms of one type alone"
+              ]
+            }
+          },
+          {
+            "diagramType": "comparison",
+            "params": {
+              "leftLabel": "Jar C",
+              "rightLabel": "Jar D",
+              "leftItems": [
+                "two different atom types loose and uncombined",
+                "single circles and squares mixed"
+              ],
+              "rightItems": [
+                "two different atom types separated into layers",
+                "squares at bottom, circles on top"
+              ]
+            }
+          }
+        ],
+        "diagramType": "comparison",
+        "explanation": "Jar B contains bonded pairs of different atoms, which is the mark of a compound."
+      },
+      {
+        "interactionType": "matching_pairs",
+        "stem": "Match each substance to its correct classification based on what it is made of.",
+        "left": [
+          "Carbon dioxide (CO₂)",
+          "Air",
+          "Oxygen gas (O₂)",
+          "Brass"
+        ],
+        "right": [
+          "Compound",
+          "Mixture",
+          "Element",
+          "Mixture of metals (alloy)"
+        ],
+        "correctPairs": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "options": [],
+        "diagramType": null,
+        "explanation": "CO₂ is a compound; air and brass are mixtures; O₂ is an element."
+      },
+      {
+        "interactionType": "odd_one_out",
+        "stem": "Which of the following does NOT belong with the others?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Salt water",
+          "Sugar solution",
+          "Carbon dioxide",
+          "Muddy water"
+        ],
+        "diagramType": null,
+        "explanation": "Carbon dioxide is a compound; the others are mixtures."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A student heats a white solid in a test tube. A colourless gas is released and a black solid remains. The white solid cannot be turned back into its original form by cooling. Which statement best explains this observation?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "The white solid was a compound that decomposed into two different substances.",
+          "The white solid was a mixture that separated into its components.",
+          "The white solid was an element that changed colour when heated.",
+          "The white solid was a compound but heating only caused a physical change."
+        ],
+        "diagramType": null,
+        "explanation": "Forming a new gas and a new solid means a chemical change occurred."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "Why does a sample of copper metal conduct electricity, while a sample of solid sulfur does not?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Copper atoms have free-moving outer electrons, but sulfur atoms hold their electrons tightly.",
+          "Copper is a compound and sulfur is an element, so only compounds conduct.",
+          "Sulfur atoms are larger than copper atoms, so they block electric current.",
+          "Copper atoms are softer than sulfur atoms, allowing electricity to pass through."
+        ],
+        "diagramType": null,
+        "explanation": "Metals like copper have delocalised electrons; non-metals like sulfur do not."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "The diagram below shows particle arrangements in three states of matter. Which letter shows a state where particles have the most energy and are farthest apart?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          {
+            "diagramType": "labeled_boxes",
+            "params": {
+              "items": [
+                {
+                  "label": "A",
+                  "text": "Particles packed tightly in regular rows"
+                },
+                {
+                  "label": "B",
+                  "text": "Particles close but sliding past each other"
+                },
+                {
+                  "label": "C",
+                  "text": "Particles far apart and moving in all directions"
+                }
+              ]
+            }
+          },
+          {
+            "diagramType": "labeled_boxes",
+            "params": {
+              "items": [
+                {
+                  "label": "A",
+                  "text": "Particles in a fixed lattice with slight vibration"
+                },
+                {
+                  "label": "B",
+                  "text": "Particles flowing over each other"
+                },
+                {
+                  "label": "C",
+                  "text": "Particles flying freely with large gaps"
+                }
+              ]
+            }
+          }
+        ],
+        "diagramType": "labeled_boxes",
+        "explanation": "Gas particles have the most energy and largest gaps between them."
+      },
+      {
+        "interactionType": "multiple_choice",
+        "stem": "A student adds a drop of blue ink to a beaker of water. After 10 minutes, the water is evenly pale blue. Which statement about the particles explains this?",
+        "left": null,
+        "right": null,
+        "correctPairs": null,
+        "options": [
+          "Water particles move constantly and spread the ink particles throughout the beaker.",
+          "Ink particles are heavier than water, so they sink and then dissolve.",
+          "Water particles reacted chemically with the ink to create a new blue compound.",
+          "Ink particles stopped moving once they entered the water."
+        ],
+        "diagramType": null,
+        "explanation": "Diffusion happens because water particles move and bump ink particles around."
+      }
+    ],
+    "plantPartMentions": []
+  }
+}

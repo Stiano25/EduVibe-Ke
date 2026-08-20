@@ -1,4 +1,5 @@
 import { DEFAULT_OBJECT_KIND, inferObjectKind, isObjectKind, objectIconSvg } from '../../utils/objectKinds.js';
+import { resolveNumberLineRange } from '../../utils/magnitudeVisuals.js';
 
 /** Escape text for SVG attribute / text nodes. */
 const esc = (s = '') =>
@@ -53,10 +54,9 @@ const svgWrap = (inner, w = 640, h = 280) =>
   ${inner}
 </svg>`;
 
-/** Number line: min, max, step?, highlight?, label? */
+/** Number line: min, max, step?, highlight?, label? — start/end alias min/max. */
 export const renderNumberLine = (params = {}) => {
-  const min = Number.isFinite(Number(params.min)) ? Number(params.min) : 0;
-  const max = Number.isFinite(Number(params.max)) ? Number(params.max) : 10;
+  const { min, max } = resolveNumberLineRange(params);
   const step = Number(params.step) > 0 ? Number(params.step) : 1;
   const highlight = params.highlight != null ? Number(params.highlight) : null;
   const label = params.label || '';

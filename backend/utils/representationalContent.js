@@ -13,6 +13,11 @@ import {
   normalizeQuizOption,
   optionDisplayText
 } from './quizOptions.js';
+import {
+  OBJECT_QUANTITY_CEILING,
+  integerQuantitiesFromText,
+  quantitiesExceedObjectCeiling
+} from './magnitudeVisuals.js';
 
 const OBJECT_QUANTITY_CUE =
   /\b(how many|altogether|in all|count|show this many|draw enough|group of)\b/i;
@@ -25,8 +30,11 @@ const ABSTRACT_COMPARE =
 
 export const isObjectQuantityContent = (text = '') => {
   const t = String(text || '');
-  if (namesCountableObject(t) && OBJECT_QUANTITY_CUE.test(t)) return true;
-  if (namesCountableObject(t) && /\b\d+\b/.test(t)) return true;
+  if (!namesCountableObject(t)) return false;
+  const quantities = integerQuantitiesFromText(t);
+  if (quantitiesExceedObjectCeiling(quantities)) return false;
+  if (OBJECT_QUANTITY_CUE.test(t)) return true;
+  if (/\b\d+\b/.test(t)) return true;
   return false;
 };
 
@@ -68,7 +76,7 @@ export const coercePictureOptions = (options = [], stem = '') => {
   const list = Array.isArray(options) ? options : [];
   const kind = inferObjectKind(stem) || 'bead';
   const stemWantsPictures =
-    isObjectQuantityContent(stem) || isGeometricContent(stem) || namesCountableObject(stem);
+    isObjectQuantityContent(stem) || isGeometricContent(stem);
   const abstract = isAbstractNumericContent(stem);
 
   return list.map((option) => {
@@ -77,7 +85,7 @@ export const coercePictureOptions = (options = [], stem = '') => {
     if (isVisualOption(dotted)) return dotted;
     if (abstract || !stemWantsPictures) return normalizeQuizOption(option);
     const n = integerFromOption(option);
-    if (n != null && n >= 1 && n <= 20 && isObjectQuantityContent(stem)) {
+    if (n != null && n >= 1 && n <= OBJECT_QUANTITY_CEILING && isObjectQuantityContent(stem)) {
       return { diagramType: 'object_quantity', params: { objectKind: kind, count: n } };
     }
     return normalizeQuizOption(option);

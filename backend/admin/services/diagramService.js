@@ -4,6 +4,16 @@ import {
   inferGeometryDiagramType,
   isObjectQuantityContent
 } from '../../utils/representationalContent.js';
+import {
+  integerQuantitiesFromText,
+  mergeDiagramParams,
+  quantitiesExceedObjectCeiling
+} from '../../utils/magnitudeVisuals.js';
+
+const countVisualForText = (t) => {
+  if (quantitiesExceedObjectCeiling(integerQuantitiesFromText(t))) return 'place_value';
+  return namesCountableObject(t) ? 'object_quantity' : 'counting_circles';
+};
 
 /**
  * Infer diagram type from free-text brief when AI omits diagramType.
@@ -21,7 +31,7 @@ export const inferDiagramType = (brief = '', skillFocus = '', { youngGrade = fal
       namesCountableObject(t) ||
       /count(ing)?|counters?|how\s*many|altogether|in\s*all|group\s*of|show\s*this\s*many/.test(t)
     ) {
-      return namesCountableObject(t) ? 'object_quantity' : 'counting_circles';
+      return countVisualForText(t);
     }
     if (/number\s*line|numberline|count\s*on|jump\s*(of|to|forward)|order\s*the\s*numbers/.test(t)) {
       return 'number_line';
@@ -40,7 +50,7 @@ export const inferDiagramType = (brief = '', skillFocus = '', { youngGrade = fal
     namesCountableObject(t) ||
     /count(ing)?|counters?|circles?|dots?|ten\s*frame|objects?\s*to\s*count|how\s*many/.test(t)
   ) {
-    return namesCountableObject(t) ? 'object_quantity' : 'counting_circles';
+    return countVisualForText(t);
   }
   if (/indic(es|ex)|exponent|power\s*of|squared|cubed|\^[0-9]|base\s*and\s*power/.test(t)) {
     return 'indices';
@@ -67,7 +77,7 @@ const defaultParamsForType = (diagramType, brief, skillFocus) => {
     case 'bar_model':
       return { label, segments: [{ value: 2, label: 'Part A' }, { value: 3, label: 'Part B' }] };
     case 'place_value':
-      return { number: 245, label, headers: ['H', 'T', 'O'] };
+      return { label, headers: ['H', 'T', 'O'] };
     case 'process_flow':
       return { title: label, steps: ['Observe', 'Explain', 'Apply'] };
     case 'comparison':
@@ -125,13 +135,14 @@ export const renderVisualBriefToSvg = (briefObj = {}) => {
     diagramType = inferDiagramType(brief, skillFocus);
   }
 
-  const rawParams = {
-    ...defaultParamsForType(diagramType, brief, skillFocus),
-    ...(briefObj.params && typeof briefObj.params === 'object' ? briefObj.params : {}),
-    brief,
-    skillFocus,
-    label: briefObj.params?.label || skillFocus || brief.slice(0, 60)
-  };
+  const rawParams = mergeDiagramParams(
+    diagramType,
+    briefObj.params && typeof briefObj.params === 'object' ? briefObj.params : {},
+    defaultParamsForType(diagramType, brief, skillFocus)
+  );
+  rawParams.brief = brief;
+  rawParams.skillFocus = skillFocus;
+  if (!rawParams.label) rawParams.label = skillFocus || brief.slice(0, 60);
   const params =
     diagramType === 'labeled_boxes' ? coerceLabeledBoxesParams(rawParams) : rawParams;
 

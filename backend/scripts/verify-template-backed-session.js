@@ -141,6 +141,18 @@ const ncOutcomes = ['represent numbers 1-30 using concrete objects'];
 assert(resolveContentSource(ncCtx, ncOutcomes) === QUIZ_SOURCE_TEMPLATES, 'represent-numbers is templatable');
 const sortOutcomes = ['sort and group objects according to different attributes within the classroom'];
 assert(resolveContentSource(ncCtx, sortOutcomes) !== QUIZ_SOURCE_TEMPLATES, 'sort/group stays fixed-pool');
+assert(
+  resolveContentSource(additionCtx, [
+    'work out missing numbers in patterns involving addition of whole numbers up to 100'
+  ]) !== QUIZ_SOURCE_TEMPLATES,
+  'G1 Addition missing-number patterns stay fixed-pool'
+);
+assert(
+  resolveContentSource(additionCtx, [
+    'add 3-single digit numbers up to a sum of 10 in different contexts'
+  ]) !== QUIZ_SOURCE_TEMPLATES,
+  'G1 three-addend addition is not the two-addend singles ladder'
+);
 
 const scienceCtx = {
   grade: '3',

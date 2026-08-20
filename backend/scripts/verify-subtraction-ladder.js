@@ -26,9 +26,10 @@ import {
   targetRung,
   templatesForSession,
   rungOf,
-  templateCoverageReport
+  templateCoverageReport,
+  RUNG_ORDER
 } from '../utils/templateLadders.js';
-import { QUIZ_SOURCE_TEMPLATES } from '../utils/quizSessionSize.js';
+import { QUIZ_SOURCE_TEMPLATES, QUIZ_SOURCE_FIXED_POOL } from '../utils/quizSessionSize.js';
 import {
   createAdaptiveSession,
   advanceAdaptiveSession
@@ -109,16 +110,12 @@ assert(
 
 const inverseAttached = laddersForOutcomes(subtractionCtx, [INVERSE_OUTCOME]);
 assert(
-  inverseAttached.length >= 1 && inverseAttached.every((t) => t.family === 'subtraction'),
-  'unmatched inverse outcome defaults to the easiest subtraction rung, never addition'
+  inverseAttached.length === 0,
+  'unmatched inverse-relationship outcome attaches no subtraction templates'
 );
 assert(
-  inverseAttached.every((t) => rungOf(t) === 'single_digit_minus_single_digit'),
-  'inverse-relationship lesson homes at singles, not 2-digit drills'
-);
-assert(
-  inverseAttached.every((t) => t.answerFormula === 'a - b'),
-  'attached formulas are a - b, never a + b'
+  resolveContentSource(subtractionCtx, [INVERSE_OUTCOME]) === QUIZ_SOURCE_FIXED_POOL,
+  'unmatched inverse-relationship outcome routes to the bank, not a default rung'
 );
 
 const tensCollision = laddersForOutcomes(subtractionCtx, [SUB_TENS_OUTCOME]);
@@ -294,7 +291,10 @@ const twoOneAttached = laddersForOutcomes(subtractionCtx, [twoOneOutcome]);
 const twoOneRungs = new Set(twoOneAttached.map((t) => rungOf(t)));
 assert(twoOneRungs.has('single_digit_minus_single_digit'), '2-digit−1-digit lesson keeps singles for drop');
 assert(twoOneRungs.has('two_digit_minus_one_digit_no_borrow'), '2-digit−1-digit home attached');
-assert(!twoOneRungs.has('multiples_of_ten_minus_multiples_of_ten'), 'tens is a different lesson');
+assert(
+  !twoOneRungs.has('two_digit_minus_two_digit_no_borrow'),
+  'G1 2-digit−1-digit lesson does not attach the Grade 2 2-digit−2-digit rung'
+);
 
 const lesson = {
   id: 'subtraction-ladder-session',
@@ -411,6 +411,74 @@ console.log('mastery-beyond-home UX', {
   done: masteredTrace.done,
   note: 'Session ends with meta.phase=done / progressLabel Complete after mainTarget items. No copy says this lesson has no harder rung — next lesson is unit gating.'
 });
+
+console.log('\n=== GRADE 2 TWO-DIGIT MINUS TWO-DIGIT (NOW REGISTERED) ===');
+const g2SubCtx = {
+  grade: '2',
+  subject: { name: 'Mathematics' },
+  subStrand: { name: '1.5 Subtraction' }
+};
+const G2_TWO_TWO_OUTCOME = 'subtract up to 2-digit numbers without regrouping';
+assert(
+  detectTemplatableSkill(g2SubCtx) === 'subtraction',
+  'Grade 2 Subtraction is now a registered template family'
+);
+assert(
+  resolveContentSource(g2SubCtx, [G2_TWO_TWO_OUTCOME]) === QUIZ_SOURCE_TEMPLATES,
+  'Grade 2 2-digit−2-digit outcome uses templates, not the bank'
+);
+assert(
+  RUNG_ORDER.subtraction.includes('two_digit_minus_two_digit_no_borrow'),
+  'RUNG_ORDER lists the Grade 2 subtraction rung so BKT can target it'
+);
+assert(
+  RUNG_ORDER.subtraction[RUNG_ORDER.subtraction.length - 1] === 'two_digit_minus_two_digit_no_borrow',
+  '2-digit−2-digit is the hardest subtraction rung (after G1 singles, 2-1, tens)'
+);
+
+const g2Homes = homeRungs('subtraction', [G2_TWO_TWO_OUTCOME], [], '2');
+assert(
+  g2Homes.has('two_digit_minus_two_digit_no_borrow'),
+  'Grade 2 outcome homes at 2-digit−2-digit'
+);
+const g2Attached = laddersForOutcomes(g2SubCtx, [G2_TWO_TWO_OUTCOME]);
+const g2Rungs = new Set(g2Attached.map((t) => rungOf(t)));
+assert(g2Rungs.has('single_digit_minus_single_digit'), 'G2 lesson keeps singles for BKT drop');
+assert(g2Rungs.has('two_digit_minus_one_digit_no_borrow'), 'G2 lesson keeps 2-1 for BKT drop');
+assert(g2Rungs.has('multiples_of_ten_minus_multiples_of_ten'), 'G2 lesson keeps tens for BKT drop');
+assert(g2Rungs.has('two_digit_minus_two_digit_no_borrow'), 'G2 home rung is attached');
+assert(
+  g2Attached.some((t) => t.id === GRADE2_TWO_DIGIT_MINUS_TWO_DIGIT.id),
+  'registered Grade 2 template is on the live ladder'
+);
+
+assert(
+  targetRung({
+    family: 'subtraction',
+    homeRungs: g2Homes,
+    mastery: { status: 'mastered', bktPKnow: 0.95 }
+  }) === 'two_digit_minus_two_digit_no_borrow',
+  'mastered G2 learner stays on the home 2-digit−2-digit rung (nothing harder)'
+);
+assert(
+  targetRung({
+    family: 'subtraction',
+    homeRungs: g2Homes,
+    mastery: { status: 'struggling', bktPKnow: 0.2 }
+  }) === 'multiples_of_ten_minus_multiples_of_ten',
+  'struggling G2 learner drops one rung via RUNG_ORDER, not an ad-hoc branch'
+);
+
+const g2Seeds = seedQuestionsFromTemplates(
+  g2Attached.filter((t) => rungOf(t) === 'two_digit_minus_two_digit_no_borrow')
+);
+assert(g2Seeds.length === 1, 'G2 home seed instantiates');
+assert(g2Seeds[0].params.operation === 'subtract', 'G2 seed is vertical subtract');
+assert(g2Seeds[0].params.a === 45 && g2Seeds[0].params.b === 21, 'G2 seed pair is 45-21');
+assert(
+  expectedScalarForQuestion(g2Seeds[0]) === 24,
+  'G2 seed grades 45-21=24'
+);
 
 console.log('\nverify-subtraction-ladder: OK', reports);
 

@@ -41,7 +41,7 @@ import {
   resolveScaffoldCarry
 } from '../../utils/additionLayout.js';
 import { additionWorkedStepTexts } from '../../utils/additionWorkedExample.js';
-import { applyQuizQualityGates } from '../../utils/quizQualityGates.js';
+import { applyQuizQualityGates, clearVerticalInstructionNoQuestionFlags } from '../../utils/quizQualityGates.js';
 import { inferObjectKind, namesCountableObject } from '../../utils/objectKinds.js';
 import { isMatchingPairsQuestion, normalizeMatchingPairs } from '../../utils/matchingPairs.js';
 import { isOddOneOutQuestion, itemsFromOddOneOut } from '../../utils/oddOneOut.js';
@@ -52,6 +52,16 @@ import {
   objectQuantityParamsFromQuestion,
   shouldUseRepresentationalDiagram
 } from '../../utils/representationalContent.js';
+import {
+  CONCRETE_DIAGRAM_MAGNITUDE_LINE,
+  applyMagnitudeCaps,
+  integerQuantitiesFromText,
+  mergeDiagramParams,
+  numbersFromText,
+  prefersConcreteDiagrams,
+  quantitiesExceedObjectCeiling,
+  seedMagnitudeParams
+} from '../../utils/magnitudeVisuals.js';
 import { DIAGRAM_TYPES, coerceLabeledBoxesParams } from './diagramTemplates.js';
 import { inferDiagramType } from './diagramService.js';
 import {
@@ -136,11 +146,11 @@ export const getComplexityBand = (gradeNumber) => {
   return COMPLEXITY_BANDS.find((band) => n <= band.maxGradeNumber) || TEEN_BAND;
 };
 
-/** Grade 3 and below read concrete pictures far better than abstract flow boxes. */
-export const prefersConcreteDiagrams = (gradeNumber) => {
-  const n = Number(gradeNumber);
-  return Number.isFinite(n) && n <= 3;
-};
+export { prefersConcreteDiagrams };
+
+/** Grade 3 and below read concrete pictures far better than abstract flow boxes — unless the numbers are too large to count. */
+export const prefersConcreteCountVisuals = (gradeNumber, quantities) =>
+  prefersConcreteDiagrams(gradeNumber, quantities);
 
 /** One-line shorthand for the ceiling, reused in band text and QA. */
 const bandLimitsText = (band) =>
@@ -226,9 +236,6 @@ const isTeachingBriefId = (id) => {
 };
 
 /** Pull numbers from stem (incl. KaTeX) to seed diagram params when AI is vague. */
-const numbersFromText = (text = '') =>
-  [...String(text).matchAll(/\d+(?:\.\d+)?/g)].map((m) => Number(m[0])).filter((n) => Number.isFinite(n));
-
 const seedParamsFromStem = (diagramType, params, questionText) => {
   const p = { ...(params || {}) };
   const nums = numbersFromText(questionText);
@@ -237,16 +244,11 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
     String(questionText).match(/(\d+)\s*\/\s*(\d+)/);
 
   switch (diagramType) {
-    case 'number_line': {
-      if (nums.length >= 1) p.highlight = nums[0];
-      const hi = Number(p.highlight);
-      if (Number.isFinite(hi)) {
-        p.min = Math.min(0, ...nums, hi);
-        p.max = Math.max(10, ...nums, hi + 1);
-        p.step = p.step || 1;
-      }
-      break;
-    }
+    case 'number_line':
+    case 'object_quantity':
+    case 'counting_circles':
+    case 'place_value':
+      return seedMagnitudeParams(diagramType, p, questionText);
     case 'fraction_bars':
       if (frac) {
         p.shaded = Number(frac[1]);
@@ -268,11 +270,6 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
         p.segments = [{ value: nums[0], label: String(nums[0]) }];
       }
       break;
-    case 'place_value': {
-      const n = nums.find((x) => x >= 10) ?? nums[0];
-      if (n != null) p.number = Math.trunc(n);
-      break;
-    }
     case 'coordinate_plane': {
       // Prefer fractions like -2/3 for slopes
       const slopes = [
@@ -293,23 +290,6 @@ const seedParamsFromStem = (diagramType, params, questionText) => {
       p.yMin = p.yMin ?? -5;
       p.yMax = p.yMax ?? 5;
       p.title = p.title || p.label || 'Lines on axes';
-      break;
-    }
-    case 'counting_circles':
-      if (nums.length >= 1) p.count = Math.min(Math.max(Math.trunc(nums[0]), 1), 40);
-      break;
-    case 'object_quantity': {
-      const kind = inferObjectKind(questionText) || p.objectKind || 'bead';
-      p.objectKind = kind;
-      if (Array.isArray(p.groups) && p.groups.length >= 2) break;
-      if (nums.length >= 2 && namesCountableObject(questionText)) {
-        p.groups = [
-          Math.min(20, Math.max(0, Math.trunc(nums[0]))),
-          Math.min(20, Math.max(0, Math.trunc(nums[1])))
-        ];
-      } else if (nums.length >= 1) {
-        p.count = Math.min(Math.max(Math.trunc(nums[0]), 1), 40);
-      }
       break;
     }
     case 'rectangle':
@@ -644,9 +624,14 @@ export const normalizeQuiz = (
     let persistedDiagram = null;
     const embeddedDiagram = q.diagram && typeof q.diagram === 'object' ? q.diagram : null;
     const authoredBrief = normalizeOutcomeText(embeddedDiagram?.brief || q.diagramBrief || '');
+    const figureQuantities = integerQuantitiesFromText(
+      `${q.question || ''} ${authoredBrief} ${JSON.stringify(q.params || {})} ${JSON.stringify(embeddedDiagram?.params || {})}`
+    );
     const wantsObjectFigure =
       (!isDrag && !isMatching && shouldUseRepresentationalDiagram(`${q.question || ''} ${authoredBrief}`)) ||
-      (isNumeric && namesCountableObject(q.question || ''));
+      (isNumeric &&
+        namesCountableObject(q.question || '') &&
+        prefersConcreteDiagrams(gradeNumber, figureQuantities));
 
     if (modality === 'visual' && !authoredBrief && !isDrag && !isMatching && !wantsObjectFigure) {
       // The model claimed a visual but never designed one. Shipping the old
@@ -669,15 +654,18 @@ export const normalizeQuiz = (
       ).trim();
       if (!DIAGRAM_TYPES.has(diagramType)) {
         diagramType = inferDiagramType(figureText, skillFocus, {
-          youngGrade: prefersConcreteDiagrams(gradeNumber)
+          youngGrade: prefersConcreteDiagrams(gradeNumber, figureQuantities)
         });
       }
       const geo = inferGeometryDiagramType(figureText);
       if (geo) diagramType = geo;
+      const namedObject = namesCountableObject(figureText);
+      const smallEnoughToCount = !quantitiesExceedObjectCeiling(figureQuantities);
       if (
-        isObjectQuantityContent(figureText) ||
-        namesCountableObject(figureText) ||
-        diagramType === 'labeled_boxes' && namesCountableObject(figureText)
+        smallEnoughToCount &&
+        (isObjectQuantityContent(figureText) ||
+          namedObject ||
+          (diagramType === 'labeled_boxes' && namedObject))
       ) {
         diagramType = 'object_quantity';
       }
@@ -688,7 +676,7 @@ export const normalizeQuiz = (
         diagramType = 'coordinate_plane';
       }
       diagramType = clampDiagramType(diagramType, profile);
-      if (diagramType === 'labeled_boxes' && namesCountableObject(figureText)) {
+      if (diagramType === 'labeled_boxes' && namedObject && smallEnoughToCount) {
         diagramType = 'object_quantity';
       }
       let params =
@@ -703,38 +691,58 @@ export const normalizeQuiz = (
       }
       params = seedParamsFromStem(
         diagramType,
-        params ? { ...defaultParamsHint(diagramType), ...params } : defaultParamsHint(diagramType),
+        params ? mergeDiagramParams(diagramType, params, defaultParamsHint(diagramType)) : defaultParamsHint(diagramType),
         figureStem
       );
       if (diagramType === 'labeled_boxes') {
         params = coerceLabeledBoxesParams(params);
       }
 
-      const requestedId = String(q.diagramBriefId || embedded?.id || '').trim();
-      const briefId =
-        requestedId && !isTeachingBriefId(requestedId)
-          ? requestedId.startsWith('qvb-')
-            ? requestedId
-            : `qvb-${requestedId}`
-          : `qvb-${qid}`;
-
-      questionBriefs.push({
-        id: briefId,
-        skillFocus,
-        outcomeKey: outcomeKey(skillFocus),
-        brief: authoredBrief || `${diagramType} for ${skillFocus}`,
+      const capped = applyMagnitudeCaps({
         diagramType,
         params,
-        scope: 'question',
-        questionId: qid
+        text: figureText,
+        interactionType,
+        questionParams: q.params,
+        preferPlaceValue: false
       });
-      diagramBriefId = briefId;
-      persistedDiagram = {
-        id: briefId,
-        diagramType,
-        params,
-        brief: authoredBrief || `${diagramType} for ${skillFocus}`
-      };
+      if (capped.dropVisual) {
+        modality = 'practice';
+        diagramBriefId = null;
+        persistedDiagram = null;
+      } else {
+        diagramType = capped.diagramType || diagramType;
+        params = capped.params || params;
+        if (diagramType === 'labeled_boxes') {
+          params = coerceLabeledBoxesParams(params);
+        }
+
+        const requestedId = String(q.diagramBriefId || embedded?.id || '').trim();
+        const briefId =
+          requestedId && !isTeachingBriefId(requestedId)
+            ? requestedId.startsWith('qvb-')
+              ? requestedId
+              : `qvb-${requestedId}`
+            : `qvb-${qid}`;
+
+        questionBriefs.push({
+          id: briefId,
+          skillFocus,
+          outcomeKey: outcomeKey(skillFocus),
+          brief: authoredBrief || `${diagramType} for ${skillFocus}`,
+          diagramType,
+          params,
+          scope: 'question',
+          questionId: qid
+        });
+        diagramBriefId = briefId;
+        persistedDiagram = {
+          id: briefId,
+          diagramType,
+          params,
+          brief: authoredBrief || `${diagramType} for ${skillFocus}`
+        };
+      }
     }
 
     let steps = Array.isArray(q.steps)
@@ -869,7 +877,7 @@ const defaultParamsHint = (diagramType) => {
     case 'bar_model':
       return { label: 'Bar model', segments: [{ value: 2, label: 'A' }, { value: 3, label: 'B' }] };
     case 'place_value':
-      return { number: 245, headers: ['H', 'T', 'O'], label: 'Place value' };
+      return { headers: ['H', 'T', 'O'], label: 'Place value' };
     case 'process_flow':
       return { title: 'Process', steps: ['Step 1', 'Step 2', 'Step 3'] };
     case 'comparison':
@@ -938,10 +946,24 @@ const normalizeVisualBriefs = (briefs, outcomes, profile) => {
         diagramType = 'coordinate_plane';
       }
       diagramType = clampDiagramType(diagramType, profile);
-      let params =
-        b.params && typeof b.params === 'object'
-          ? { ...defaultParamsHint(diagramType), ...b.params }
-          : defaultParamsHint(diagramType);
+      let params = mergeDiagramParams(
+        diagramType,
+        b.params && typeof b.params === 'object' ? b.params : {},
+        defaultParamsHint(diagramType)
+      );
+      params = seedParamsFromStem(diagramType, params, `${brief} ${skillFocus}`);
+      if (diagramType === 'labeled_boxes') {
+        params = coerceLabeledBoxesParams(params);
+      }
+      const capped = applyMagnitudeCaps({
+        diagramType,
+        params,
+        text: `${brief} ${skillFocus}`,
+        preferPlaceValue: true
+      });
+      if (capped.dropVisual) return null;
+      diagramType = capped.diagramType || diagramType;
+      params = capped.params || params;
       if (diagramType === 'labeled_boxes') {
         params = coerceLabeledBoxesParams(params);
       }
@@ -1472,7 +1494,7 @@ export const buildQuizChunkPrompt = (
           .join('\n')}\n`
       : '';
   const concreteDiagramLine = prefersConcreteDiagrams(ctx.gradeNumber)
-    ? `\nAt this grade prefer concrete figure types a child can literally count or point at — object_quantity (repeated icons of the named object), counting_circles (only when no object is named), number_line, fraction_bars, rectangle, cube. Do NOT use labeled_boxes for counting or "N of [object]" — that draws text in a rectangle, not the object.`
+    ? `\nAt this grade prefer concrete figure types a child can literally count or point at — object_quantity (repeated icons of the named object), counting_circles (only when no object is named), number_line, fraction_bars, rectangle, cube. Do NOT use labeled_boxes for counting or "N of [object]" — that draws text in a rectangle, not the object.\n${CONCRETE_DIAGRAM_MAGNITUDE_LINE}`
     : '';
   const countIntoBoxFit =
     prefersConcreteDiagrams(ctx.gradeNumber) &&
@@ -1737,7 +1759,7 @@ export const runQuizQAPass = async (
 ${band.rules.map((rule) => `   - ${rule}`).join('\n')}
    Each question below carries "w" (word count of the stem) and "s" (sentence count), already counted for you.
    A stem with w > ${band.maxWords}, or s > ${band.maxSentences}, or one of the clause structures listed above, EXCEEDS the ceiling.
-6. Has the stem been over-compressed? Flag it as "does not ask a question" if it is a bare statement or a comma splice that never actually asks anything, e.g. "A girl has 61 shillings, finds 7 more."`
+6. Has the stem been over-compressed? Flag it as "does not ask a question" if it is a bare statement or a comma splice that never actually asks anything, e.g. "A girl has 61 shillings, finds 7 more." Do NOT flag numeric_entry items whose stem is the instruction "Add." or "Subtract." with params.layout="vertical" and params a,b — that is a complete column-arithmetic item; the digits are the figure.`
     : `5. Is the question text unnecessarily wordy or convoluted for ${ageGroup}? Each question carries "w" (stem word count) and "s" (sentence count).`;
 
   const complexityInstruction = band.constrained
@@ -1763,6 +1785,7 @@ Return ONLY a compact JSON array, one entry per question in the same order:
 
 Only set passes_qa to false for genuine problems (ambiguity, multiple valid answers, factual error, unclear wording, over-complexity for the grade, answer already in the stem).
 Do not fail a question just for being easy or simple — that's expected for some Bloom levels.
+Do not fail numeric_entry with stem "Add." or "Subtract." when layout is vertical and a,b are present. Those are valid column items, not missing questions.
 ${complexityInstruction}
 Judge complexity against the stated grade only, never against what would suit an older learner.
 
@@ -1772,6 +1795,10 @@ ${JSON.stringify(
     i,
     q: q.question,
     t: q.interactionType || q.type || null,
+    layout: q.params?.layout || null,
+    pa: q.params?.a ?? null,
+    pb: q.params?.b ?? null,
+    op: q.params?.operation || null,
     o: q.options,
     a: q.correctAnswerIndex,
     left: q.left || null,
@@ -1824,6 +1851,12 @@ ${JSON.stringify(
     console.warn(
       `Quiz QA pass failed${label ? ` (${label})` : ''} — continuing without flags:`,
       err?.message || err
+    );
+  }
+  const cleared = clearVerticalInstructionNoQuestionFlags(questions);
+  if (cleared) {
+    console.log(
+      `Quiz QA pass${label ? ` (${label})` : ''}: cleared ${cleared} false-positive "no question" flag(s) on vertical Add./Subtract. items`
     );
   }
   return questions;

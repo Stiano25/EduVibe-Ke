@@ -1,0 +1,416 @@
+{
+  "bank": [
+    {
+      "id": "5c9ae193-bd87-4a98-92f3-916f4e0868c4",
+      "status": "approved",
+      "stem": "A shop had 325 mangoes. It sold 118 mangoes. How many mangoes are left?",
+      "beforeType": "place_value",
+      "beforeParams": {
+        "label": "325",
+        "number": 325,
+        "headers": [
+          "H",
+          "T",
+          "O"
+        ]
+      },
+      "afterType": "place_value",
+      "afterParams": {
+        "label": "325",
+        "number": 325,
+        "headers": [
+          "H",
+          "T",
+          "O"
+        ]
+      },
+      "changed": false
+    },
+    {
+      "id": "8d7f1c95-2b45-48fb-bbf4-f1c972681b28",
+      "status": "approved",
+      "stem": "A rope is 250 cm long. A child cuts off 135 cm. How long is the remaining rope?",
+      "beforeType": "number_line",
+      "beforeParams": {
+        "end": 251,
+        "max": 251,
+        "min": 0,
+        "step": 50,
+        "label": "Number line",
+        "start": 0,
+        "labels": [
+          "start",
+          "cut",
+          "end"
+        ],
+        "highlight": 250,
+        "markedPoints": [
+          0,
+          135,
+          250
+        ]
+      },
+      "afterType": "number_line",
+      "afterParams": {
+        "end": 251,
+        "max": 251,
+        "min": 0,
+        "step": 50,
+        "label": "Number line",
+        "start": 0,
+        "labels": [
+          "start",
+          "cut",
+          "end"
+        ],
+        "highlight": 250,
+        "markedPoints": [
+          0,
+          135,
+          250
+        ]
+      },
+      "changed": false
+    }
+  ],
+  "lessons": [
+    {
+      "id": "fcec0faf-a0e6-48c8-bc74-b1e26d8e5631",
+      "title": "Step-by-Step Column Subtraction Without Borrowing for Up to 3 Digits",
+      "grade": "3",
+      "briefs": [
+        {
+          "id": "vb-1",
+          "diagramType": "place_value",
+          "params": {
+            "ones": 3,
+            "tens": 3,
+            "label": "333",
+            "number": 333,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "hundreds": 3
+          }
+        },
+        {
+          "id": "vb-2",
+          "diagramType": "labeled_boxes",
+          "params": {
+            "items": [
+              {
+                "text": "$6 - 3 = 3$",
+                "label": "Ones"
+              },
+              {
+                "text": "$5 - 2 = 3$",
+                "label": "Tens"
+              },
+              {
+                "text": "$4 - 1 = 3$",
+                "label": "Hundreds"
+              }
+            ],
+            "title": "Subtract $456 - 123$"
+          }
+        },
+        {
+          "id": "qvb-q-6",
+          "diagramType": "place_value",
+          "params": {
+            "label": "325",
+            "number": 325,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ]
+          }
+        },
+        {
+          "id": "qvb-q-11",
+          "diagramType": "number_line",
+          "params": {
+            "end": 251,
+            "max": 251,
+            "min": 0,
+            "step": 50,
+            "label": "Number line",
+            "start": 0,
+            "labels": [
+              "start",
+              "cut",
+              "end"
+            ],
+            "highlight": 250,
+            "markedPoints": [
+              0,
+              135,
+              250
+            ]
+          }
+        },
+        {
+          "id": "qvb-q-3",
+          "diagramType": "place_value",
+          "params": {
+            "number": 250,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ],
+            "label": "250"
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-1",
+          "stem": "Which subtraction gives the smallest answer?",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-2",
+          "stem": "What is 603 − 258?",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-3",
+          "stem": "$934 - \\boxed{?} = 618$.",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-4",
+          "stem": "Find the missing number: 900, 850, 800, ____, 700",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-5",
+          "stem": "A shop had 325 mangoes. It sold 118 mangoes. How many mangoes are left?",
+          "diagramType": "place_value",
+          "params": {
+            "label": "325",
+            "number": 325,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ]
+          }
+        },
+        {
+          "id": "q-6",
+          "stem": "What is 800 − 356?",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-7",
+          "stem": "Count the balls: 12 balls in the box. Take 5 out. How many left?",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-8",
+          "stem": "What is 560 − 230?",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-9",
+          "stem": "Find the missing number: 1000, 920, 840, ____, 680",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-10",
+          "stem": "A rope is 250 cm long. A child cuts off 135 cm. How long is the remaining rope?",
+          "diagramType": "number_line",
+          "params": {
+            "end": 251,
+            "max": 251,
+            "min": 0,
+            "step": 50,
+            "label": "Number line",
+            "start": 0,
+            "labels": [
+              "start",
+              "cut",
+              "end"
+            ],
+            "highlight": 250,
+            "markedPoints": [
+              0,
+              135,
+              250
+            ]
+          }
+        },
+        {
+          "id": "q-11",
+          "stem": "A water tank has 875 liters. How much water was used if 462 liters are left?",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "q-12",
+          "stem": "A shopkeeper has 250 mangoes. He sells 135 mangoes. How many mangoes are left?",
+          "diagramType": "place_value",
+          "params": {
+            "label": "250",
+            "number": 250,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "d814e220-2b83-4b4b-babe-9cd24d6d1539",
+      "title": "Stacking for Straight Sums",
+      "grade": "3",
+      "briefs": [
+        {
+          "id": "vb-1",
+          "diagramType": "labeled_boxes",
+          "params": {
+            "items": [
+              {
+                "text": "$3$",
+                "label": "Hundreds"
+              },
+              {
+                "text": "$4$ and $2$",
+                "label": "Tens"
+              },
+              {
+                "text": "$2$ and $5$",
+                "label": "Ones"
+              }
+            ],
+            "title": "Stacking $342$ and $25$"
+          }
+        },
+        {
+          "id": "vb-2",
+          "diagramType": "number_line",
+          "params": {
+            "end": 367,
+            "max": 367,
+            "min": 342,
+            "step": 5,
+            "label": "Number line",
+            "start": 342,
+            "segments": [
+              34,
+              5
+            ],
+            "highlight": 342
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "seed-add-g3-3plus2-no-regroup",
+          "stem": "Add.",
+          "diagramType": null,
+          "params": null
+        }
+      ]
+    },
+    {
+      "id": "5185a690-f1a9-40ef-8829-0d5c0a72850c",
+      "title": "Subtracting Tens and Ones Step by Step",
+      "grade": "2",
+      "briefs": [
+        {
+          "id": "vb-1",
+          "diagramType": "place_value",
+          "params": {
+            "ones": 7,
+            "tens": 5,
+            "label": "57",
+            "number": 57,
+            "headers": [
+              "H",
+              "T",
+              "O"
+            ]
+          }
+        }
+      ],
+      "questions": [
+        {
+          "id": "seed-sub-singles-numeric",
+          "stem": "Subtract.",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "seed-sub-tens-numeric",
+          "stem": "Subtract.",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "seed-sub-two-one-numeric",
+          "stem": "Subtract.",
+          "diagramType": null,
+          "params": null
+        },
+        {
+          "id": "seed-sub-two-two-numeric",
+          "stem": "Subtract.",
+          "diagramType": null,
+          "params": null
+        }
+      ]
+    }
+  ],
+  "rejectedQa": [
+    {
+      "id": "f9f1116b-3eb6-4e78-8546-9c9847f0f91f",
+      "stem": "Subtract.",
+      "params": {
+        "a": 738,
+        "b": 415,
+        "layout": "vertical",
+        "operation": "subtract",
+        "scaffoldCarry": false
+      },
+      "previousStatus": "pending",
+      "previousIssue": null,
+      "qaFlagged": false,
+      "qaIssue": null,
+      "newStatus": "pending",
+      "autoApproved": false
+    },
+    {
+      "id": "04aec297-3216-4af8-94f8-e5624c785eb7",
+      "stem": "Subtract.",
+      "params": {
+        "a": 456,
+        "b": 213,
+        "layout": "vertical",
+        "operation": "subtract",
+        "scaffoldCarry": false
+      },
+      "previousStatus": "pending",
+      "previousIssue": null,
+      "qaFlagged": false,
+      "qaIssue": null,
+      "newStatus": "pending",
+      "autoApproved": false
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "g2Lesson": {
+    "id": "5185a690-f1a9-40ef-8829-0d5c0a72850c",
+    "title": "Subtracting Tens and Ones Step by Step",
+    "grade": "2",
+    "subject": "Mathematics",
+    "subStrand": "Subtraction",
+    "assignedOutcome": "subtract up to 2-digit numbers without regrouping",
+    "source": "templates",
+    "templateCount": 4,
+    "templateIds": [
+      "sub-singles-numeric",
+      "sub-tens-numeric",
+      "sub-two-one-numeric",
+      "sub-two-two-numeric"
+    ],
+    "rungs": [
+      "single_digit_minus_single_digit",
+      "multiples_of_ten_minus_multiples_of_ten",
+      "two_digit_minus_one_digit_no_borrow",
+      "two_digit_minus_two_digit_no_borrow"
+    ],
+    "seedCount": 4,
+    "seedSample": [
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Subtract.",
+        "a": 7,
+        "b": 3,
+        "layout": "vertical",
+        "operation": "subtract",
+        "answerFormula": "a - b",
+        "templateId": "sub-singles-numeric"
+      },
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Subtract.",
+        "a": 50,
+        "b": 20,
+        "layout": "vertical",
+        "operation": "subtract",
+        "answerFormula": "a - b",
+        "templateId": "sub-tens-numeric"
+      },
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Subtract.",
+        "a": 45,
+        "b": 2,
+        "layout": "vertical",
+        "operation": "subtract",
+        "answerFormula": "a - b",
+        "templateId": "sub-two-one-numeric"
+      }
+    ]
+  },
+  "g3Lesson": {
+    "id": "d814e220-2b83-4b4b-babe-9cd24d6d1539",
+    "title": "Stacking for Straight Sums",
+    "grade": "3",
+    "subject": "Mathematics",
+    "subStrand": "Addition",
+    "assignedOutcome": "add a 3-digit number to up to a 2-digit number without regrouping with sum not exceeding 1000",
+    "source": "templates",
+    "templateCount": 1,
+    "templateIds": [
+      "add-g3-3plus2-no-regroup"
+    ],
+    "rungs": [
+      "three_plus_two_no_regroup"
+    ],
+    "seedCount": 1,
+    "seedSample": [
+      {
+        "interactionType": "numeric_entry",
+        "stem": "Add.",
+        "a": 123,
+        "b": 45,
+        "layout": "vertical",
+        "operation": null,
+        "answerFormula": "a + b",
+        "templateId": "add-g3-3plus2-no-regroup"
+      }
+    ]
+  },
+  "untouched": {
+    "g3Subtraction": {
+      "grade": "3",
+      "subStrand": "Subtraction",
+      "family": null,
+      "contentSource": "fixed_pool",
+      "attached": []
+    },
+    "g3Multiplication": {
+      "grade": "3",
+      "subStrand": "Multiplication",
+      "family": null,
+      "contentSource": "fixed_pool",
+      "attached": []
+    },
+    "g3Division": {
+      "grade": "3",
+      "subStrand": "Division",
+      "family": null,
+      "contentSource": "fixed_pool",
+      "attached": []
+    }
+  }
+}
